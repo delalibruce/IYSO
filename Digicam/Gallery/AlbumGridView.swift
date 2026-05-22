@@ -9,19 +9,18 @@ private struct AlbumFrameKey: PreferenceKey {
     }
 }
 
-// Level 1 — date album grid ("iyso memory card").
 struct GalleryRootView: View {
     @ObservedObject var library: PhotoLibraryManager
 
-    @State private var navigationPath = NavigationPath()
+    @State private var navigationPath: [String] = []
 
     // Drag-to-combine state
     @State private var draggingAlbumID: String? = nil
-    @State private var dragLocation: CGPoint = .zero
-    @State private var dropTargetID: String? = nil
-    @State private var albumCellFrames: [String: CGRect] = [:]
+    @State private var dragPosition: CGPoint = .zero
+    @State private var hoverTargetID: String? = nil
+    @State private var cardFrames: [String: CGRect] = [:]
 
-    // Album context menu (shown after long-press with no drag)
+    // Context menu (long-press-no-drag)
     @State private var contextMenuAlbum: DateAlbum? = nil
     @State private var editingAlbum: DateAlbum? = nil
     @State private var albumPendingDelete: DateAlbum? = nil
@@ -48,7 +47,7 @@ struct GalleryRootView: View {
                 if let album = library.albums.first(where: { $0.id == albumID }) {
                     AlbumDetailView(
                         assets: album.assets,
-                        albumTitle: album.displayDate,
+                        albumTitle: album.displayTitle,
                         albumID: albumID,
                         library: library
                     )
@@ -56,9 +55,8 @@ struct GalleryRootView: View {
             }
         }
         .onAppear { library.requestAccessAndLoad() }
-        // Context menu for album cards (triggered by long-press with no drag)
         .confirmationDialog(
-            contextMenuAlbum?.displayDate ?? "",
+            contextMenuAlbum?.displayTitle ?? "",
             isPresented: Binding(get: { contextMenuAlbum != nil },
                                  set: { if !$0 { contextMenuAlbum = nil } }),
             titleVisibility: .visible
@@ -73,7 +71,7 @@ struct GalleryRootView: View {
             }
         }
         .confirmationDialog(
-            "Delete \"\(albumPendingDelete?.displayDate ?? "")\"?",
+            "Delete \"\(albumPendingDelete?.displayTitle ?? "")\"?",
             isPresented: $showDeleteAlbumConfirm,
             titleVisibility: .visible
         ) {
@@ -102,40 +100,40 @@ struct GalleryRootView: View {
                     .padding(.top, 65)
                     .padding(.bottom, 22)
 
-                if library.albums.isEmpty {
-                    emptyState
-                } else {
+                if !library.albums.isEmpty {
                     albumGrid
                 }
             }
             .padding(.bottom, 120)
         }
         .overlay(floatingDragCard)
-        .onPreferenceChange(AlbumFrameKey.self) { albumCellFrames = $0 }
-        .onAppear { resetDragState() }
+        .onPreferenceChange(AlbumFrameKey.self) { cardFrames = $0 }
+        .onAppear {
+            draggingAlbumID = nil
+            dragPosition = .zero
+            hoverTargetID = nil
+        }
     }
 
     private var albumGrid: some View {
-        let columns = Array(repeating: GridItem(.fixed(118), spacing: 7), count: 3)
-        return LazyVGrid(columns: columns, spacing: 17) {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 14), count: 2)
+        return LazyVGrid(columns: columns, spacing: 20) {
             ForEach(library.albums) { album in
                 let isDragging = draggingAlbumID == album.id
-                let isDropTarget = dropTargetID == album.id
+                let isHover = hoverTargetID == album.id
 
-                // Plain view — no NavigationLink, no Button wrapper, no pressed state.
-                // Tap and long-press are fully independent recognizers with no shared state.
-                AlbumCircleCell(album: album, library: library, diameter: 118)
+                AlbumCircleCell(album: album, library: library, diameter: 165)
                     .scaleEffect(isDragging ? 0.95 : 1.0)
                     .opacity(isDragging ? 0.3 : 1.0)
                     .overlay(
-                        isDropTarget
+                        isHover
                             ? Circle()
                                 .stroke(Color.white.opacity(0.6), lineWidth: 2)
-                                .frame(width: 118, height: 118)
+                                .frame(width: 165, height: 165)
                             : nil
                     )
                     .animation(.easeInOut(duration: 0.15), value: isDragging)
-                    .animation(.easeInOut(duration: 0.15), value: isDropTarget)
+                    .animation(.easeInOut(duration: 0.15), value: isHover)
                     .background(
                         GeometryReader { geo in
                             Color.clear.preference(
@@ -144,39 +142,43 @@ struct GalleryRootView: View {
                             )
                         }
                     )
+                    .onTapGesture {
+                        library.markSeen(albumID: album.id)
+                        navigationPath.append(album.id)
+                    }
                     .gesture(albumInteractionGesture(for: album))
             }
         }
         .padding(.leading, 13)
-        .padding(.trailing, 12)
+        .padding(.trailing, 13)
     }
 
-    // MARK: - Floating card during drag
+    // MARK: - Floating drag card
 
     @ViewBuilder
     private var floatingDragCard: some View {
         if let albumID = draggingAlbumID,
            let album = library.albums.first(where: { $0.id == albumID }),
-           dragLocation != .zero {
-            AlbumCircleCell(album: album, library: library, diameter: 118)
+           dragPosition != .zero {
+            AlbumCircleCell(album: album, library: library, diameter: 165)
                 .scaleEffect(1.07)
                 .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
-                .position(dragLocation)
+                .position(dragPosition)
                 .allowsHitTesting(false)
-                .animation(nil, value: dragLocation)
+                .animation(nil, value: dragPosition)
         }
     }
 
-    // MARK: - Interaction gesture (long-press → context menu or drag-to-combine)
+    // MARK: - Interaction gesture
+    //
+    // One recognizer handles all three outcomes:
+    //   .first(false)        — quick tap; .onTapGesture already navigated, do nothing
+    //   .first(true)         — held 0.6s, never moved 15pt → show context menu
+    //   .second(true, drag)  — held then dragged → combine albums
 
-    // Placed INSIDE the NavigationLink label so the child gesture has priority:
-    //   short tap  → long press fails  → NavigationLink activates (no delay)
-    //   0.65s hold → long press fires  → NavigationLink blocked
-    //     ↳ no significant drag → context menu (confirmationDialog)
-    //     ↳ drag > 15pt over target   → combine albums
     private func albumInteractionGesture(for album: DateAlbum) -> some Gesture {
-        LongPressGesture(minimumDuration: 0.65)
-            .sequenced(before: DragGesture(minimumDistance: 10, coordinateSpace: .global))
+        LongPressGesture(minimumDuration: 0.6)
+            .sequenced(before: DragGesture(minimumDistance: 15, coordinateSpace: .global))
             .onChanged { value in
                 switch value {
                 case .first(true):
@@ -185,11 +187,8 @@ struct GalleryRootView: View {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 case .second(true, let drag?):
                     guard draggingAlbumID == album.id else { return }
-                    let dist = hypot(drag.translation.width, drag.translation.height)
-                    if dist > 5 {
-                        dragLocation = drag.location
-                        updateDropTarget(at: drag.location, excluding: album.id)
-                    }
+                    dragPosition = drag.location
+                    updateHoverTarget(at: drag.location, excluding: album.id)
                 default:
                     break
                 }
@@ -198,8 +197,9 @@ struct GalleryRootView: View {
                 defer { resetDragState() }
                 switch value {
                 case .first(false):
-                    // Long press failed — short tap. Navigate immediately.
-                    navigationPath.append(album.id)
+                    break
+                case .first(true):
+                    contextMenuAlbum = album
                 case .second(true, let drag?):
                     guard draggingAlbumID == album.id else { return }
                     let dist = hypot(drag.translation.width, drag.translation.height)
@@ -217,25 +217,25 @@ struct GalleryRootView: View {
     private func resetDragState() {
         withAnimation(.easeInOut(duration: 0.15)) {
             draggingAlbumID = nil
-            dragLocation = .zero
-            dropTargetID = nil
+            dragPosition = .zero
+            hoverTargetID = nil
         }
     }
 
-    private func updateDropTarget(at location: CGPoint, excluding albumID: String) {
-        dropTargetID = albumCellFrames.first(where: { id, frame in
+    private func updateHoverTarget(at location: CGPoint, excluding albumID: String) {
+        hoverTargetID = cardFrames.first(where: { id, frame in
             id != albumID && frame.contains(location)
         })?.key
     }
 
     private func commitDrop(sourceID: String, at location: CGPoint) {
-        updateDropTarget(at: location, excluding: sourceID)
-        guard let targetID = dropTargetID else { return }
+        updateHoverTarget(at: location, excluding: sourceID)
+        guard let targetID = hoverTargetID else { return }
         library.combineAlbums(sourceID: sourceID, targetID: targetID)
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
-    // MARK: - Album share
+    // MARK: - Share album
 
     private func shareAlbum(_ album: DateAlbum) {
         var images: [UIImage] = []
@@ -254,17 +254,7 @@ struct GalleryRootView: View {
         }
     }
 
-    // MARK: - Empty / denied states
-
-    private var emptyState: some View {
-        Text("No photos yet.\nTap the camera to capture your first.")
-            .font(.system(size: 14, weight: .regular))
-            .foregroundColor(Color(white: 0.6))
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 40)
-            .padding(.top, 80)
-            .frame(maxWidth: .infinity)
-    }
+    // MARK: - Permission denied
 
     private var permissionDenied: some View {
         VStack(spacing: 12) {
@@ -289,8 +279,6 @@ struct AlbumCircleCell: View {
 
     @State private var thumbnail: UIImage?
 
-    private var isTodayAlbum: Bool { album.id == "05.19.2026" }
-
     var body: some View {
         VStack(spacing: 6) {
             ZStack(alignment: .bottomTrailing) {
@@ -313,7 +301,7 @@ struct AlbumCircleCell: View {
                         .frame(width: diameter, height: diameter)
                 }
 
-                if isTodayAlbum && !album.assets.isEmpty {
+                if !album.isSeen && !album.assets.isEmpty {
                     Text("new!")
                         .font(.system(size: 8, weight: .regular))
                         .foregroundColor(.white)
@@ -328,12 +316,13 @@ struct AlbumCircleCell: View {
                 }
             }
 
-            Text(album.displayDate)
+            Text(album.displayTitle)
                 .font(.system(size: 12, weight: .regular))
                 .foregroundColor(Color(white: 0xd4/255))
                 .tracking(-0.6)
                 .frame(width: diameter)
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
         }
         .onAppear { loadThumbnail() }
         .onChange(of: album.assets.count) { _ in loadThumbnail() }
@@ -378,10 +367,7 @@ struct CircularPhotoCell: View {
                         .scaledToFill()
                         .frame(width: diameter - 12, height: diameter - 12)
                         .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(Color.black.opacity(0.35), lineWidth: 1)
-                        )
+                        .overlay(Circle().stroke(Color.black.opacity(0.35), lineWidth: 1))
                         .frame(width: diameter, height: diameter)
                 } else {
                     Circle()

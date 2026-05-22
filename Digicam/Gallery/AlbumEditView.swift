@@ -14,7 +14,7 @@ struct AlbumEditView: View {
     init(album: DateAlbum, library: PhotoLibraryManager) {
         self.album = album
         self.library = library
-        _titleText = State(initialValue: album.displayDate)
+        _titleText = State(initialValue: album.displayTitle)
         _selectedCoverID = State(initialValue: album.coverAssetID)
     }
 
@@ -100,7 +100,7 @@ struct AlbumEditView: View {
 
     private func save() {
         let trimmed = titleText.trimmingCharacters(in: .whitespaces)
-        if !trimmed.isEmpty && trimmed != album.displayDate {
+        if !trimmed.isEmpty && trimmed != album.displayTitle {
             library.updateAlbumTitle(albumID: album.id, title: trimmed)
         }
         if let coverID = selectedCoverID, coverID != album.coverAssetID {
