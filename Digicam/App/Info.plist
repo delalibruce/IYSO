@@ -24,6 +24,8 @@
 	<string>Digicam uses the camera to capture photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Digicam saves captured photos to your library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Digicam reads your photo library to display captured photos in the gallery.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

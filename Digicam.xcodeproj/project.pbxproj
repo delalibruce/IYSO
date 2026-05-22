@@ -14,12 +14,28 @@
 		BB0005AA00000000000005AA /* PhotoCaptureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005AA00000000000005AA /* PhotoCaptureProcessor.swift */; };
 		BB0008AA00000000000008AA /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0008AA00000000000008AA /* GalleryView.swift */; };
 		BB0007AA00000000000007AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0007AA00000000000007AA /* Assets.xcassets */; };
+		BB0009AA00000000000009AA /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0009AA00000000000009AA /* AppRootView.swift */; };
+		BB0010AA00000000000010AA /* BottomToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0010AA00000000000010AA /* BottomToggle.swift */; };
+		BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0011AA00000000000011AA /* PhotoLibraryManager.swift */; };
+		BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0012AA00000000000012AA /* AlbumGridView.swift */; };
+		BB0013AA00000000000013AA /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0013AA00000000000013AA /* AlbumDetailView.swift */; };
+		BB0014AA00000000000014AA /* PhotoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0014AA00000000000014AA /* PhotoDetailView.swift */; };
+		BB0015AA00000000000015AA /* RotaryNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0015AA00000000000015AA /* RotaryNavigationView.swift */; };
+		BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0016AA00000000000016AA /* AlbumEditView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AA0001AA00000000000001AA /* DigicamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigicamApp.swift; sourceTree = "<group>"; };
 		AA0002AA00000000000002AA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA0008AA00000000000008AA /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
+		AA0009AA00000000000009AA /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		AA0010AA00000000000010AA /* BottomToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToggle.swift; sourceTree = "<group>"; };
+		AA0011AA00000000000011AA /* PhotoLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryManager.swift; sourceTree = "<group>"; };
+		AA0012AA00000000000012AA /* AlbumGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumGridView.swift; sourceTree = "<group>"; };
+		AA0013AA00000000000013AA /* AlbumDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumDetailView.swift; sourceTree = "<group>"; };
+		AA0014AA00000000000014AA /* PhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDetailView.swift; sourceTree = "<group>"; };
+		AA0015AA00000000000015AA /* RotaryNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotaryNavigationView.swift; sourceTree = "<group>"; };
+		AA0016AA00000000000016AA /* AlbumEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumEditView.swift; sourceTree = "<group>"; };
 		AA0003AA00000000000003AA /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		AA0004AA00000000000004AA /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
 		AA0005AA00000000000005AA /* PhotoCaptureProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureProcessor.swift; sourceTree = "<group>"; };
@@ -53,6 +69,7 @@
 				CC0003AA00000000000003AA /* App */,
 				CC0004AA00000000000004AA /* Camera */,
 				CC0005AA00000000000005AA /* UI */,
+				CC0007AA00000000000007AA /* Gallery */,
 				CC0006AA00000000000006AA /* Resources */,
 			);
 			path = Digicam;
@@ -90,8 +107,24 @@
 			children = (
 				AA0002AA00000000000002AA /* ContentView.swift */,
 				AA0008AA00000000000008AA /* GalleryView.swift */,
+				AA0009AA00000000000009AA /* AppRootView.swift */,
+				AA0010AA00000000000010AA /* BottomToggle.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+
+		CC0007AA00000000000007AA /* Gallery */ = {
+			isa = PBXGroup;
+			children = (
+				AA0011AA00000000000011AA /* PhotoLibraryManager.swift */,
+				AA0012AA00000000000012AA /* AlbumGridView.swift */,
+				AA0013AA00000000000013AA /* AlbumDetailView.swift */,
+				AA0014AA00000000000014AA /* PhotoDetailView.swift */,
+				AA0015AA00000000000015AA /* RotaryNavigationView.swift */,
+				AA0016AA00000000000016AA /* AlbumEditView.swift */,
+			);
+			path = Gallery;
 			sourceTree = "<group>";
 		};
 
@@ -178,6 +211,14 @@
 				BB0004AA00000000000004AA /* CameraPreviewView.swift in Sources */,
 				BB0005AA00000000000005AA /* PhotoCaptureProcessor.swift in Sources */,
 				BB0008AA00000000000008AA /* GalleryView.swift in Sources */,
+				BB0009AA00000000000009AA /* AppRootView.swift in Sources */,
+				BB0010AA00000000000010AA /* BottomToggle.swift in Sources */,
+				BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */,
+				BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */,
+				BB0013AA00000000000013AA /* AlbumDetailView.swift in Sources */,
+				BB0014AA00000000000014AA /* PhotoDetailView.swift in Sources */,
+				BB0015AA00000000000015AA /* RotaryNavigationView.swift in Sources */,
+				BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

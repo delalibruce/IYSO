@@ -8,8 +8,6 @@ class CameraManager: NSObject, ObservableObject {
 
     let session = AVCaptureSession()
     @Published var isSessionRunning = false
-    @Published var lastCapturedImage: UIImage?
-    @Published var capturedImages: [UIImage] = []
 
     // MARK: - Private
 
@@ -175,10 +173,6 @@ class CameraManager: NSObject, ObservableObject {
             let processor = PhotoCaptureProcessor { [weak self] image in
                 guard let self, let image else { return }
                 self.saveToPhotoLibrary(image)
-                DispatchQueue.main.async {
-                    self.capturedImages.append(image)
-                    self.lastCapturedImage = image
-                }
             }
             self.activeCaptureProcessor = processor
             self.photoOutput.capturePhoto(with: settings, delegate: processor)
@@ -193,14 +187,22 @@ class CameraManager: NSObject, ObservableObject {
                 print("[Digicam] Photo library access denied: \(status.rawValue)")
                 return
             }
+            var placeholderID: String?
             PHPhotoLibrary.shared().performChanges({
-                PHAssetCreationRequest.creationRequestForAsset(from: image)
+                let request = PHAssetCreationRequest.creationRequestForAsset(from: image)
+                placeholderID = request.placeholderForCreatedAsset?.localIdentifier
             }, completionHandler: { success, error in
                 if let error {
                     print("[Digicam] Save error: \(error)")
-                } else {
-                    print("[Digicam] Photo saved to library")
+                    return
                 }
+                print("[Digicam] Photo saved to library")
+                if let id = placeholderID {
+                    var saved = UserDefaults.standard.stringArray(forKey: PhotoLibraryManager.capturedIDsKey) ?? []
+                    saved.append(id)
+                    UserDefaults.standard.set(saved, forKey: PhotoLibraryManager.capturedIDsKey)
+                }
+                NotificationCenter.default.post(name: .digicamPhotoSaved, object: nil)
             })
         }
     }

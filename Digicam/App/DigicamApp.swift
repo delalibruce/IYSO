@@ -4,7 +4,7 @@ import SwiftUI
 struct DigicamApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppRootView()
         }
     }
 }
