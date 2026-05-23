@@ -7,8 +7,8 @@ private struct PeepholeSamplePhoto: Identifiable {
 }
 
 struct PeepholeAlbumCoverTestView: View {
-    /// Darker near-black brown palette for prototype tuning (gallery keeps `.gallery`).
-    private let palette: PeepholeVisualPalette = .darkPrototype
+    /// Same tokens as production gallery; flip to experiment in this sandbox only.
+    private let palette: PeepholeVisualPalette = .gallery
 
     /// Which sample shows new/unviewed glow + "new!" badge — change to "1"…"4" to compare states.
     private let newPreviewSampleID = "1"

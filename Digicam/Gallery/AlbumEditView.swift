@@ -4,28 +4,41 @@ import UIKit
 
 // Sheet for editing an album's title and cover photo.
 struct AlbumEditView: View {
-    let album: DateAlbum
-    let library: PhotoLibraryManager
+    let albumID: String
+    @ObservedObject var library: PhotoLibraryManager
 
     @Environment(\.dismiss) private var dismiss
     @State private var titleText: String
     @State private var selectedCoverID: String?
 
     init(album: DateAlbum, library: PhotoLibraryManager) {
-        self.album = album
+        self.albumID = album.id
         self.library = library
         _titleText = State(initialValue: album.displayTitle)
         _selectedCoverID = State(initialValue: album.coverAssetID)
     }
 
+    /// Always read the latest merged asset list from the library (not a stale sheet snapshot).
+    private var album: DateAlbum? {
+        library.albums.first(where: { $0.id == albumID })
+    }
+
     var body: some View {
+        Group {
+            if let album {
+                editContent(for: album)
+            }
+        }
+    }
+
+    private func editContent(for album: DateAlbum) -> some View {
         NavigationStack {
             ZStack {
-                Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
+                PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 28) {
                     titleSection
-                    coverSection
+                    coverSection(for: album)
                     Spacer()
                 }
                 .padding(.horizontal, 20)
@@ -40,7 +53,7 @@ struct AlbumEditView: View {
                         .foregroundColor(.white)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
+                    Button("Save") { save(using: album) }
                         .foregroundColor(.white)
                 }
             }
@@ -70,7 +83,7 @@ struct AlbumEditView: View {
 
     // MARK: - Cover section
 
-    private var coverSection: some View {
+    private func coverSection(for album: DateAlbum) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Cover Photo")
                 .font(.system(size: 13, weight: .regular))
@@ -98,7 +111,7 @@ struct AlbumEditView: View {
 
     // MARK: - Save
 
-    private func save() {
+    private func save(using album: DateAlbum) {
         let trimmed = titleText.trimmingCharacters(in: .whitespaces)
         if !trimmed.isEmpty && trimmed != album.displayTitle {
             library.updateAlbumTitle(albumID: album.id, title: trimmed)
@@ -155,5 +168,76 @@ private struct CoverPhotoOption: View {
         library.thumbnail(for: asset, size: CGSize(width: size * scale, height: size * scale)) {
             thumbnail = $0
         }
+    }
+}
+
+// MARK: - Title-only edit sheet (gallery label tap)
+
+struct AlbumTitleEditView: View {
+    let album: DateAlbum
+    let library: PhotoLibraryManager
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var titleText: String
+    @FocusState private var isTitleFocused: Bool
+
+    init(album: DateAlbum, library: PhotoLibraryManager) {
+        self.album = album
+        self.library = library
+        _titleText = State(initialValue: album.displayTitle)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
+
+                TextField("", text: $titleText)
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundColor(.white)
+                    .accentColor(.white)
+                    .focused($isTitleFocused)
+                    .submitLabel(.done)
+                    .onSubmit { save() }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color(white: 0.12))
+                    )
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+            .navigationTitle("Edit Title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(.white)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { save() }
+                        .foregroundColor(.white)
+                        .disabled(titleText.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    isTitleFocused = true
+                }
+            }
+        }
+        .presentationDetents([.height(168)])
+    }
+
+    private func save() {
+        let trimmed = titleText.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        if trimmed != album.displayTitle {
+            library.updateAlbumTitle(albumID: album.id, title: trimmed)
+        }
+        dismiss()
     }
 }

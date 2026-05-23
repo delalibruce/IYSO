@@ -1,7 +1,7 @@
 import SwiftUI
 
 #if DEBUG
-private let showPeepholeTestScreen = true
+private let showPeepholeTestScreen = false
 #endif
 
 @main

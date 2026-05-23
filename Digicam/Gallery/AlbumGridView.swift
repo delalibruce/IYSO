@@ -29,11 +29,11 @@ private struct AlbumCircleContentYKey: PreferenceKey {
 /// Layout constants for the Memory Card album grid — must match `albumGrid` spacing/sizes.
 private enum GalleryAlbumGridMetrics {
     static let columns = 2
-    static let circleDiameter: CGFloat = 165
+    static let circleDiameter: CGFloat = 179
     static let gridTopPadding: CGFloat = 10
     static let columnSpacing: CGFloat = 14
     static let rowSpacing: CGFloat = 20
-    static let thumbnailLabelSpacing: CGFloat = 6
+    static let thumbnailLabelSpacing: CGFloat = 10
   /// Approximate height of the two-line date label under each circle.
     static let dateLabelHeight: CGFloat = 44
 
@@ -291,7 +291,7 @@ struct GalleryRootView: View {
         NavigationStack(path: $navigationPath) {
             SDCardScreenContainer { topPadding in
                 ZStack {
-                    Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
+                    PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
                     switch library.authorizationStatus {
                     case .authorized, .limited:
@@ -331,7 +331,9 @@ struct GalleryRootView: View {
         ) {
             if let album = contextMenuAlbum {
                 Button("Share Album") { shareAlbum(album) }
-                Button("Edit Title & Cover") { editingAlbum = album }
+                Button("Edit Title & Cover") {
+                    editingAlbum = library.albums.first(where: { $0.id == album.id }) ?? album
+                }
                 Button("Delete Album", role: .destructive) {
                     albumPendingDelete = album
                     showDeleteAlbumConfirm = true
@@ -413,7 +415,10 @@ struct GalleryRootView: View {
             updateVisibleMonthYear()
         }
         .onPreferenceChange(AlbumFrameKey.self) { cardFrames = $0 }
-        .onChange(of: library.albums.map(\.id)) { _ in resetMonthYear() }
+        .onChange(of: library.albums.map(\.id)) { _ in
+            resetMonthYear()
+            prefetchAlbumCoverThumbnails()
+        }
         .onAppear {
             armingAlbumID = nil
             pressBeganLocation = .zero
@@ -422,7 +427,17 @@ struct GalleryRootView: View {
             hoverTargetID = nil
             contextMenuAlbum = nil
             resetMonthYear()
+            prefetchAlbumCoverThumbnails()
         }
+        .onDisappear {
+            library.stopAllCoverThumbnailCaching()
+        }
+    }
+
+    private func prefetchAlbumCoverThumbnails() {
+        let assets = library.albums.compactMap(\.coverAsset)
+        let innerDiameter = GalleryAlbumGridMetrics.circleDiameter - 12
+        library.startCachingCoverThumbnails(for: assets, innerDiameter: innerDiameter)
     }
 
     private func monthYearLabel(for date: Date) -> String {
@@ -514,17 +529,20 @@ struct GalleryRootView: View {
     }
 
     private var albumGrid: some View {
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 14), count: 2)
-        return LazyVGrid(columns: columns, spacing: 20) {
+        let columns = Array(
+            repeating: GridItem(.flexible(), spacing: GalleryAlbumGridMetrics.columnSpacing),
+            count: GalleryAlbumGridMetrics.columns
+        )
+        return LazyVGrid(columns: columns, spacing: GalleryAlbumGridMetrics.rowSpacing) {
             ForEach(library.albums) { album in
                 let isDragging = draggingAlbumID == album.id
                 let isHover = hoverTargetID == album.id
 
-                VStack(spacing: 6) {
+                VStack(spacing: GalleryAlbumGridMetrics.thumbnailLabelSpacing) {
                     AlbumCircleThumbnail(
                         album: album,
                         library: library,
-                        diameter: 165,
+                        diameter: GalleryAlbumGridMetrics.circleDiameter,
                         showHoverRing: isHover
                     )
                         .background(
@@ -604,10 +622,16 @@ struct GalleryRootView: View {
                                     }
                                 }
                             )
-                            .frame(width: 165, height: 165)
+                            .frame(
+                                width: GalleryAlbumGridMetrics.circleDiameter,
+                                height: GalleryAlbumGridMetrics.circleDiameter
+                            )
                         }
 
-                    AlbumCircleDateLabel(album: album, diameter: 165) {
+                    AlbumCircleDateLabel(
+                        album: album,
+                        diameter: GalleryAlbumGridMetrics.circleDiameter
+                    ) {
                         guard draggingAlbumID == nil, armingAlbumID == nil else { return }
                         titleEditingAlbum = album
                     }
@@ -633,7 +657,11 @@ struct GalleryRootView: View {
         if let albumID = draggingAlbumID,
            let album = library.albums.first(where: { $0.id == albumID }),
            dragPosition != .zero {
-            AlbumCircleCell(album: album, library: library, diameter: 165)
+            AlbumCircleCell(
+                album: album,
+                library: library,
+                diameter: GalleryAlbumGridMetrics.circleDiameter
+            )
                 .scaleEffect(1.07)
                 .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
                 .position(dragPosition)
@@ -749,6 +777,32 @@ struct AlbumCircleThumbnail: View {
     var showHoverRing: Bool = false
 
     @State private var thumbnail: UIImage?
+    @State private var loadedCoverKey: String?
+
+    init(
+        album: DateAlbum,
+        library: PhotoLibraryManager,
+        diameter: CGFloat,
+        showNewBadge: Bool = true,
+        showHoverRing: Bool = false
+    ) {
+        self.album = album
+        self.library = library
+        self.diameter = diameter
+        self.showNewBadge = showNewBadge
+        self.showHoverRing = showHoverRing
+
+        let coverID = album.coverAssetID ?? album.coverAsset?.localIdentifier ?? ""
+        let coverKey = "\(album.id)-\(coverID)"
+        let innerDiameter = diameter - 12
+        let size = PhotoLibraryManager.coverThumbnailPixelSize(innerDiameter: innerDiameter)
+        let cached = album.coverAsset.flatMap { library.cachedCoverThumbnail(for: $0, size: size) }
+
+        _thumbnail = State(initialValue: cached)
+        _loadedCoverKey = State(initialValue: cached != nil ? coverKey : nil)
+    }
+
+    private var innerDiameter: CGFloat { diameter - 12 }
 
     private var isUnviewedAlbum: Bool {
         !album.isSeen && !album.assets.isEmpty
@@ -761,18 +815,14 @@ struct AlbumCircleThumbnail: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            if let img = thumbnail {
+            if let thumbnail {
                 PeepholeAlbumCover(
-                    imageSource: .uiImage(img, cacheKey: coverCacheKey),
+                    imageSource: .uiImage(thumbnail, cacheKey: coverCacheKey),
                     size: diameter,
                     isNew: isUnviewedAlbum
                 )
             } else {
-                PeepholeAlbumCover(
-                    imageSource: .uiImage(Self.placeholderThumbnail, cacheKey: coverCacheKey),
-                    size: diameter,
-                    isNew: isUnviewedAlbum
-                )
+                albumCoverLoadingShell
             }
 
             if showHoverRing {
@@ -785,7 +835,7 @@ struct AlbumCircleThumbnail: View {
             if showNewBadge && isUnviewedAlbum {
                 Text("new!")
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(Color(red: 0x17/255, green: 0x0e/255, blue: 0x0b/255))
+                    .foregroundColor(Color(red: 0x12/255, green: 0x0c/255, blue: 0x0a/255))
                     .tracking(-0.4)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 4)
@@ -802,24 +852,43 @@ struct AlbumCircleThumbnail: View {
         .onAppear { loadThumbnail() }
         .onChange(of: album.assets.count) { _ in loadThumbnail() }
         .onChange(of: album.coverAssetID) { _ in loadThumbnail() }
+        .onChange(of: coverCacheKey) { _ in loadThumbnail() }
+    }
+
+    private var albumCoverLoadingShell: some View {
+        ZStack {
+            PeepholeGlassRimOverlay(
+                outerDiameter: diameter,
+                innerDiameter: innerDiameter,
+                palette: .gallery
+            )
+        }
+        .frame(width: diameter, height: diameter)
+        .peepholeAlbumCircleGlow(isNew: isUnviewedAlbum, palette: .gallery)
     }
 
     private func loadThumbnail() {
-        guard let asset = album.coverAsset else { thumbnail = nil; return }
-        let pt = diameter - 12
-        let scale = UIScreen.main.scale
-        library.thumbnail(for: asset, size: CGSize(width: pt * scale, height: pt * scale)) {
-            thumbnail = $0
+        guard let asset = album.coverAsset else {
+            thumbnail = nil
+            loadedCoverKey = nil
+            return
+        }
+
+        let key = coverCacheKey
+        guard loadedCoverKey != key || thumbnail == nil else { return }
+        loadedCoverKey = key
+
+        let size = PhotoLibraryManager.coverThumbnailPixelSize(innerDiameter: innerDiameter)
+        if let cached = library.cachedCoverThumbnail(for: asset, size: size) {
+            thumbnail = cached
+            return
+        }
+
+        library.coverThumbnail(for: asset, size: size) { image in
+            guard coverCacheKey == key else { return }
+            thumbnail = image
         }
     }
-
-    private static let placeholderThumbnail: UIImage = {
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1))
-        return renderer.image { context in
-            UIColor(white: 0.15, alpha: 1).setFill()
-            context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
-        }
-    }()
 }
 
 struct AlbumCircleCell: View {
@@ -828,7 +897,7 @@ struct AlbumCircleCell: View {
     let diameter: CGFloat
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: GalleryAlbumGridMetrics.thumbnailLabelSpacing) {
             AlbumCircleThumbnail(album: album, library: library, diameter: diameter)
             AlbumCircleDateLabel(album: album, diameter: diameter)
         }

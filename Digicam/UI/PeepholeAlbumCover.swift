@@ -1,101 +1,55 @@
 import SwiftUI
 import UIKit
 
-// MARK: - Visual palette (gallery default vs darker prototype test)
+// MARK: - Visual palette (Memory Flow gallery + peephole covers)
 
 enum PeepholeVisualPalette: Equatable {
+    /// Production Memory Gallery album circles.
     case gallery
+    /// Alias for `PeepholeAlbumCoverTestView` sandbox (same tokens as `.gallery`).
     case darkPrototype
 
-    /// Screen / edge-fade target — near-black espresso brown (not reddish).
-    var sceneBackground: Color {
-        switch self {
-        case .gallery:
-            return Color(red: 0x1e / 255, green: 0x13 / 255, blue: 0x0f / 255)
-        case .darkPrototype:
-            return Color(red: 0x0f / 255, green: 0x0d / 255, blue: 0x0c / 255)
-        }
+    /// Near-black espresso brown used across Memory Flow screens.
+    static var memoryFlowBackground: Color {
+        Color(red: 0x0f / 255, green: 0x0d / 255, blue: 0x0c / 255)
     }
+
+    var sceneBackground: Color { Self.memoryFlowBackground }
 
     var edgeMidTone: Color {
-        switch self {
-        case .gallery:
-            return Color(red: 0x2a / 255, green: 0x1a / 255, blue: 0x14 / 255)
-        case .darkPrototype:
-            return Color(red: 0x18 / 255, green: 0x15 / 255, blue: 0x13 / 255)
-        }
+        Color(red: 0x18 / 255, green: 0x15 / 255, blue: 0x13 / 255)
     }
 
+    /// Default album glow — #52311F.
     var glowNormal: Color {
-        switch self {
-        case .gallery:
-            return Color(red: 0x52 / 255, green: 0x31 / 255, blue: 0x1F / 255)
-        case .darkPrototype:
-            return Color(red: 0x52 / 255, green: 0x31 / 255, blue: 0x1F / 255)
-        }
+        Color(red: 0x52 / 255, green: 0x31 / 255, blue: 0x1F / 255)
     }
 
+    /// New / unviewed album glow.
     var glowNew: Color {
-        switch self {
-        case .gallery:
-            return Color(red: 0x93 / 255, green: 0x55 / 255, blue: 0x33 / 255)
-        case .darkPrototype:
-            return Color(red: 0x72 / 255, green: 0x52 / 255, blue: 0x36 / 255)
-        }
+        Color(red: 0x72 / 255, green: 0x52 / 255, blue: 0x36 / 255)
     }
 
     var housingRimColor: Color {
-        switch self {
-        case .gallery:
-            return Color(red: 0x2a / 255, green: 0x1a / 255, blue: 0x14 / 255)
-        case .darkPrototype:
-            return Color(red: 0x16 / 255, green: 0x13 / 255, blue: 0x11 / 255)
-        }
+        Color(red: 0x16 / 255, green: 0x13 / 255, blue: 0x11 / 255)
     }
 
-    /// Core Image warm edge tint (neutral brown-black).
     var edgeTintCore: (red: CGFloat, green: CGFloat, blue: CGFloat) {
-        switch self {
-        case .gallery:
-            return (0.12, 0.075, 0.06)
-        case .darkPrototype:
-            return (0.055, 0.048, 0.044)
-        }
+        (0.055, 0.048, 0.044)
     }
 
-    var edgeTintAlpha: CGFloat {
-        switch self {
-        case .gallery: 0.38
-        case .darkPrototype: 0.48
-        }
-    }
+    var edgeTintAlpha: CGFloat { 0.48 }
 
-    var edgeDarkenPeakOpacity: Double {
-        switch self {
-        case .gallery: 0.62
-        case .darkPrototype: 0.78
-        }
-    }
+    var edgeDarkenPeakOpacity: Double { 0.78 }
 
-    var edgeMidWashOpacity: Double {
-        switch self {
-        case .gallery: 0.42
-        case .darkPrototype: 0.28
-        }
-    }
+    var edgeMidWashOpacity: Double { 0.28 }
 
     func glowOuterOpacity(isNew: Bool) -> Double {
-        switch self {
-        case .gallery: return isNew ? 0.44 : 0.36
-        case .darkPrototype: return isNew ? 0.40 : 0.33
-        }
+        isNew ? 0.40 : 0.33
     }
 
     func glowInnerOpacity(isNew: Bool) -> Double {
-        switch self {
-        case .gallery: return isNew ? 0.66 : 0.58
-        case .darkPrototype: return isNew ? 0.55 : 0.47
-        }
+        isNew ? 0.55 : 0.47
     }
 }
 
@@ -214,8 +168,48 @@ struct PeepholeAlbumCover: View {
 
     @State private var processedImage: UIImage?
     @State private var processingGeneration = 0
+    @State private var activeCacheKey: String?
+
+    init(
+        imageSource: PeepholeImageSource,
+        size: CGFloat,
+        isNew: Bool = false,
+        palette: PeepholeVisualPalette = .gallery
+    ) {
+        self.imageSource = imageSource
+        self.size = size
+        self.isNew = isNew
+        self.palette = palette
+
+        let innerDiameter = size - 12
+        let outputSize = Self.outputPixelSize(for: innerDiameter)
+        var initialProcessed: UIImage?
+        var initialKey: String?
+
+        if case let .uiImage(image, cacheKey) = imageSource, !Self.isPlaceholderImage(image) {
+            let identity = cacheKey ?? "anonymous"
+            initialProcessed = PeepholeImageProcessor.cachedImage(
+                outputSize: outputSize,
+                cacheKey: cacheKey,
+                palette: palette
+            )
+            initialKey = identity
+        }
+
+        _processedImage = State(initialValue: initialProcessed)
+        _activeCacheKey = State(initialValue: initialKey)
+    }
 
     private var innerDiameter: CGFloat { size - 12 }
+
+    private static func outputPixelSize(for innerDiameter: CGFloat) -> CGSize {
+        let scale = UIScreen.main.scale
+        return CGSize(width: innerDiameter * scale, height: innerDiameter * scale)
+    }
+
+    private static func isPlaceholderImage(_ image: UIImage) -> Bool {
+        image.size.width <= 1 && image.size.height <= 1
+    }
     private var pngLensOverlay: UIImage? { UIImage(named: "PeepholeLens") }
 
     /// Stable per-cover value for procedural lens reflections (cache key when available).
@@ -224,6 +218,29 @@ struct PeepholeAlbumCover: View {
             return cacheKey
         }
         return "peephole-default"
+    }
+
+    /// Stable identity for reloads — keyed on cover asset, not UIImage instance.
+    private var imageSourceIdentity: String {
+        if case let .uiImage(image, cacheKey) = imageSource {
+            let key = cacheKey ?? "anonymous"
+            if Self.isPlaceholderImage(image) { return "\(key)|placeholder" }
+            return key
+        }
+        return "unknown"
+    }
+
+    private var sourceImage: UIImage? {
+        guard case let .uiImage(image, _) = imageSource, !Self.isPlaceholderImage(image) else { return nil }
+        return image
+    }
+
+    /// Processed when ready for this cover; otherwise show the source photo immediately.
+    private var displayedPhoto: UIImage? {
+        if let processedImage, activeCacheKey == imageSourceIdentity {
+            return processedImage
+        }
+        return sourceImage
     }
 
     var body: some View {
@@ -239,7 +256,7 @@ struct PeepholeAlbumCover: View {
         }
         .frame(width: size, height: size)
         .onAppear { processImage() }
-        .onChange(of: imageSource) { _ in processImage() }
+        .onChange(of: imageSourceIdentity) { _ in processImage() }
     }
 
     /// Photo + center lens, feathered at the edge into the dark background.
@@ -255,14 +272,13 @@ struct PeepholeAlbumCover: View {
 
     private var circularPhoto: some View {
         Group {
-            if let processedImage {
-                Image(uiImage: processedImage)
+            if let displayedPhoto {
+                Image(uiImage: displayedPhoto)
                     .resizable()
                     .scaledToFill()
                     .frame(width: innerDiameter, height: innerDiameter)
             } else {
-                Circle()
-                    .fill(Color(white: 0.15))
+                Color.clear
                     .frame(width: innerDiameter, height: innerDiameter)
             }
         }
@@ -288,14 +304,26 @@ struct PeepholeAlbumCover: View {
     private func processImage() {
         guard case let .uiImage(sourceImage, cacheKey) = imageSource else { return }
 
+        if Self.isPlaceholderImage(sourceImage) {
+            return
+        }
+
+        let outputSize = Self.outputPixelSize(for: innerDiameter)
+        let identity = cacheKey ?? imageSourceIdentity
+
+        if let cached = PeepholeImageProcessor.cachedImage(
+            outputSize: outputSize,
+            cacheKey: cacheKey,
+            palette: palette
+        ) {
+            processedImage = cached
+            activeCacheKey = identity
+            return
+        }
+
+        activeCacheKey = identity
         processingGeneration += 1
         let generation = processingGeneration
-        processedImage = nil
-
-        let outputSize = CGSize(
-            width: innerDiameter * UIScreen.main.scale,
-            height: innerDiameter * UIScreen.main.scale
-        )
 
         DispatchQueue.global(qos: .userInitiated).async {
             let result = PeepholeImageProcessor.process(
@@ -307,6 +335,7 @@ struct PeepholeAlbumCover: View {
             DispatchQueue.main.async {
                 guard generation == processingGeneration else { return }
                 processedImage = result
+                activeCacheKey = identity
             }
         }
     }

@@ -27,8 +27,26 @@ enum PeepholeImageProcessor {
 
     // MARK: - Cache
 
+    /// Bump when fisheye, vignette, tint, or edge-softness constants change to invalidate cached output.
+    static let processingVersion = 1
+
     private static let ciContext = CIContext(options: nil)
-    private static let cache = NSCache<NSString, UIImage>()
+    private static let cache: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.countLimit = 80
+        cache.totalCostLimit = 64 * 1024 * 1024
+        return cache
+    }()
+
+  /// Returns a previously processed image when available (safe to call on the main thread).
+    static func cachedImage(
+        outputSize: CGSize,
+        cacheKey: String?,
+        palette: PeepholeVisualPalette = .gallery
+    ) -> UIImage? {
+        let key = makeCacheKey(outputSize: outputSize, cacheKey: cacheKey, palette: palette)
+        return cache.object(forKey: key as NSString)
+    }
 
     static func process(
         _ image: UIImage,
@@ -36,20 +54,17 @@ enum PeepholeImageProcessor {
         cacheKey: String? = nil,
         palette: PeepholeVisualPalette = .gallery
     ) -> UIImage {
-        let pixelSize = CGSize(
-            width: outputSize.width * image.scale,
-            height: outputSize.height * image.scale
-        )
-        let paletteTag = palette == .darkPrototype ? "dark" : "gallery"
-        let key = (cacheKey ?? imageCacheKey(for: image))
-            + "|\(Int(pixelSize.width))x\(Int(pixelSize.height))|\(paletteTag)"
+        let pixelSize = pixelDimensions(for: outputSize)
+        let key = makeCacheKey(outputSize: outputSize, cacheKey: cacheKey, palette: palette)
         if let cached = cache.object(forKey: key as NSString) { return cached }
 
         guard let processed = applyPipeline(to: image, outputSize: pixelSize, palette: palette) else { return image }
-        cache.setObject(processed, forKey: key as NSString)
+        let cost = processed.cgImage.map { $0.bytesPerRow * $0.height } ?? 0
+        cache.setObject(processed, forKey: key as NSString, cost: cost)
         return processed
     }
 
+    /// Clears all processed peephole images. Call after changing `processingVersion` or visual pipeline constants.
     static func clearCache() {
         cache.removeAllObjects()
     }
@@ -92,7 +107,7 @@ enum PeepholeImageProcessor {
         }
 
         guard let cgImage = ciContext.createCGImage(ciImage, from: extent) else { return nil }
-        return UIImage(cgImage: cgImage, scale: image.scale, orientation: .up)
+        return UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up)
     }
 
     private static func applyEdgeSoftness(to image: CIImage, extent: CGRect) -> CIImage? {
@@ -164,10 +179,20 @@ enum PeepholeImageProcessor {
         return image.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
     }
 
-    private static func imageCacheKey(for image: UIImage) -> String {
-        if let data = image.jpegData(compressionQuality: 0.1) {
-            return String(data.hashValue)
-        }
-        return String(ObjectIdentifier(image).hashValue)
+    /// `outputSize` is already in pixels (display diameter × screen scale).
+    private static func pixelDimensions(for outputSize: CGSize) -> CGSize {
+        outputSize
+    }
+
+    private static func makeCacheKey(
+        outputSize: CGSize,
+        cacheKey: String?,
+        palette: PeepholeVisualPalette
+    ) -> String {
+        let pixelSize = pixelDimensions(for: outputSize)
+        let paletteTag = palette == .darkPrototype ? "dark" : "gallery"
+        let scaleTag = Int(UIScreen.main.scale)
+        let identity = cacheKey ?? "anonymous"
+        return "\(identity)|v\(processingVersion)|\(Int(pixelSize.width))x\(Int(pixelSize.height))@\(scaleTag)|\(paletteTag)"
     }
 }

@@ -125,7 +125,7 @@ struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
     @ViewBuilder let leading: () -> Leading
     @ViewBuilder let trailing: () -> Trailing
 
-    private let backgroundColor = Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255)
+    private let backgroundColor = PeepholeVisualPalette.memoryFlowBackground
     private let subtitleColor = Color(red: 0x82/255, green: 0x82/255, blue: 0x82/255)
 
     var body: some View {

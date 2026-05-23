@@ -46,7 +46,7 @@ struct AlbumDetailView: View {
     var body: some View {
         SDCardScreenContainer { topPadding in
             ZStack {
-                Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
+                PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     memoryFlowHeader(topPadding: topPadding)
@@ -232,7 +232,7 @@ struct AlbumDetailView: View {
             .padding(.horizontal, 36)
             .padding(.vertical, 14)
             .background(
-                Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255)
+                PeepholeVisualPalette.memoryFlowBackground
                     .ignoresSafeArea(edges: .bottom)
             )
         }

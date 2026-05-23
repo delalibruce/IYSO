@@ -20,7 +20,7 @@ struct AlbumSearchView: View {
     var body: some View {
         SDCardScreenContainer { topPadding in
             ZStack {
-                Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
+                PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     searchHeader(topPadding: topPadding)

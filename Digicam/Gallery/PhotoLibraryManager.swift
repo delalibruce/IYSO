@@ -133,13 +133,18 @@ class PhotoLibraryManager: ObservableObject {
             )
         }
 
-        // Apply merges
-        let merges = UserDefaults.standard.array(forKey: Self.albumMergesKey) as? [[String]] ?? []
+        // Apply merges (resolve chains so a merge into an already-merged album
+        // still lands on the surviving combined album).
+        let rawMerges = UserDefaults.standard.array(forKey: Self.albumMergesKey) as? [[String]] ?? []
+        let validMerges = rawMerges.filter { $0.count == 2 }
+        let merges = validMerges.map { pair in
+            [pair[0], Self.resolveMergeTarget(pair[1], merges: validMerges)]
+        }
         var indicesToRemove: [Int] = []
         for merge in merges {
-            guard merge.count == 2 else { continue }
             let sourceID = merge[0], targetID = merge[1]
-            guard let sourceIdx = built.firstIndex(where: { $0.id == sourceID }),
+            guard sourceID != targetID,
+                  let sourceIdx = built.firstIndex(where: { $0.id == sourceID }),
                   let targetIdx = built.firstIndex(where: { $0.id == targetID }),
                   !indicesToRemove.contains(sourceIdx) else { continue }
             let merged = (built[targetIdx].assets + built[sourceIdx].assets)
@@ -183,7 +188,10 @@ class PhotoLibraryManager: ObservableObject {
 
     func combineAlbums(sourceID: String, targetID: String) {
         var merges = UserDefaults.standard.array(forKey: Self.albumMergesKey) as? [[String]] ?? []
-        merges.append([sourceID, targetID])
+        let validMerges = merges.filter { $0.count == 2 }
+        let resolvedTarget = Self.resolveMergeTarget(targetID, merges: validMerges)
+        guard sourceID != resolvedTarget else { return }
+        merges.append([sourceID, resolvedTarget])
         UserDefaults.standard.set(merges, forKey: Self.albumMergesKey)
         loadAlbums()
     }
@@ -241,6 +249,91 @@ class PhotoLibraryManager: ObservableObject {
 
     // MARK: - Image loading
 
+    private static let coverThumbnailOversample: CGFloat = 1.5
+
+    private let imageManager = PHCachingImageManager()
+    private static let coverThumbnailCache: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.countLimit = 120
+        cache.totalCostLimit = 96 * 1024 * 1024
+        return cache
+    }()
+
+    nonisolated static func coverThumbnailCacheKey(for asset: PHAsset, size: CGSize) -> String {
+        "\(asset.localIdentifier)|\(Int(size.width))x\(Int(size.height))"
+    }
+
+    func cachedCoverThumbnail(for asset: PHAsset, size: CGSize) -> UIImage? {
+        let key = Self.coverThumbnailCacheKey(for: asset, size: size) as NSString
+        return Self.coverThumbnailCache.object(forKey: key)
+    }
+
+    /// Pixel size for album cover thumbnails — larger than display size so fisheye processing can downscale.
+    nonisolated static func coverThumbnailPixelSize(
+        innerDiameter: CGFloat,
+        oversample: CGFloat = coverThumbnailOversample
+    ) -> CGSize {
+        let scale = UIScreen.main.scale
+        let side = innerDiameter * scale * oversample
+        return CGSize(width: side, height: side)
+    }
+
+    private var coverThumbnailOptions: PHImageRequestOptions {
+        let options = PHImageRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.resizeMode = .exact
+        options.isNetworkAccessAllowed = true
+        return options
+    }
+
+    /// High-quality single delivery for peephole album covers (avoids degraded-then-final flicker).
+    func coverThumbnail(for asset: PHAsset, size: CGSize, completion: @escaping (UIImage?) -> Void) {
+        let key = Self.coverThumbnailCacheKey(for: asset, size: size) as NSString
+        if let cached = Self.coverThumbnailCache.object(forKey: key) {
+            completion(cached)
+            return
+        }
+
+        imageManager.requestImage(
+            for: asset,
+            targetSize: size,
+            contentMode: .aspectFill,
+            options: coverThumbnailOptions
+        ) { image, _ in
+            if let image {
+                let cost = image.cgImage.map { $0.bytesPerRow * $0.height } ?? 0
+                Self.coverThumbnailCache.setObject(image, forKey: key, cost: cost)
+            }
+            DispatchQueue.main.async { completion(image) }
+        }
+    }
+
+    func startCachingCoverThumbnails(for assets: [PHAsset], innerDiameter: CGFloat) {
+        guard !assets.isEmpty else { return }
+        let size = Self.coverThumbnailPixelSize(innerDiameter: innerDiameter)
+        imageManager.startCachingImages(
+            for: assets,
+            targetSize: size,
+            contentMode: .aspectFill,
+            options: coverThumbnailOptions
+        )
+    }
+
+    func stopCachingCoverThumbnails(for assets: [PHAsset], innerDiameter: CGFloat) {
+        guard !assets.isEmpty else { return }
+        let size = Self.coverThumbnailPixelSize(innerDiameter: innerDiameter)
+        imageManager.stopCachingImages(
+            for: assets,
+            targetSize: size,
+            contentMode: .aspectFill,
+            options: coverThumbnailOptions
+        )
+    }
+
+    func stopAllCoverThumbnailCaching() {
+        imageManager.stopCachingImagesForAllAssets()
+    }
+
     func thumbnail(for asset: PHAsset, size: CGSize, completion: @escaping (UIImage?) -> Void) {
         let options = PHImageRequestOptions()
         options.deliveryMode = .opportunistic
@@ -289,6 +382,15 @@ class PhotoLibraryManager: ObservableObject {
 
     private static func defaultDisplayTitle(for date: Date) -> String {
         albumDateLabel(for: date)
+    }
+
+    /// Follows stored merge records to the album that ultimately absorbed `albumID`.
+    private static func resolveMergeTarget(_ albumID: String, merges: [[String]]) -> String {
+        var current = albumID
+        while let merge = merges.last(where: { $0[0] == current }), merge.count > 1 {
+            current = merge[1]
+        }
+        return current
     }
 
     private static func computeRangeTitle(for assets: [PHAsset]) -> String {
