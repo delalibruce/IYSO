@@ -2,6 +2,7 @@ import SwiftUI
 
 final class AppState: ObservableObject {
     @Published var isAlbumSelecting = false
+    @Published var isGallerySearchPresented = false
 }
 
 struct AppRootView: View {
@@ -9,6 +10,10 @@ struct AppRootView: View {
     @StateObject private var library = PhotoLibraryManager()
     @StateObject private var appState = AppState()
     @State private var activeTab: AppTab = .camera
+
+    private var hidesBottomToggle: Bool {
+        appState.isAlbumSelecting || appState.isGallerySearchPresented
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -25,8 +30,9 @@ struct AppRootView: View {
             BottomToggle(activeTab: $activeTab)
                 .padding(.bottom, 20)
                 .ignoresSafeArea(.keyboard)
-                .opacity(appState.isAlbumSelecting ? 0 : 1)
-                .allowsHitTesting(!appState.isAlbumSelecting)
+                .opacity(hidesBottomToggle ? 0 : 1)
+                .allowsHitTesting(!hidesBottomToggle)
+                .animation(.easeInOut(duration: 0.2), value: hidesBottomToggle)
         }
         .animation(.easeInOut(duration: 0.2), value: activeTab)
         .statusBarHidden(true)

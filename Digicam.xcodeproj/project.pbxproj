@@ -22,6 +22,8 @@
 		BB0014AA00000000000014AA /* PhotoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0014AA00000000000014AA /* PhotoDetailView.swift */; };
 		BB0015AA00000000000015AA /* RotaryNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0015AA00000000000015AA /* RotaryNavigationView.swift */; };
 		BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0016AA00000000000016AA /* AlbumEditView.swift */; };
+		BB0017AA00000000000017AA /* AlbumSearchUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0017AA00000000000017AA /* AlbumSearchUtility.swift */; };
+		BB0018AA00000000000018AA /* AlbumSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0018AA00000000000018AA /* AlbumSearchView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +43,8 @@
 		AA0014AA00000000000014AA /* PhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDetailView.swift; sourceTree = "<group>"; };
 		AA0015AA00000000000015AA /* RotaryNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotaryNavigationView.swift; sourceTree = "<group>"; };
 		AA0016AA00000000000016AA /* AlbumEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumEditView.swift; sourceTree = "<group>"; };
+		AA0017AA00000000000017AA /* AlbumSearchUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSearchUtility.swift; sourceTree = "<group>"; };
+		AA0018AA00000000000018AA /* AlbumSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSearchView.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* Digicam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Digicam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -130,6 +134,8 @@
 				AA0014AA00000000000014AA /* PhotoDetailView.swift */,
 				AA0015AA00000000000015AA /* RotaryNavigationView.swift */,
 				AA0016AA00000000000016AA /* AlbumEditView.swift */,
+				AA0017AA00000000000017AA /* AlbumSearchUtility.swift */,
+				AA0018AA00000000000018AA /* AlbumSearchView.swift */,
 			);
 			path = Gallery;
 			sourceTree = "<group>";
@@ -217,6 +223,8 @@
 				BB0014AA00000000000014AA /* PhotoDetailView.swift in Sources */,
 				BB0015AA00000000000015AA /* RotaryNavigationView.swift in Sources */,
 				BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */,
+				BB0017AA00000000000017AA /* AlbumSearchUtility.swift in Sources */,
+				BB0018AA00000000000018AA /* AlbumSearchView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

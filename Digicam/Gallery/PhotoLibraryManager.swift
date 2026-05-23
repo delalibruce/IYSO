@@ -8,10 +8,33 @@ extension Notification.Name {
 struct DateAlbum: Identifiable {
     let id: String           // "yyyy-MM-dd" — stable calendar key
     let date: Date
-    var displayTitle: String // "05.21.26" or user override
+    var displayTitle: String // "05.21.26", merged range, or user override
+    var customTitle: String? // optional user-defined name; original date stays in `date` / `id`
     var assets: [PHAsset]   // sorted ascending by creationDate (oldest first = cover)
     var coverAssetID: String?
     var isSeen: Bool
+
+    /// Canonical calendar key (`yyyy-MM-dd`); preserved even when `customTitle` is set.
+    var dateKey: String { id }
+
+    /// Default MM.DD.YY label (or merged range) for the album's capture date(s).
+    var canonicalDateLabel: String {
+        Self.formatCanonicalDateLabel(date: date, assets: assets)
+    }
+
+    private static func formatCanonicalDateLabel(date: Date, assets: [PHAsset]) -> String {
+        let dates = assets.compactMap(\.creationDate)
+        guard !dates.isEmpty else { return PhotoLibraryManager.albumDateLabel(for: date) }
+
+        let cal = Calendar.current
+        guard let earliest = dates.min(), let latest = dates.max() else {
+            return PhotoLibraryManager.albumDateLabel(for: date)
+        }
+        if cal.isDate(earliest, inSameDayAs: latest) {
+            return PhotoLibraryManager.albumDateLabel(for: earliest)
+        }
+        return "\(PhotoLibraryManager.albumDateLabel(for: earliest))–\(PhotoLibraryManager.albumDateLabel(for: latest))"
+    }
 
     var coverAsset: PHAsset? {
         if let id = coverAssetID { return assets.first(where: { $0.localIdentifier == id }) }
@@ -103,6 +126,7 @@ class PhotoLibraryManager: ObservableObject {
                 id: key,
                 date: dayStart,
                 displayTitle: Self.defaultDisplayTitle(for: dayStart),
+                customTitle: nil,
                 assets: sorted,
                 coverAssetID: nil,
                 isSeen: false
@@ -129,7 +153,10 @@ class PhotoLibraryManager: ObservableObject {
         // Apply title overrides
         let titles = UserDefaults.standard.dictionary(forKey: Self.albumTitlesKey) as? [String: String] ?? [:]
         for i in built.indices {
-            if let t = titles[built[i].id] { built[i].displayTitle = t }
+            if let t = titles[built[i].id] {
+                built[i].customTitle = t
+                built[i].displayTitle = t
+            }
         }
 
         // Apply cover overrides
@@ -235,28 +262,28 @@ class PhotoLibraryManager: ObservableObject {
 
     // MARK: - Date helpers
 
-    static func dateKey(from date: Date) -> String {
+    nonisolated static func dateKey(from date: Date) -> String {
         let fmt = DateFormatter()
         fmt.locale = Locale(identifier: "en_US_POSIX")
         fmt.dateFormat = "yyyy-MM-dd"
         return fmt.string(from: date)
     }
 
-    static func albumDateLabel(for date: Date) -> String {
+    nonisolated static func albumDateLabel(for date: Date) -> String {
         let fmt = DateFormatter()
         fmt.locale = Locale(identifier: "en_US_POSIX")
         fmt.dateFormat = "MM.dd.yy"
         return fmt.string(from: date)
     }
 
-    static func albumMonthLabel(for date: Date) -> String {
+    nonisolated static func albumMonthLabel(for date: Date) -> String {
         let fmt = DateFormatter()
         fmt.locale = Locale(identifier: "en_US_POSIX")
         fmt.dateFormat = "MMMM yyyy"
         return fmt.string(from: date)
     }
 
-    static func itemCountLabel(count: Int) -> String {
+    nonisolated static func itemCountLabel(count: Int) -> String {
         count == 1 ? "1 Item" : "\(count) Items"
     }
 
