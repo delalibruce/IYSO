@@ -24,6 +24,10 @@
 		BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0016AA00000000000016AA /* AlbumEditView.swift */; };
 		BB0017AA00000000000017AA /* AlbumSearchUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0017AA00000000000017AA /* AlbumSearchUtility.swift */; };
 		BB0018AA00000000000018AA /* AlbumSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0018AA00000000000018AA /* AlbumSearchView.swift */; };
+		BB0019AA00000000000019AA /* PeepholeImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0019AA00000000000019AA /* PeepholeImageProcessor.swift */; };
+		BB0020AA00000000000020AA /* PeepholeAlbumCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */; };
+		BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */; };
+		BB0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +49,10 @@
 		AA0016AA00000000000016AA /* AlbumEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumEditView.swift; sourceTree = "<group>"; };
 		AA0017AA00000000000017AA /* AlbumSearchUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSearchUtility.swift; sourceTree = "<group>"; };
 		AA0018AA00000000000018AA /* AlbumSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumSearchView.swift; sourceTree = "<group>"; };
+		AA0019AA00000000000019AA /* PeepholeImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeImageProcessor.swift; sourceTree = "<group>"; };
+		AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeAlbumCover.swift; sourceTree = "<group>"; };
+		AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeLensOverlay.swift; sourceTree = "<group>"; };
+		AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeAlbumCoverTestView.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* Digicam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Digicam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -113,6 +121,10 @@
 				AA0008AA00000000000008AA /* GalleryView.swift */,
 				AA0009AA00000000000009AA /* AppRootView.swift */,
 				AA0010AA00000000000010AA /* BottomToggle.swift */,
+				AA0019AA00000000000019AA /* PeepholeImageProcessor.swift */,
+				AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */,
+				AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */,
+				AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -225,6 +237,10 @@
 				BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */,
 				BB0017AA00000000000017AA /* AlbumSearchUtility.swift in Sources */,
 				BB0018AA00000000000018AA /* AlbumSearchView.swift in Sources */,
+				BB0019AA00000000000019AA /* PeepholeImageProcessor.swift in Sources */,
+				BB0020AA00000000000020AA /* PeepholeAlbumCover.swift in Sources */,
+				BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */,
+				BB0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -267,6 +267,7 @@ struct GalleryRootView: View {
     // Context menu (long press)
     @State private var contextMenuAlbum: DateAlbum? = nil
     @State private var editingAlbum: DateAlbum? = nil
+    @State private var titleEditingAlbum: DateAlbum? = nil
     @State private var albumPendingDelete: DateAlbum? = nil
     @State private var showDeleteAlbumConfirm = false
     @State private var sharingImages: [UIImage] = []
@@ -348,6 +349,9 @@ struct GalleryRootView: View {
         }
         .sheet(item: $editingAlbum) { album in
             AlbumEditView(album: album, library: library)
+        }
+        .sheet(item: $titleEditingAlbum) { album in
+            AlbumTitleEditView(album: album, library: library)
         }
         .sheet(isPresented: $isShareSheetPresented) {
             ShareSheet(items: sharingImages)
@@ -603,7 +607,10 @@ struct GalleryRootView: View {
                             .frame(width: 165, height: 165)
                         }
 
-                    AlbumCircleDateLabel(album: album, diameter: 165)
+                    AlbumCircleDateLabel(album: album, diameter: 165) {
+                        guard draggingAlbumID == nil, armingAlbumID == nil else { return }
+                        titleEditingAlbum = album
+                    }
                 }
                 .background(
                     GeometryReader { geo in
@@ -706,8 +713,24 @@ struct GalleryRootView: View {
 struct AlbumCircleDateLabel: View {
     let album: DateAlbum
     let diameter: CGFloat
+    var onTap: (() -> Void)? = nil
 
     var body: some View {
+        Group {
+            if let onTap {
+                Button(action: onTap) {
+                    titleText
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Edit album title, \(album.displayTitle)")
+                .accessibilityHint("Opens title editor")
+            } else {
+                titleText
+            }
+        }
+    }
+
+    private var titleText: some View {
         Text(album.displayTitle)
             .font(.system(size: 18, weight: .regular))
             .foregroundColor(Color(white: 0xd4/255))
@@ -727,25 +750,29 @@ struct AlbumCircleThumbnail: View {
 
     @State private var thumbnail: UIImage?
 
+    private var isUnviewedAlbum: Bool {
+        !album.isSeen && !album.assets.isEmpty
+    }
+
+    private var coverCacheKey: String {
+        let coverID = album.coverAssetID ?? album.coverAsset?.localIdentifier ?? ""
+        return "\(album.id)-\(coverID)"
+    }
+
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            Circle()
-                .fill(Color(red: 0x2a/255, green: 0x1a/255, blue: 0x14/255))
-                .frame(width: diameter, height: diameter)
-
             if let img = thumbnail {
-                Image(uiImage: img)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: diameter - 12, height: diameter - 12)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.black.opacity(0.35), lineWidth: 1))
-                    .frame(width: diameter, height: diameter)
+                PeepholeAlbumCover(
+                    imageSource: .uiImage(img, cacheKey: coverCacheKey),
+                    size: diameter,
+                    isNew: isUnviewedAlbum
+                )
             } else {
-                Circle()
-                    .fill(Color(white: 0.15))
-                    .frame(width: diameter - 12, height: diameter - 12)
-                    .frame(width: diameter, height: diameter)
+                PeepholeAlbumCover(
+                    imageSource: .uiImage(Self.placeholderThumbnail, cacheKey: coverCacheKey),
+                    size: diameter,
+                    isNew: isUnviewedAlbum
+                )
             }
 
             if showHoverRing {
@@ -755,7 +782,7 @@ struct AlbumCircleThumbnail: View {
                     .allowsHitTesting(false)
             }
 
-            if showNewBadge && !album.isSeen && !album.assets.isEmpty {
+            if showNewBadge && isUnviewedAlbum {
                 Text("new!")
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(Color(red: 0x17/255, green: 0x0e/255, blue: 0x0b/255))
@@ -785,6 +812,14 @@ struct AlbumCircleThumbnail: View {
             thumbnail = $0
         }
     }
+
+    private static let placeholderThumbnail: UIImage = {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1))
+        return renderer.image { context in
+            UIColor(white: 0.15, alpha: 1).setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
+    }()
 }
 
 struct AlbumCircleCell: View {
