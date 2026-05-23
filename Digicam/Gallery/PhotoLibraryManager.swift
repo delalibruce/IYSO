@@ -8,7 +8,7 @@ extension Notification.Name {
 struct DateAlbum: Identifiable {
     let id: String           // "yyyy-MM-dd" — stable calendar key
     let date: Date
-    var displayTitle: String // "Thursday May 21" or user override
+    var displayTitle: String // "05.21.26" or user override
     var assets: [PHAsset]   // sorted ascending by creationDate (oldest first = cover)
     var coverAssetID: String?
     var isSeen: Bool
@@ -242,10 +242,15 @@ class PhotoLibraryManager: ObservableObject {
         return fmt.string(from: date)
     }
 
-    private static func defaultDisplayTitle(for date: Date) -> String {
+    static func albumDateLabel(for date: Date) -> String {
         let fmt = DateFormatter()
-        fmt.dateFormat = "EEEE MMMM d"
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        fmt.dateFormat = "MM.dd.yy"
         return fmt.string(from: date)
+    }
+
+    private static func defaultDisplayTitle(for date: Date) -> String {
+        albumDateLabel(for: date)
     }
 
     private static func computeRangeTitle(for assets: [PHAsset]) -> String {
@@ -255,14 +260,8 @@ class PhotoLibraryManager: ObservableObject {
         if cal.isDate(earliest, inSameDayAs: latest) {
             return defaultDisplayTitle(for: earliest)
         }
-        let monthDay = DateFormatter()
-        monthDay.dateFormat = "MMM d"
-        let dayOnly = DateFormatter()
-        dayOnly.dateFormat = "d"
-        if cal.component(.month, from: earliest) == cal.component(.month, from: latest) {
-            return "\(monthDay.string(from: earliest))–\(dayOnly.string(from: latest))"
-        } else {
-            return "\(monthDay.string(from: earliest))–\(monthDay.string(from: latest))"
-        }
+        let start = albumDateLabel(for: earliest)
+        let end = albumDateLabel(for: latest)
+        return "\(start)–\(end)"
     }
 }

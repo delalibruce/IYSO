@@ -30,16 +30,18 @@ struct GalleryRootView: View {
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            ZStack {
-                Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
+            SDCardScreenContainer { topPadding in
+                ZStack {
+                    Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
 
-                switch library.authorizationStatus {
-                case .authorized, .limited:
-                    albumContent
-                case .denied, .restricted:
-                    permissionDenied
-                default:
-                    Color.clear
+                    switch library.authorizationStatus {
+                    case .authorized, .limited:
+                        albumContent(topPadding: topPadding)
+                    case .denied, .restricted:
+                        permissionDenied
+                    default:
+                        Color.clear
+                    }
                 }
             }
             .navigationBarHidden(true)
@@ -89,15 +91,15 @@ struct GalleryRootView: View {
 
     // MARK: - Album grid
 
-    private var albumContent: some View {
+    private func albumContent(topPadding: CGFloat) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("iyso memory card")
+                Text("memory card")
                     .font(.system(size: 24, weight: .regular, design: .default))
                     .foregroundColor(.white)
                     .tracking(-1.2)
                     .padding(.leading, 13)
-                    .padding(.top, 65)
+                    .padding(.top, topPadding)
                     .padding(.bottom, 22)
 
                 if !library.albums.isEmpty {
@@ -349,9 +351,7 @@ struct CircularPhotoCell: View {
 
     @State private var thumbnail: UIImage?
     private var label: String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "MM.dd.yyyy"
-        return asset.creationDate.map { fmt.string(from: $0) } ?? ""
+        PHAssetResource.assetResources(for: asset).first?.originalFilename ?? ""
     }
 
     var body: some View {
