@@ -53,29 +53,31 @@ struct PhotoDetailView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color(red: 0x17/255, green: 0x0e/255, blue: 0x0b/255).ignoresSafeArea()
+        SDCardScreenContainer { topPadding in
+            ZStack(alignment: .bottom) {
+                Color(red: 0x17/255, green: 0x0e/255, blue: 0x0b/255).ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                header
-                Spacer()
+                VStack(spacing: 0) {
+                    header(topPadding: topPadding)
+                    Spacer()
+                }
+
+                mainPhotoCircle
+                    .padding(.bottom, 282 + 20)
+                    .offset(y: photoYOffset)
+                    .gesture(pullDownDismiss)
+
+                rotaryPanel
             }
-
-            mainPhotoCircle
-                .padding(.bottom, 282 + 20)
-                .offset(y: photoYOffset)
-                .gesture(pullDownDismiss)
-
-            rotaryPanel
+            .navigationBarHidden(true)
+            .onChange(of: currentIndex) { _ in loadImages() }
+            .onAppear { loadImages() }
         }
-        .navigationBarHidden(true)
-        .onChange(of: currentIndex) { _ in loadImages() }
-        .onAppear { loadImages() }
     }
 
     // MARK: - Header
 
-    private var header: some View {
+    private func header(topPadding: CGFloat) -> some View {
         HStack(spacing: 8) {
             Button { dismiss() } label: {
                 Image(systemName: "chevron.left")
@@ -90,7 +92,7 @@ struct PhotoDetailView: View {
             Spacer()
         }
         .padding(.leading, 13)
-        .padding(.top, 64)
+        .padding(.top, topPadding)
     }
 
     // MARK: - Main photo circle (~327pt diameter)

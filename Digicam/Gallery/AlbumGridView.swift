@@ -9,6 +9,13 @@ private struct AlbumFrameKey: PreferenceKey {
     }
 }
 
+private struct ScrollTopAnchorKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 struct GalleryRootView: View {
     @ObservedObject var library: PhotoLibraryManager
 
@@ -27,6 +34,9 @@ struct GalleryRootView: View {
     @State private var showDeleteAlbumConfirm = false
     @State private var sharingImages: [UIImage] = []
     @State private var isShareSheetPresented = false
+
+    @State private var stickyMonthSubtitle = ""
+    @State private var headerBottomY: CGFloat = 0
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -92,28 +102,90 @@ struct GalleryRootView: View {
     // MARK: - Album grid
 
     private func albumContent(topPadding: CGFloat) -> some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("memory card")
-                    .font(.system(size: 24, weight: .regular, design: .default))
-                    .foregroundColor(.white)
-                    .tracking(-1.2)
-                    .padding(.leading, 13)
-                    .padding(.top, topPadding)
-                    .padding(.bottom, 22)
-
-                if !library.albums.isEmpty {
-                    albumGrid
+        VStack(spacing: 0) {
+            MemoryFlowHeader(
+                title: "memory card",
+                subtitle: stickyMonthSubtitle,
+                topPadding: topPadding
+            ) {
+                Button(action: {}) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 20, weight: .regular))
+                        .foregroundColor(.white)
+                        .frame(width: 24, height: 24)
                 }
+                .accessibilityLabel("Search")
             }
-            .padding(.bottom, 120)
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Color.clear
+                        .frame(height: 1)
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear.preference(
+                                    key: ScrollTopAnchorKey.self,
+                                    value: geo.frame(in: .global).minY
+                                )
+                            }
+                        )
+
+                    if !library.albums.isEmpty {
+                        albumGrid
+                            .padding(.top, 10)
+                    }
+                }
+                .padding(.bottom, 120)
+            }
         }
         .overlay(floatingDragCard)
-        .onPreferenceChange(AlbumFrameKey.self) { cardFrames = $0 }
+        .onPreferenceChange(MemoryFlowHeaderBottomKey.self) { headerBottomY = $0 }
+        .onPreferenceChange(AlbumFrameKey.self) { cardFrames = $0; updateStickyMonth() }
+        .onPreferenceChange(ScrollTopAnchorKey.self) { _ in updateStickyMonth() }
+        .onChange(of: library.albums) { _ in resetStickyMonth() }
         .onAppear {
             draggingAlbumID = nil
             dragPosition = .zero
             hoverTargetID = nil
+            resetStickyMonth()
+        }
+    }
+
+    private func resetStickyMonth() {
+        guard let first = library.albums.first else {
+            stickyMonthSubtitle = ""
+            return
+        }
+        stickyMonthSubtitle = PhotoLibraryManager.albumMonthLabel(for: first.date)
+        updateStickyMonth()
+    }
+
+    private func updateStickyMonth() {
+        guard !library.albums.isEmpty else {
+            stickyMonthSubtitle = ""
+            return
+        }
+        guard headerBottomY > 0 else {
+            if let first = library.albums.first {
+                stickyMonthSubtitle = PhotoLibraryManager.albumMonthLabel(for: first.date)
+            }
+            return
+        }
+
+        let threshold = headerBottomY + 2
+        let visible = cardFrames.filter { $0.value.maxY > threshold }
+        let topAlbumID: String?
+        if visible.isEmpty {
+            topAlbumID = library.albums.first?.id
+        } else {
+            topAlbumID = visible.min(by: { $0.value.minY < $1.value.minY })?.key
+        }
+
+        guard let topAlbumID,
+              let album = library.albums.first(where: { $0.id == topAlbumID }) else { return }
+        let label = PhotoLibraryManager.albumMonthLabel(for: album.date)
+        if stickyMonthSubtitle != label {
+            stickyMonthSubtitle = label
         }
     }
 
@@ -305,21 +377,21 @@ struct AlbumCircleCell: View {
 
                 if !album.isSeen && !album.assets.isEmpty {
                     Text("new!")
-                        .font(.system(size: 8, weight: .regular))
-                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color(red: 0x17/255, green: 0x0e/255, blue: 0x0b/255))
                         .tracking(-0.4)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 4)
                         .background(
                             RoundedRectangle(cornerRadius: 50)
-                                .fill(Color(red: 47/255, green: 31/255, blue: 24/255).opacity(0.8))
+                                .fill(Color(red: 0x67/255, green: 0x3f/255, blue: 0x2d/255))
                         )
                         .offset(x: -4, y: -4)
                 }
             }
 
             Text(album.displayTitle)
-                .font(.system(size: 12, weight: .regular))
+                .font(.system(size: 18, weight: .regular))
                 .foregroundColor(Color(white: 0xd4/255))
                 .tracking(-0.6)
                 .frame(width: diameter)

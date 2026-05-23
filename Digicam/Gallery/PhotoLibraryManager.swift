@@ -249,6 +249,17 @@ class PhotoLibraryManager: ObservableObject {
         return fmt.string(from: date)
     }
 
+    static func albumMonthLabel(for date: Date) -> String {
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        fmt.dateFormat = "MMMM yyyy"
+        return fmt.string(from: date)
+    }
+
+    static func itemCountLabel(count: Int) -> String {
+        count == 1 ? "1 Item" : "\(count) Items"
+    }
+
     private static func defaultDisplayTitle(for date: Date) -> String {
         albumDateLabel(for: date)
     }

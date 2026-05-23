@@ -66,83 +66,82 @@ struct AlbumDetailView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
+        SDCardScreenContainer { topPadding in
+            ZStack {
+                Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255).ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                header
-                photoScrollView
-            }
+                VStack(spacing: 0) {
+                    memoryFlowHeader(topPadding: topPadding)
+                    photoScrollView
+                }
 
-            if isSelecting { selectionBottomBar }
-        }
-        .offset(x: edgeDragOffset)
-        .gesture(edgeSwipeBack)
-        .navigationBarHidden(true)
-        .background(DisableSystemPopGesture())
-        .onChange(of: isSelecting) { selecting in
-            appState.isAlbumSelecting = selecting
-            if !selecting { selectedIDs = [] }
-        }
-        .onDisappear { appState.isAlbumSelecting = false }
-        .confirmationDialog("Delete Photo?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
-                if let asset = assetPendingDelete { deletePhoto(asset) }
+                if isSelecting { selectionBottomBar }
             }
-        }
-        .confirmationDialog("Delete \(selectedIDs.count) photo\(selectedIDs.count == 1 ? "" : "s")?",
-                            isPresented: $showDeleteSelectedConfirm, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) { deleteSelectedPhotos() }
-        }
-        .sheet(isPresented: $isShareSheetPresented) {
-            ShareSheet(items: sharingImages)
+            .offset(x: edgeDragOffset)
+            .gesture(edgeSwipeBack)
+            .navigationBarHidden(true)
+            .background(DisableSystemPopGesture())
+            .onChange(of: isSelecting) { selecting in
+                appState.isAlbumSelecting = selecting
+                if !selecting { selectedIDs = [] }
+            }
+            .onDisappear { appState.isAlbumSelecting = false }
+            .confirmationDialog("Delete Photo?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+                Button("Delete", role: .destructive) {
+                    if let asset = assetPendingDelete { deletePhoto(asset) }
+                }
+            }
+            .confirmationDialog("Delete \(selectedIDs.count) photo\(selectedIDs.count == 1 ? "" : "s")?",
+                                isPresented: $showDeleteSelectedConfirm, titleVisibility: .visible) {
+                Button("Delete", role: .destructive) { deleteSelectedPhotos() }
+            }
+            .sheet(isPresented: $isShareSheetPresented) {
+                ShareSheet(items: sharingImages)
+            }
         }
     }
 
     // MARK: - Header
 
-    private var header: some View {
-        HStack(spacing: 8) {
-            if isSelecting {
-                Button("Cancel") {
-                    isSelecting = false
-                }
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(.white)
-            } else {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.white)
-                        .frame(width: 24, height: 24)
-                }
-            }
-
-            Text(isSelecting
-                 ? (selectedIDs.isEmpty ? "Select Photos" : "\(selectedIDs.count) selected")
-                 : albumTitle)
-                .font(.system(size: 24, weight: .regular))
-                .foregroundColor(.white)
-                .tracking(-1.2)
-
-            Spacer()
-
-            if isSelecting {
-                Button("All") {
-                    selectedIDs = Set(visibleAssets.map { $0.localIdentifier })
-                }
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(.white)
-            } else {
-                Button("Select") { isSelecting = true }
+    private func memoryFlowHeader(topPadding: CGFloat) -> some View {
+        MemoryFlowHeader(
+            title: isSelecting
+                ? (selectedIDs.isEmpty ? "Select Photos" : "\(selectedIDs.count) selected")
+                : albumTitle,
+            subtitle: PhotoLibraryManager.itemCountLabel(count: visibleAssets.count),
+            topPadding: topPadding
+        ) {
+            Group {
+                if isSelecting {
+                    Button("Cancel") {
+                        isSelecting = false
+                    }
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(.white)
+                } else {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                    }
+                }
+            }
+        } trailing: {
+            Group {
+                if isSelecting {
+                    Button("All") {
+                        selectedIDs = Set(visibleAssets.map { $0.localIdentifier })
+                    }
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(.white)
+                } else {
+                    Button("Select") { isSelecting = true }
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.white)
+                }
             }
         }
-        .padding(.leading, 13)
-        .padding(.trailing, 13)
-        .padding(.top, 64)
-        .padding(.bottom, 16)
     }
 
     // MARK: - Photo grid

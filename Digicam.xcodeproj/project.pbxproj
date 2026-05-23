@@ -12,8 +12,8 @@
 		BB0003AA00000000000003AA /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0003AA00000000000003AA /* CameraManager.swift */; };
 		BB0004AA00000000000004AA /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0004AA00000000000004AA /* CameraPreviewView.swift */; };
 		BB0005AA00000000000005AA /* PhotoCaptureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0005AA00000000000005AA /* PhotoCaptureProcessor.swift */; };
-		BB0008AA00000000000008AA /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0008AA00000000000008AA /* GalleryView.swift */; };
 		BB0007AA00000000000007AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0007AA00000000000007AA /* Assets.xcassets */; };
+		BB0008AA00000000000008AA /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0008AA00000000000008AA /* GalleryView.swift */; };
 		BB0009AA00000000000009AA /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0009AA00000000000009AA /* AppRootView.swift */; };
 		BB0010AA00000000000010AA /* BottomToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0010AA00000000000010AA /* BottomToggle.swift */; };
 		BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0011AA00000000000011AA /* PhotoLibraryManager.swift */; };
@@ -27,6 +27,11 @@
 /* Begin PBXFileReference section */
 		AA0001AA00000000000001AA /* DigicamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigicamApp.swift; sourceTree = "<group>"; };
 		AA0002AA00000000000002AA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AA0003AA00000000000003AA /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
+		AA0004AA00000000000004AA /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		AA0005AA00000000000005AA /* PhotoCaptureProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureProcessor.swift; sourceTree = "<group>"; };
+		AA0006AA00000000000006AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0007AA00000000000007AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0008AA00000000000008AA /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
 		AA0009AA00000000000009AA /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		AA0010AA00000000000010AA /* BottomToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToggle.swift; sourceTree = "<group>"; };
@@ -36,11 +41,6 @@
 		AA0014AA00000000000014AA /* PhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDetailView.swift; sourceTree = "<group>"; };
 		AA0015AA00000000000015AA /* RotaryNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotaryNavigationView.swift; sourceTree = "<group>"; };
 		AA0016AA00000000000016AA /* AlbumEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumEditView.swift; sourceTree = "<group>"; };
-		AA0003AA00000000000003AA /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
-		AA0004AA00000000000004AA /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
-		AA0005AA00000000000005AA /* PhotoCaptureProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureProcessor.swift; sourceTree = "<group>"; };
-		AA0006AA00000000000006AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AA0007AA00000000000007AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* Digicam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Digicam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -113,7 +113,14 @@
 			path = UI;
 			sourceTree = "<group>";
 		};
-
+		CC0006AA00000000000006AA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AA0007AA00000000000007AA /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		CC0007AA00000000000007AA /* Gallery */ = {
 			isa = PBXGroup;
 			children = (
@@ -125,15 +132,6 @@
 				AA0016AA00000000000016AA /* AlbumEditView.swift */,
 			);
 			path = Gallery;
-			sourceTree = "<group>";
-		};
-
-		CC0006AA00000000000006AA /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				AA0007AA00000000000007AA /* Assets.xcassets */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -345,7 +343,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = T73K2F5HAL;
+				DEVELOPMENT_TEAM = V2ALZ9XFDZ;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Digicam/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -354,7 +352,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.digicam.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.candacecang.digicam;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -369,7 +367,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = T73K2F5HAL;
+				DEVELOPMENT_TEAM = V2ALZ9XFDZ;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Digicam/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -378,7 +376,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.digicam.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.candacecang.digicam;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
