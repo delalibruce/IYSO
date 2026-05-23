@@ -31,7 +31,7 @@ enum PeepholeVisualPalette: Equatable {
         case .gallery:
             return Color(red: 0x52 / 255, green: 0x31 / 255, blue: 0x1F / 255)
         case .darkPrototype:
-            return Color(red: 0x38 / 255, green: 0x30 / 255, blue: 0x2a / 255)
+            return Color(red: 0x52 / 255, green: 0x31 / 255, blue: 0x1F / 255)
         }
     }
 
@@ -87,14 +87,14 @@ enum PeepholeVisualPalette: Equatable {
     func glowOuterOpacity(isNew: Bool) -> Double {
         switch self {
         case .gallery: return isNew ? 0.44 : 0.36
-        case .darkPrototype: return isNew ? 0.40 : 0.30
+        case .darkPrototype: return isNew ? 0.40 : 0.33
         }
     }
 
     func glowInnerOpacity(isNew: Bool) -> Double {
         switch self {
         case .gallery: return isNew ? 0.66 : 0.58
-        case .darkPrototype: return isNew ? 0.55 : 0.44
+        case .darkPrototype: return isNew ? 0.55 : 0.47
         }
     }
 }
@@ -116,7 +116,7 @@ private enum PeepholeAlbumGlowSpread {
     static let outerRadiusMultiplier: CGFloat = 1.02
     static let innerRadiusMultiplier: CGFloat = 0.55
     static let normalBlurRadius: CGFloat = 11
-    static let newBlurRadius: CGFloat = 22
+    static let newBlurRadius: CGFloat = 26
 }
 
 private struct PeepholeAlbumCircleGlowModifier: ViewModifier {
