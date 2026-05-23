@@ -176,6 +176,59 @@ class PhotoLibraryManager: ObservableObject {
         albums = built
     }
 
+    // MARK: - Merge resolution
+
+    private var storedValidMerges: [[String]] {
+        (UserDefaults.standard.array(forKey: Self.albumMergesKey) as? [[String]] ?? [])
+            .filter { $0.count == 2 }
+    }
+
+    /// Follows stored merge records to the album that ultimately absorbed `albumID`.
+    func resolvedAlbumID(for albumID: String) -> String {
+        Self.resolveMergeTarget(albumID, merges: storedValidMerges)
+    }
+
+    /// Live album for editing/display, using merge resolution and full merged asset list.
+    func album(for albumID: String) -> DateAlbum? {
+        let resolvedID = resolvedAlbumID(for: albumID)
+        guard let survivor = albums.first(where: { $0.id == resolvedID }) else { return nil }
+
+        let mergedAssets = assetsMerged(into: resolvedID)
+        let survivorIDs = Set(survivor.assets.map(\.localIdentifier))
+        let mergedIDs = Set(mergedAssets.map(\.localIdentifier))
+        guard mergedIDs != survivorIDs else { return survivor }
+
+        var copy = survivor
+        copy.assets = mergedAssets
+        return copy
+    }
+
+    /// All assets belonging to the surviving merged album (union of survivor + any source albums still present).
+    private func assetsMerged(into survivorID: String) -> [PHAsset] {
+        let merges = storedValidMerges
+        let sourceIDs = merges
+            .filter { Self.resolveMergeTarget($0[1], merges: merges) == survivorID }
+            .map(\.[0])
+
+        var byLocalID: [String: PHAsset] = [:]
+        func absorb(_ assets: [PHAsset]) {
+            for asset in assets { byLocalID[asset.localIdentifier] = asset }
+        }
+
+        if let survivor = albums.first(where: { $0.id == survivorID }) {
+            absorb(survivor.assets)
+        }
+        for sourceID in sourceIDs where sourceID != survivorID {
+            if let source = albums.first(where: { $0.id == sourceID }) {
+                absorb(source.assets)
+            }
+        }
+
+        return byLocalID.values.sorted {
+            ($0.creationDate ?? .distantPast) < ($1.creationDate ?? .distantPast)
+        }
+    }
+
     // MARK: - Album management
 
     func markSeen(albumID: String) {
@@ -197,15 +250,17 @@ class PhotoLibraryManager: ObservableObject {
     }
 
     func setAlbumCover(albumID: String, assetLocalID: String) {
+        let resolvedID = resolvedAlbumID(for: albumID)
         var covers = UserDefaults.standard.dictionary(forKey: Self.albumCoversKey) as? [String: String] ?? [:]
-        covers[albumID] = assetLocalID
+        covers[resolvedID] = assetLocalID
         UserDefaults.standard.set(covers, forKey: Self.albumCoversKey)
         loadAlbums()
     }
 
     func updateAlbumTitle(albumID: String, title: String) {
+        let resolvedID = resolvedAlbumID(for: albumID)
         var titles = UserDefaults.standard.dictionary(forKey: Self.albumTitlesKey) as? [String: String] ?? [:]
-        titles[albumID] = title
+        titles[resolvedID] = title
         UserDefaults.standard.set(titles, forKey: Self.albumTitlesKey)
         loadAlbums()
     }

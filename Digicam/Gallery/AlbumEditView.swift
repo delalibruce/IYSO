@@ -4,6 +4,7 @@ import UIKit
 
 // Sheet for editing an album's title and cover photo.
 struct AlbumEditView: View {
+  /// Final surviving merged album id (already resolved).
     let albumID: String
     @ObservedObject var library: PhotoLibraryManager
 
@@ -11,16 +12,17 @@ struct AlbumEditView: View {
     @State private var titleText: String
     @State private var selectedCoverID: String?
 
-    init(album: DateAlbum, library: PhotoLibraryManager) {
-        self.albumID = album.id
+    init(resolvedAlbumID: String, library: PhotoLibraryManager) {
+        self.albumID = resolvedAlbumID
         self.library = library
-        _titleText = State(initialValue: album.displayTitle)
-        _selectedCoverID = State(initialValue: album.coverAssetID)
+        let album = library.album(for: resolvedAlbumID)
+        _titleText = State(initialValue: album?.displayTitle ?? "")
+        _selectedCoverID = State(initialValue: album?.coverAssetID)
     }
 
     /// Always read the latest merged asset list from the library (not a stale sheet snapshot).
     private var album: DateAlbum? {
-        library.albums.first(where: { $0.id == albumID })
+        library.album(for: albumID)
     }
 
     var body: some View {
@@ -106,6 +108,9 @@ struct AlbumEditView: View {
                 }
                 .padding(.horizontal, 2)
             }
+            .onAppear {
+                print("[AlbumEdit] cover picker showing assetCount=\(album.assets.count) for albumID=\(albumID)")
+            }
         }
     }
 
@@ -114,10 +119,10 @@ struct AlbumEditView: View {
     private func save(using album: DateAlbum) {
         let trimmed = titleText.trimmingCharacters(in: .whitespaces)
         if !trimmed.isEmpty && trimmed != album.displayTitle {
-            library.updateAlbumTitle(albumID: album.id, title: trimmed)
+            library.updateAlbumTitle(albumID: albumID, title: trimmed)
         }
         if let coverID = selectedCoverID, coverID != album.coverAssetID {
-            library.setAlbumCover(albumID: album.id, assetLocalID: coverID)
+            library.setAlbumCover(albumID: albumID, assetLocalID: coverID)
         }
         dismiss()
     }

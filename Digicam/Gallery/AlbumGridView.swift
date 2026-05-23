@@ -246,6 +246,10 @@ private final class AlbumCircleHitView: UIView {
     }
 }
 
+private struct AlbumEditorSheetItem: Identifiable {
+    let id: String
+}
+
 struct GalleryRootView: View {
     @ObservedObject var library: PhotoLibraryManager
 
@@ -266,7 +270,7 @@ struct GalleryRootView: View {
 
     // Context menu (long press)
     @State private var contextMenuAlbum: DateAlbum? = nil
-    @State private var editingAlbum: DateAlbum? = nil
+    @State private var editingAlbumSheet: AlbumEditorSheetItem? = nil
     @State private var titleEditingAlbum: DateAlbum? = nil
     @State private var albumPendingDelete: DateAlbum? = nil
     @State private var showDeleteAlbumConfirm = false
@@ -321,6 +325,11 @@ struct GalleryRootView: View {
             }
         }
         .onAppear { library.requestAccessAndLoad() }
+        .onReceive(library.$albums) { _ in
+            guard let menuAlbum = contextMenuAlbum else { return }
+            let resolvedID = library.resolvedAlbumID(for: menuAlbum.id)
+            contextMenuAlbum = library.album(for: resolvedID) ?? contextMenuAlbum
+        }
         .confirmationDialog(
             contextMenuAlbum?.displayTitle ?? "",
             isPresented: Binding(
@@ -332,7 +341,7 @@ struct GalleryRootView: View {
             if let album = contextMenuAlbum {
                 Button("Share Album") { shareAlbum(album) }
                 Button("Edit Title & Cover") {
-                    editingAlbum = library.albums.first(where: { $0.id == album.id }) ?? album
+                    presentAlbumEditor(for: album)
                 }
                 Button("Delete Album", role: .destructive) {
                     albumPendingDelete = album
@@ -349,8 +358,8 @@ struct GalleryRootView: View {
                 if let album = albumPendingDelete { library.deleteAlbum(album) }
             }
         }
-        .sheet(item: $editingAlbum) { album in
-            AlbumEditView(album: album, library: library)
+        .sheet(item: $editingAlbumSheet) { item in
+            AlbumEditView(resolvedAlbumID: item.id, library: library)
         }
         .sheet(item: $titleEditingAlbum) { album in
             AlbumTitleEditView(album: album, library: library)
@@ -701,6 +710,29 @@ struct GalleryRootView: View {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
+    // MARK: - Album edit sheet
+
+    private func presentAlbumEditor(for tappedAlbum: DateAlbum) {
+        let tappedID = tappedAlbum.id
+        let resolvedID = library.resolvedAlbumID(for: tappedID)
+        let resolvedAlbum = library.album(for: tappedID)
+        let staleCount = tappedAlbum.assets.count
+        let resolvedCount = resolvedAlbum?.assets.count ?? 0
+
+        print("[AlbumEdit] tapped album id=\(tappedID)")
+        print("[AlbumEdit] resolved album id=\(resolvedID)")
+        print("[AlbumEdit] stale/tapped asset count=\(staleCount)")
+        print("[AlbumEdit] resolved live asset count=\(resolvedCount)")
+
+        guard let resolvedAlbum else {
+            print("[AlbumEdit] resolved album missing for id=\(resolvedID); not opening sheet")
+            return
+        }
+
+        print("[AlbumEdit] opening sheet with \(resolvedAlbum.assets.count) assets")
+        editingAlbumSheet = AlbumEditorSheetItem(id: resolvedID)
+    }
+
     // MARK: - Share album
 
     private func shareAlbum(_ album: DateAlbum) {
@@ -913,6 +945,7 @@ struct CircularPhotoCell: View {
     var isNewest: Bool = false
 
     @State private var thumbnail: UIImage?
+    private var innerDiameter: CGFloat { diameter - 12 }
     private var label: String {
         PHAssetResource.assetResources(for: asset).first?.originalFilename ?? ""
     }
@@ -920,24 +953,14 @@ struct CircularPhotoCell: View {
     var body: some View {
         VStack(spacing: 6) {
             ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(Color(red: 0x2a/255, green: 0x1a/255, blue: 0x14/255))
-                    .frame(width: diameter, height: diameter)
+                photoBubble
+                    .peepholeAlbumCircleGlow(palette: .gallery, intensity: .photoThumbnail)
 
-                if let img = thumbnail {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: diameter - 12, height: diameter - 12)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.black.opacity(0.35), lineWidth: 1))
-                        .frame(width: diameter, height: diameter)
-                } else {
-                    Circle()
-                        .fill(Color(white: 0.15))
-                        .frame(width: diameter - 12, height: diameter - 12)
-                        .frame(width: diameter, height: diameter)
-                }
+                PeepholeGlassRimOverlay(
+                    outerDiameter: diameter,
+                    innerDiameter: innerDiameter,
+                    palette: .gallery
+                )
 
                 if isNewest {
                     Text("new!")
@@ -953,6 +976,7 @@ struct CircularPhotoCell: View {
                         .offset(x: -4, y: -4)
                 }
             }
+            .frame(width: diameter, height: diameter)
 
             Text(label)
                 .font(.system(size: 12, weight: .regular))
@@ -964,8 +988,25 @@ struct CircularPhotoCell: View {
         .onAppear { loadThumbnail() }
     }
 
+    @ViewBuilder
+    private var photoBubble: some View {
+        if let img = thumbnail {
+            Image(uiImage: img)
+                .resizable()
+                .scaledToFill()
+                .frame(width: innerDiameter, height: innerDiameter)
+                .clipShape(Circle())
+                .frame(width: diameter, height: diameter)
+        } else {
+            Circle()
+                .fill(Color(white: 0.15))
+                .frame(width: innerDiameter, height: innerDiameter)
+                .frame(width: diameter, height: diameter)
+        }
+    }
+
     private func loadThumbnail() {
-        let pt = diameter - 12
+        let pt = innerDiameter
         let scale = UIScreen.main.scale
         library.thumbnail(for: asset, size: CGSize(width: pt * scale, height: pt * scale)) {
             thumbnail = $0

@@ -73,33 +73,71 @@ private enum PeepholeAlbumGlowSpread {
     static let newBlurRadius: CGFloat = 26
 }
 
+/// Glow strength for circular peephole bubbles — album grid covers vs. in-album photo thumbnails.
+enum PeepholeCircleGlowIntensity {
+    case albumCover
+    /// Softer glow for individual photos inside an album (same palette, lower emphasis).
+    case photoThumbnail
+}
+
+private enum PeepholePhotoThumbnailGlowTuning {
+    static let opacityScale: Double = 0.52
+    static let blurScale: CGFloat = 0.62
+}
+
 private struct PeepholeAlbumCircleGlowModifier: ViewModifier {
     let isNew: Bool
     let palette: PeepholeVisualPalette
+    let intensity: PeepholeCircleGlowIntensity
 
     func body(content: Content) -> some View {
         let glowColor = isNew ? palette.glowNew : palette.glowNormal
-        let blurRadius = isNew ? PeepholeAlbumGlowSpread.newBlurRadius : PeepholeAlbumGlowSpread.normalBlurRadius
+        let baseBlur = isNew ? PeepholeAlbumGlowSpread.newBlurRadius : PeepholeAlbumGlowSpread.normalBlurRadius
+        let blurRadius = scaledBlur(baseBlur)
+        let outerOpacity = scaledOpacity(palette.glowOuterOpacity(isNew: isNew))
+        let innerOpacity = scaledOpacity(palette.glowInnerOpacity(isNew: isNew))
         content
             .compositingGroup()
             .shadow(
-                color: glowColor.opacity(palette.glowOuterOpacity(isNew: isNew)),
+                color: glowColor.opacity(outerOpacity),
                 radius: blurRadius * PeepholeAlbumGlowSpread.outerRadiusMultiplier,
                 x: 0,
                 y: 0
             )
             .shadow(
-                color: glowColor.opacity(palette.glowInnerOpacity(isNew: isNew)),
+                color: glowColor.opacity(innerOpacity),
                 radius: blurRadius * PeepholeAlbumGlowSpread.innerRadiusMultiplier,
                 x: 0,
                 y: 0
             )
     }
+
+    private func scaledOpacity(_ opacity: Double) -> Double {
+        switch intensity {
+        case .albumCover:
+            return opacity
+        case .photoThumbnail:
+            return opacity * PeepholePhotoThumbnailGlowTuning.opacityScale
+        }
+    }
+
+    private func scaledBlur(_ blur: CGFloat) -> CGFloat {
+        switch intensity {
+        case .albumCover:
+            return blur
+        case .photoThumbnail:
+            return blur * PeepholePhotoThumbnailGlowTuning.blurScale
+        }
+    }
 }
 
 extension View {
-    func peepholeAlbumCircleGlow(isNew: Bool = false, palette: PeepholeVisualPalette = .gallery) -> some View {
-        modifier(PeepholeAlbumCircleGlowModifier(isNew: isNew, palette: palette))
+    func peepholeAlbumCircleGlow(
+        isNew: Bool = false,
+        palette: PeepholeVisualPalette = .gallery,
+        intensity: PeepholeCircleGlowIntensity = .albumCover
+    ) -> some View {
+        modifier(PeepholeAlbumCircleGlowModifier(isNew: isNew, palette: palette, intensity: intensity))
     }
 }
 
