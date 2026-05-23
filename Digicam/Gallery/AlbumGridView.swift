@@ -142,7 +142,7 @@ struct GalleryRootView: View {
         .onPreferenceChange(MemoryFlowHeaderBottomKey.self) { headerBottomY = $0 }
         .onPreferenceChange(AlbumFrameKey.self) { cardFrames = $0; updateStickyMonth() }
         .onPreferenceChange(ScrollTopAnchorKey.self) { _ in updateStickyMonth() }
-        .onChange(of: library.albums) { _ in resetStickyMonth() }
+        .onChange(of: library.albums.map(\.id)) { _ in resetStickyMonth() }
         .onAppear {
             draggingAlbumID = nil
             dragPosition = .zero
