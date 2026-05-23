@@ -69,7 +69,9 @@ struct PhotoDetailView: View {
 
                 rotaryPanel
             }
+            .memoryFlowSwipeToGoBack { dismiss() }
             .navigationBarHidden(true)
+            .background(DisableSystemPopGesture())
             .onChange(of: currentIndex) { _ in loadImages() }
             .onAppear { loadImages() }
         }
@@ -79,19 +81,10 @@ struct PhotoDetailView: View {
 
     private func header(topPadding: CGFloat) -> some View {
         HStack(spacing: 8) {
-            Button { dismiss() } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white)
-                    .frame(width: 24, height: 24)
-            }
-            Text(headerDate)
-                .font(.system(size: 24, weight: .regular))
-                .foregroundColor(.white)
-                .tracking(-1.2)
-            Spacer()
+            MemoryFlowBackHeaderGroup(title: headerDate, action: { dismiss() })
+            Spacer(minLength: 0)
         }
-        .padding(.leading, 13)
+        .padding(.horizontal, 20)
         .padding(.top, topPadding)
     }
 

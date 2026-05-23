@@ -10,24 +10,6 @@ private struct PhotoGridFrameKey: PreferenceKey {
     }
 }
 
-// Disables the NavigationStack's built-in interactive pop gesture so our custom
-// left-edge swipe owns that interaction entirely.
-private struct DisableSystemPopGesture: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> _VC { _VC() }
-    func updateUIViewController(_ vc: _VC, context: Context) {}
-
-    final class _VC: UIViewController {
-        override func viewDidAppear(_ animated: Bool) {
-            super.viewDidAppear(animated)
-            navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-        }
-        override func viewWillDisappear(_ animated: Bool) {
-            super.viewWillDisappear(animated)
-            navigationController?.interactivePopGestureRecognizer?.isEnabled = true
-        }
-    }
-}
-
 // Level 2 — all photos in album as a 3-column grid, most recent first.
 struct AlbumDetailView: View {
     let assets: [PHAsset]
@@ -37,10 +19,6 @@ struct AlbumDetailView: View {
 
     @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) private var dismiss
-
-    // Edge-swipe back
-    @State private var edgeDragOffset: CGFloat = 0
-    @State private var isEdgeDragging = false
 
     // Photo deletion (local filter until library reloads)
     @State private var deletedAssetIDs: Set<String> = []
@@ -77,8 +55,7 @@ struct AlbumDetailView: View {
 
                 if isSelecting { selectionBottomBar }
             }
-            .offset(x: edgeDragOffset)
-            .gesture(edgeSwipeBack)
+            .memoryFlowSwipeToGoBack { dismiss() }
             .navigationBarHidden(true)
             .background(DisableSystemPopGesture())
             .onChange(of: isSelecting) { selecting in
@@ -109,7 +86,8 @@ struct AlbumDetailView: View {
                 ? (selectedIDs.isEmpty ? "Select Photos" : "\(selectedIDs.count) selected")
                 : albumTitle,
             subtitle: PhotoLibraryManager.itemCountLabel(count: visibleAssets.count),
-            topPadding: topPadding
+            topPadding: topPadding,
+            hidesCenterTitle: !isSelecting
         ) {
             Group {
                 if isSelecting {
@@ -119,12 +97,7 @@ struct AlbumDetailView: View {
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(.white)
                 } else {
-                    Button { dismiss() } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundColor(.white)
-                            .frame(width: 24, height: 24)
-                    }
+                    MemoryFlowBackHeaderGroup(title: albumTitle, action: { dismiss() })
                 }
             }
         } trailing: {
@@ -286,29 +259,6 @@ struct AlbumDetailView: View {
             .onEnded { _ in
                 swipeSelectDirection = nil
                 swipeSelectTouched = []
-            }
-    }
-
-    // MARK: - Left-edge swipe back
-
-    private var edgeSwipeBack: some Gesture {
-        DragGesture(minimumDistance: 10, coordinateSpace: .local)
-            .onChanged { value in
-                guard value.startLocation.x < 20 || isEdgeDragging else { return }
-                isEdgeDragging = true
-                edgeDragOffset = max(0, value.translation.width)
-            }
-            .onEnded { value in
-                guard isEdgeDragging else { return }
-                isEdgeDragging = false
-                let threshold = UIScreen.main.bounds.width * 0.4
-                if edgeDragOffset > threshold {
-                    dismiss()
-                } else {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                        edgeDragOffset = 0
-                    }
-                }
             }
     }
 
