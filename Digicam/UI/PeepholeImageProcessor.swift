@@ -22,8 +22,6 @@ enum PeepholeImageProcessor {
     /// Normalized radius where edge blur reaches full strength (wider = gradual feather).
     private static let edgeBlurEnd: CGFloat = 0.90
 
-    /// Warm brown edge tint (#1e130f family) — blends photo into background, not pure black.
-    private static let warmEdgeTintAlpha: CGFloat = 0.38
     private static let warmEdgeTintStart: CGFloat = 0.58
     private static let warmEdgeTintEnd: CGFloat = 0.98
 
@@ -32,15 +30,22 @@ enum PeepholeImageProcessor {
     private static let ciContext = CIContext(options: nil)
     private static let cache = NSCache<NSString, UIImage>()
 
-    static func process(_ image: UIImage, outputSize: CGSize, cacheKey: String? = nil) -> UIImage {
+    static func process(
+        _ image: UIImage,
+        outputSize: CGSize,
+        cacheKey: String? = nil,
+        palette: PeepholeVisualPalette = .gallery
+    ) -> UIImage {
         let pixelSize = CGSize(
             width: outputSize.width * image.scale,
             height: outputSize.height * image.scale
         )
-        let key = (cacheKey ?? imageCacheKey(for: image)) + "|\(Int(pixelSize.width))x\(Int(pixelSize.height))"
+        let paletteTag = palette == .darkPrototype ? "dark" : "gallery"
+        let key = (cacheKey ?? imageCacheKey(for: image))
+            + "|\(Int(pixelSize.width))x\(Int(pixelSize.height))|\(paletteTag)"
         if let cached = cache.object(forKey: key as NSString) { return cached }
 
-        guard let processed = applyPipeline(to: image, outputSize: pixelSize) else { return image }
+        guard let processed = applyPipeline(to: image, outputSize: pixelSize, palette: palette) else { return image }
         cache.setObject(processed, forKey: key as NSString)
         return processed
     }
@@ -51,7 +56,7 @@ enum PeepholeImageProcessor {
 
     // MARK: - Pipeline
 
-    private static func applyPipeline(to image: UIImage, outputSize: CGSize) -> UIImage? {
+    private static func applyPipeline(to image: UIImage, outputSize: CGSize, palette: PeepholeVisualPalette) -> UIImage? {
         guard var ciImage = CIImage(image: image) ?? (image.cgImage.map { CIImage(cgImage: $0) }) else {
             return nil
         }
@@ -78,7 +83,7 @@ enum PeepholeImageProcessor {
             if let output = vignette.outputImage { ciImage = output.cropped(to: extent) }
         }
 
-        if let tinted = applyWarmEdgeTint(to: ciImage, extent: extent) {
+        if let tinted = applyWarmEdgeTint(to: ciImage, extent: extent, palette: palette) {
             ciImage = tinted
         }
 
@@ -105,16 +110,17 @@ enum PeepholeImageProcessor {
     }
 
     /// Radial warm-brown wash on the outer band — atmospheric, not a black vignette ring.
-    private static func applyWarmEdgeTint(to image: CIImage, extent: CGRect) -> CIImage? {
+    private static func applyWarmEdgeTint(to image: CIImage, extent: CGRect, palette: PeepholeVisualPalette) -> CIImage? {
         let side = min(extent.width, extent.height)
+        let tint = palette.edgeTintCore
         let gradient = CIFilter(
             name: "CIRadialGradient",
             parameters: [
                 "inputCenter": CIVector(x: extent.midX, y: extent.midY),
                 "inputRadius0": side * warmEdgeTintStart,
                 "inputRadius1": side * warmEdgeTintEnd,
-                "inputColor0": CIColor(red: 0.12, green: 0.075, blue: 0.06, alpha: 0),
-                "inputColor1": CIColor(red: 0.12, green: 0.075, blue: 0.06, alpha: warmEdgeTintAlpha),
+                "inputColor0": CIColor(red: tint.red, green: tint.green, blue: tint.blue, alpha: 0),
+                "inputColor1": CIColor(red: tint.red, green: tint.green, blue: tint.blue, alpha: palette.edgeTintAlpha),
             ]
         )
         guard let tint = gradient?.outputImage?.cropped(to: extent) else { return image }

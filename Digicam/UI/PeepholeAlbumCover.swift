@@ -1,6 +1,104 @@
 import SwiftUI
 import UIKit
 
+// MARK: - Visual palette (gallery default vs darker prototype test)
+
+enum PeepholeVisualPalette: Equatable {
+    case gallery
+    case darkPrototype
+
+    /// Screen / edge-fade target — near-black espresso brown (not reddish).
+    var sceneBackground: Color {
+        switch self {
+        case .gallery:
+            return Color(red: 0x1e / 255, green: 0x13 / 255, blue: 0x0f / 255)
+        case .darkPrototype:
+            return Color(red: 0x0f / 255, green: 0x0d / 255, blue: 0x0c / 255)
+        }
+    }
+
+    var edgeMidTone: Color {
+        switch self {
+        case .gallery:
+            return Color(red: 0x2a / 255, green: 0x1a / 255, blue: 0x14 / 255)
+        case .darkPrototype:
+            return Color(red: 0x18 / 255, green: 0x15 / 255, blue: 0x13 / 255)
+        }
+    }
+
+    var glowNormal: Color {
+        switch self {
+        case .gallery:
+            return Color(red: 0x52 / 255, green: 0x31 / 255, blue: 0x1F / 255)
+        case .darkPrototype:
+            return Color(red: 0x38 / 255, green: 0x30 / 255, blue: 0x2a / 255)
+        }
+    }
+
+    var glowNew: Color {
+        switch self {
+        case .gallery:
+            return Color(red: 0x93 / 255, green: 0x55 / 255, blue: 0x33 / 255)
+        case .darkPrototype:
+            return Color(red: 0x72 / 255, green: 0x52 / 255, blue: 0x36 / 255)
+        }
+    }
+
+    var housingRimColor: Color {
+        switch self {
+        case .gallery:
+            return Color(red: 0x2a / 255, green: 0x1a / 255, blue: 0x14 / 255)
+        case .darkPrototype:
+            return Color(red: 0x16 / 255, green: 0x13 / 255, blue: 0x11 / 255)
+        }
+    }
+
+    /// Core Image warm edge tint (neutral brown-black).
+    var edgeTintCore: (red: CGFloat, green: CGFloat, blue: CGFloat) {
+        switch self {
+        case .gallery:
+            return (0.12, 0.075, 0.06)
+        case .darkPrototype:
+            return (0.055, 0.048, 0.044)
+        }
+    }
+
+    var edgeTintAlpha: CGFloat {
+        switch self {
+        case .gallery: 0.38
+        case .darkPrototype: 0.48
+        }
+    }
+
+    var edgeDarkenPeakOpacity: Double {
+        switch self {
+        case .gallery: 0.62
+        case .darkPrototype: 0.78
+        }
+    }
+
+    var edgeMidWashOpacity: Double {
+        switch self {
+        case .gallery: 0.42
+        case .darkPrototype: 0.28
+        }
+    }
+
+    func glowOuterOpacity(isNew: Bool) -> Double {
+        switch self {
+        case .gallery: return isNew ? 0.44 : 0.36
+        case .darkPrototype: return isNew ? 0.40 : 0.30
+        }
+    }
+
+    func glowInnerOpacity(isNew: Bool) -> Double {
+        switch self {
+        case .gallery: return isNew ? 0.66 : 0.58
+        case .darkPrototype: return isNew ? 0.55 : 0.44
+        }
+    }
+}
+
 enum PeepholeImageSource: Equatable {
     case uiImage(UIImage, cacheKey: String? = nil)
 
@@ -14,58 +112,31 @@ enum PeepholeImageSource: Equatable {
 
 // MARK: - Album circle glow (photo container only; not the glass rim or lens overlay)
 
-/// Figma-matched warm ambient glow behind the circular photo.
-private enum PeepholeAlbumGlowStyle {
-    /// Default albums — shadow #52311F, blur ~15.86
-    case normal
-    /// New / unviewed albums — shadow #935533, blur ~40
-    case newAlbum
-
-    var color: Color {
-        switch self {
-        case .normal:
-            return Color(red: 0x52 / 255, green: 0x31 / 255, blue: 0x1F / 255)
-        case .newAlbum:
-            return Color(red: 0x93 / 255, green: 0x55 / 255, blue: 0x33 / 255)
-        }
-    }
-
-    /// Base shadow blur — lower = tighter halo hugging the circle.
-    var blurRadius: CGFloat {
-        switch self {
-        case .normal: 11
-        case .newAlbum: 26
-        }
-    }
-}
-
-/// Spread multipliers for the dual-layer warm glow (photo container only).
 private enum PeepholeAlbumGlowSpread {
-    /// Outer halo radius = `blurRadius * outerRadiusMultiplier`
     static let outerRadiusMultiplier: CGFloat = 1.02
-    /// Inner core radius = `blurRadius * innerRadiusMultiplier`
     static let innerRadiusMultiplier: CGFloat = 0.55
-
-    static func outerOpacity(isNew: Bool) -> Double { isNew ? 0.44 : 0.36 }
-    static func innerOpacity(isNew: Bool) -> Double { isNew ? 0.66 : 0.58 }
+    static let normalBlurRadius: CGFloat = 11
+    static let newBlurRadius: CGFloat = 22
 }
 
 private struct PeepholeAlbumCircleGlowModifier: ViewModifier {
     let isNew: Bool
+    let palette: PeepholeVisualPalette
 
     func body(content: Content) -> some View {
-        let style: PeepholeAlbumGlowStyle = isNew ? .newAlbum : .normal
+        let glowColor = isNew ? palette.glowNew : palette.glowNormal
+        let blurRadius = isNew ? PeepholeAlbumGlowSpread.newBlurRadius : PeepholeAlbumGlowSpread.normalBlurRadius
         content
             .compositingGroup()
             .shadow(
-                color: style.color.opacity(PeepholeAlbumGlowSpread.outerOpacity(isNew: isNew)),
-                radius: style.blurRadius * PeepholeAlbumGlowSpread.outerRadiusMultiplier,
+                color: glowColor.opacity(palette.glowOuterOpacity(isNew: isNew)),
+                radius: blurRadius * PeepholeAlbumGlowSpread.outerRadiusMultiplier,
                 x: 0,
                 y: 0
             )
             .shadow(
-                color: style.color.opacity(PeepholeAlbumGlowSpread.innerOpacity(isNew: isNew)),
-                radius: style.blurRadius * PeepholeAlbumGlowSpread.innerRadiusMultiplier,
+                color: glowColor.opacity(palette.glowInnerOpacity(isNew: isNew)),
+                radius: blurRadius * PeepholeAlbumGlowSpread.innerRadiusMultiplier,
                 x: 0,
                 y: 0
             )
@@ -73,29 +144,21 @@ private struct PeepholeAlbumCircleGlowModifier: ViewModifier {
 }
 
 extension View {
-    /// Soft warm glow on the circular photo container. Does not affect rim or lens overlays.
-    func peepholeAlbumCircleGlow(isNew: Bool = false) -> some View {
-        modifier(PeepholeAlbumCircleGlowModifier(isNew: isNew))
+    func peepholeAlbumCircleGlow(isNew: Bool = false, palette: PeepholeVisualPalette = .gallery) -> some View {
+        modifier(PeepholeAlbumCircleGlowModifier(isNew: isNew, palette: palette))
     }
 }
 
 // MARK: - Photo edge dissolve (feather into dark background; center stays sharp)
 
 private enum PeepholePhotoEdgeTuning {
-    /// Full-opacity center extends to here; outer ~10–18% feathers out (lower = wider fade).
     static let alphaFeatherStart: CGFloat = 0.72
-    /// Peak of background-matched edge tint (brown-black, not pure black).
-    static let edgeDarkenPeakOpacity: Double = 0.62
-    /// Where the brown edge wash begins (fraction of radius from center).
     static let edgeDarkenStartRatio: CGFloat = 0.64
-    /// Gallery background #1e130f
-    static let backgroundColor = Color(red: 0x1e / 255, green: 0x13 / 255, blue: 0x0f / 255)
-    /// Slightly warmer mid-edge brown #2a1a14
-    static let midEdgeColor = Color(red: 0x2a / 255, green: 0x1a / 255, blue: 0x14 / 255)
 }
 
 private struct PeepholePhotoSoftEdgeModifier: ViewModifier {
     let diameter: CGFloat
+    let palette: PeepholeVisualPalette
 
     func body(content: Content) -> some View {
         content
@@ -126,10 +189,9 @@ private struct PeepholePhotoSoftEdgeModifier: ViewModifier {
                     colors: [
                         .clear,
                         .clear,
-                        PeepholePhotoEdgeTuning.midEdgeColor.opacity(0.22),
-                        PeepholePhotoEdgeTuning.midEdgeColor.opacity(0.42),
-                        PeepholePhotoEdgeTuning.backgroundColor
-                            .opacity(PeepholePhotoEdgeTuning.edgeDarkenPeakOpacity),
+                        palette.edgeMidTone.opacity(palette.edgeMidWashOpacity * 0.5),
+                        palette.edgeMidTone.opacity(palette.edgeMidWashOpacity),
+                        palette.sceneBackground.opacity(palette.edgeDarkenPeakOpacity),
                     ],
                     center: .center,
                     startRadius: diameter * PeepholePhotoEdgeTuning.edgeDarkenStartRatio * 0.48,
@@ -145,8 +207,10 @@ private struct PeepholePhotoSoftEdgeModifier: ViewModifier {
 struct PeepholeAlbumCover: View {
     let imageSource: PeepholeImageSource
     let size: CGFloat
-    /// When true, uses the stronger new/unviewed glow (#935533, blur ~40).
+    /// When true, uses the stronger new/unviewed glow.
     var isNew: Bool = false
+    /// `.gallery` for production grid; `.darkPrototype` for the isolated test screen.
+    var palette: PeepholeVisualPalette = .gallery
 
     @State private var processedImage: UIImage?
     @State private var processingGeneration = 0
@@ -165,9 +229,13 @@ struct PeepholeAlbumCover: View {
     var body: some View {
         ZStack {
             photoAndLensStack
-                .peepholeAlbumCircleGlow(isNew: isNew)
+                .peepholeAlbumCircleGlow(isNew: isNew, palette: palette)
 
-            PeepholeGlassRimOverlay(outerDiameter: size, innerDiameter: innerDiameter)
+            PeepholeGlassRimOverlay(
+                outerDiameter: size,
+                innerDiameter: innerDiameter,
+                palette: palette
+            )
         }
         .frame(width: size, height: size)
         .onAppear { processImage() }
@@ -181,7 +249,7 @@ struct PeepholeAlbumCover: View {
             lensOverlay
         }
         .frame(width: innerDiameter, height: innerDiameter)
-        .modifier(PeepholePhotoSoftEdgeModifier(diameter: innerDiameter))
+        .modifier(PeepholePhotoSoftEdgeModifier(diameter: innerDiameter, palette: palette))
         .frame(width: size, height: size)
     }
 
@@ -233,7 +301,8 @@ struct PeepholeAlbumCover: View {
             let result = PeepholeImageProcessor.process(
                 sourceImage,
                 outputSize: outputSize,
-                cacheKey: cacheKey
+                cacheKey: cacheKey,
+                palette: palette
             )
             DispatchQueue.main.async {
                 guard generation == processingGeneration else { return }

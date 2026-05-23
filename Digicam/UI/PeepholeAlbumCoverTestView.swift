@@ -7,6 +7,9 @@ private struct PeepholeSamplePhoto: Identifiable {
 }
 
 struct PeepholeAlbumCoverTestView: View {
+    /// Darker near-black brown palette for prototype tuning (gallery keeps `.gallery`).
+    private let palette: PeepholeVisualPalette = .darkPrototype
+
     /// Which sample shows new/unviewed glow + "new!" badge — change to "1"…"4" to compare states.
     private let newPreviewSampleID = "1"
 
@@ -26,13 +29,13 @@ struct PeepholeAlbumCoverTestView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0x1e/255, green: 0x13/255, blue: 0x0f/255)
+            palette.sceneBackground
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
                 Text("Peephole Cover Test")
                     .font(.system(size: 22, weight: .regular))
-                    .foregroundColor(Color(white: 0xd4/255))
+                    .foregroundColor(Color(white: 0xc8 / 255))
                     .tracking(-1.2)
                     .padding(.top, 16)
 
@@ -58,7 +61,8 @@ struct PeepholeAlbumCoverTestView: View {
                     PeepholeAlbumCover(
                         imageSource: .uiImage(image, cacheKey: sample.assetName),
                         size: coverDiameter,
-                        isNew: isNew
+                        isNew: isNew,
+                        palette: palette
                     )
                 } else {
                     missingAssetPlaceholder
@@ -72,12 +76,12 @@ struct PeepholeAlbumCoverTestView: View {
 
             Text("Sample \(index + 1)")
                 .font(.system(size: 14, weight: .regular))
-                .foregroundColor(Color(white: 0xd4/255))
+                .foregroundColor(Color(white: 0xc8 / 255))
                 .tracking(-0.4)
 
             Text(sample.label)
                 .font(.system(size: 12, weight: .regular))
-                .foregroundColor(Color(white: 0xd4/255).opacity(0.65))
+                .foregroundColor(Color(white: 0xc8 / 255).opacity(0.55))
                 .tracking(-0.4)
         }
     }
@@ -85,13 +89,13 @@ struct PeepholeAlbumCoverTestView: View {
     private var newBadge: some View {
         Text("new!")
             .font(.system(size: 16, weight: .regular))
-            .foregroundColor(Color(red: 0x17/255, green: 0x0e/255, blue: 0x0b/255))
+            .foregroundColor(Color(red: 0x12 / 255, green: 0x0c / 255, blue: 0x0a / 255))
             .tracking(-0.4)
             .padding(.horizontal, 6)
             .padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 50)
-                    .fill(Color(red: 0x67/255, green: 0x3f/255, blue: 0x2d/255))
+                    .fill(Color(red: 0x4a / 255, green: 0x3a / 255, blue: 0x30 / 255))
             )
             .offset(x: -4, y: -4)
             .allowsHitTesting(false)
@@ -100,10 +104,10 @@ struct PeepholeAlbumCoverTestView: View {
     private var missingAssetPlaceholder: some View {
         ZStack {
             Circle()
-                .fill(Color(red: 0x2a/255, green: 0x1a/255, blue: 0x14/255))
+                .fill(palette.housingRimColor)
                 .frame(width: coverDiameter, height: coverDiameter)
             Circle()
-                .fill(Color(white: 0.15))
+                .fill(Color(white: 0.12))
                 .frame(width: coverDiameter - 12, height: coverDiameter - 12)
         }
     }

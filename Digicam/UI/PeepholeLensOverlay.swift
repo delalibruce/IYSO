@@ -67,6 +67,7 @@ private extension PeepholeGlassAnnulusShape {
 struct PeepholeGlassRimOverlay: View {
     let outerDiameter: CGFloat
     let innerDiameter: CGFloat
+    var palette: PeepholeVisualPalette = .gallery
 
     private var rimWidth: CGFloat { (outerDiameter - innerDiameter) / 2 }
     private var midlineDiameter: CGFloat { (outerDiameter + innerDiameter) / 2 }
@@ -90,8 +91,7 @@ struct PeepholeGlassRimOverlay: View {
     /// Barely-there housing — not a visible full ring.
     private var housingBase: some View {
         rimMask.glassFill(
-            Color(red: 0x2a / 255, green: 0x1a / 255, blue: 0x14 / 255)
-                .opacity(PeepholeGlassRimTuning.housingBrownOpacity)
+            palette.housingRimColor.opacity(PeepholeGlassRimTuning.housingBrownOpacity)
         )
     }
 
