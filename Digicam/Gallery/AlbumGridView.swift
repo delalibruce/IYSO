@@ -560,6 +560,7 @@ struct GalleryRootView: View {
                         showHoverRing: isHover,
                         showPeepholeEffect: true
                     )
+                    .id(album.galleryCoverViewID)
                         .background(
                             GeometryReader { geo in
                                 Color.clear.preference(
@@ -939,14 +940,15 @@ struct AlbumCircleThumbnail: View {
 
         let key = coverCacheKey
         guard loadedCoverKey != key || thumbnail == nil else { return }
-        loadedCoverKey = key
 
+        loadedCoverKey = key
         let size = PhotoLibraryManager.coverThumbnailPixelSize(innerDiameter: innerDiameter)
         if let cached = library.cachedCoverThumbnail(for: asset, size: size) {
             thumbnail = cached
             return
         }
 
+        thumbnail = nil
         library.coverThumbnail(for: asset, size: size) { image in
             guard coverCacheKey == key else { return }
             thumbnail = image
@@ -968,6 +970,7 @@ struct AlbumCircleCell: View {
                 diameter: diameter,
                 showPeepholeEffect: showPeepholeEffect
             )
+            .id(album.galleryCoverViewID)
             AlbumCircleDateLabel(album: album, diameter: diameter)
         }
     }

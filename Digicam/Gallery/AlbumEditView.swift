@@ -55,7 +55,7 @@ struct AlbumEditView: View {
                         .foregroundColor(.white)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save(using: album) }
+                    Button("Save") { save() }
                         .foregroundColor(.white)
                 }
             }
@@ -125,12 +125,16 @@ struct AlbumEditView: View {
 
     // MARK: - Save
 
-    private func save(using album: DateAlbum) {
+    private func save() {
+        guard let album = library.album(for: albumID) else {
+            dismiss()
+            return
+        }
         let trimmed = titleText.trimmingCharacters(in: .whitespaces)
         if !trimmed.isEmpty && trimmed != album.displayTitle {
             library.updateAlbumTitle(albumID: albumID, title: trimmed)
         }
-        if let coverID = selectedCoverID, coverID != album.coverAssetID {
+        if let coverID = selectedCoverID {
             library.setAlbumCover(albumID: albumID, assetLocalID: coverID)
         }
         dismiss()

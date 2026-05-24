@@ -37,8 +37,17 @@ struct DateAlbum: Identifiable {
     }
 
     var coverAsset: PHAsset? {
-        if let id = coverAssetID { return assets.first(where: { $0.localIdentifier == id }) }
+        if let id = coverAssetID,
+           let asset = assets.first(where: { $0.localIdentifier == id }) {
+            return asset
+        }
         return assets.first
+    }
+
+    /// Stable SwiftUI identity when the chosen cover changes.
+    var galleryCoverViewID: String {
+        let coverID = coverAssetID ?? coverAsset?.localIdentifier ?? "default"
+        return "\(id)-\(coverID)"
     }
 }
 
@@ -254,6 +263,9 @@ class PhotoLibraryManager: ObservableObject {
         var covers = UserDefaults.standard.dictionary(forKey: Self.albumCoversKey) as? [String: String] ?? [:]
         covers[resolvedID] = assetLocalID
         UserDefaults.standard.set(covers, forKey: Self.albumCoversKey)
+        if let index = albums.firstIndex(where: { $0.id == resolvedID }) {
+            albums[index].coverAssetID = assetLocalID
+        }
         loadAlbums()
     }
 

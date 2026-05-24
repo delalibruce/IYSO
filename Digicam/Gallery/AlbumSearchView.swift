@@ -180,6 +180,7 @@ private struct AlbumSearchResultRow: View {
                 diameter: 72,
                 showNewBadge: false
             )
+            .id(album.galleryCoverViewID)
 
             VStack(alignment: .leading, spacing: 4) {
                 if let customTitle = album.customTitle, !customTitle.isEmpty {
