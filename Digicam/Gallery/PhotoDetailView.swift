@@ -19,6 +19,12 @@ private struct TopRoundedRectangle: Shape {
     }
 }
 
+private enum PhotoDetailLayout {
+    static let mainPhotoDiameter: CGFloat = 327
+    /// Gap from header row to top of main photo circle.
+    static let headerToPhotoSpacing: CGFloat = 48
+}
+
 // Level 3 — full-screen circular photo with rotary dial navigation.
 struct PhotoDetailView: View {
     let assets: [PHAsset]
@@ -40,12 +46,6 @@ struct PhotoDetailView: View {
 
     private var currentAsset: PHAsset? { assets.indices.contains(currentIndex) ? assets[currentIndex] : nil }
 
-    private var headerDate: String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "MM.dd.yyyy"
-        return currentAsset?.creationDate.map { fmt.string(from: $0) } ?? ""
-    }
-
     private var photoName: String {
         guard let asset = currentAsset else { return "" }
         let resources = PHAssetResource.assetResources(for: asset)
@@ -59,13 +59,12 @@ struct PhotoDetailView: View {
 
                 VStack(spacing: 0) {
                     header(topPadding: topPadding)
-                    Spacer()
+                    Spacer().frame(height: PhotoDetailLayout.headerToPhotoSpacing)
+                    mainPhotoCircle
+                        .offset(y: photoYOffset)
+                        .gesture(pullDownDismiss)
+                    Spacer(minLength: 0)
                 }
-
-                mainPhotoCircle
-                    .padding(.bottom, 282 + 20)
-                    .offset(y: photoYOffset)
-                    .gesture(pullDownDismiss)
 
                 rotaryPanel
             }
@@ -80,44 +79,62 @@ struct PhotoDetailView: View {
     // MARK: - Header
 
     private func header(topPadding: CGFloat) -> some View {
-        HStack(spacing: 8) {
-            MemoryFlowBackHeaderGroup(title: headerDate, action: { dismiss() })
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, topPadding)
-    }
-
-    // MARK: - Main photo circle (~327pt diameter)
-
-    private var mainPhotoCircle: some View {
         ZStack {
-            Circle()
-                .fill(Color(red: 0x2a/255, green: 0x1a/255, blue: 0x14/255))
-                .frame(width: 327, height: 327)
-
-            if let img = fullResImage ?? lowResImage {
-                Image(uiImage: img)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 295, height: 295)
-                    .clipShape(Circle())
-            } else {
-                Circle()
-                    .fill(Color(white: 0.1))
-                    .frame(width: 295, height: 295)
-            }
-        }
-        .overlay(
             Text(photoName)
                 .font(.system(size: 17.7, weight: .regular))
                 .foregroundColor(Color(white: 0xd4/255))
                 .tracking(-0.885)
-                .frame(width: 327)
-                .multilineTextAlignment(.center)
-                .offset(y: 327/2 + 16),
-            alignment: .center
-        )
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .padding(.horizontal, 56)
+
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, topPadding)
+        .animation(.easeInOut(duration: 0.2), value: photoName)
+    }
+
+    // MARK: - Main photo circle (plain photo; outer glow + glass rim only)
+
+    private var mainPhotoCircle: some View {
+        let diameter = PhotoDetailLayout.mainPhotoDiameter
+        let innerDiameter = diameter - 12
+
+        return ZStack {
+            Group {
+                if let img = fullResImage ?? lowResImage {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: innerDiameter, height: innerDiameter)
+                        .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(Color(white: 0.12))
+                        .frame(width: innerDiameter, height: innerDiameter)
+                }
+            }
+            .frame(width: diameter, height: diameter)
+            .peepholeAlbumCircleGlow(palette: .gallery)
+
+            PeepholeGlassRimOverlay(
+                outerDiameter: diameter,
+                innerDiameter: innerDiameter,
+                palette: .gallery
+            )
+        }
+        .frame(width: diameter, height: diameter)
         .animation(.easeInOut(duration: 0.2), value: currentIndex)
     }
 
@@ -171,7 +188,8 @@ struct PhotoDetailView: View {
     private func loadImages() {
         fullResImage = nil
         guard let asset = currentAsset else { return }
-        library.thumbnail(for: asset, size: CGSize(width: 327 * 2, height: 327 * 2)) { img in
+        let px = PhotoDetailLayout.mainPhotoDiameter * 2
+        library.thumbnail(for: asset, size: CGSize(width: px, height: px)) { img in
             if self.fullResImage == nil { self.lowResImage = img }
         }
         library.fullResImage(for: asset) { img in

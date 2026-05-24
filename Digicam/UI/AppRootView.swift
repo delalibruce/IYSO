@@ -29,6 +29,7 @@ struct AppRootView: View {
 
             BottomToggle(activeTab: $activeTab)
                 .padding(.bottom, 20)
+                .zIndex(100)
                 .ignoresSafeArea(.keyboard)
                 .opacity(hidesBottomToggle ? 0 : 1)
                 .allowsHitTesting(!hidesBottomToggle)

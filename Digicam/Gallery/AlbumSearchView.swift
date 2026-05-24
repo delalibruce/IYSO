@@ -177,7 +177,7 @@ private struct AlbumSearchResultRow: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.vertical, 4)
         .contentShape(Rectangle())
     }
 }

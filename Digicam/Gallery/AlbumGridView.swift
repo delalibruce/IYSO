@@ -34,8 +34,15 @@ private enum GalleryAlbumGridMetrics {
     static let columnSpacing: CGFloat = 14
     static let rowSpacing: CGFloat = 20
     static let thumbnailLabelSpacing: CGFloat = 10
-  /// Approximate height of the two-line date label under each circle.
-    static let dateLabelHeight: CGFloat = 44
+    /// Approximate height of the two-line date label under each circle.
+    static let dateLabelHeight: CGFloat = 40
+
+    /// ~16pt on reference-width phones; scales slightly for narrower/wider devices.
+    static var albumTitleFontSize: CGFloat {
+        let referenceWidth: CGFloat = 393
+        let scale = min(max(UIScreen.main.bounds.width / referenceWidth, 0.88), 1.02)
+        return 16 * scale
+    }
 
     /// Vertical distance between the top of one row's circle and the next.
     static var rowStride: CGFloat {
@@ -552,7 +559,8 @@ struct GalleryRootView: View {
                         album: album,
                         library: library,
                         diameter: GalleryAlbumGridMetrics.circleDiameter,
-                        showHoverRing: isHover
+                        showHoverRing: isHover,
+                        showPeepholeEffect: true
                     )
                         .background(
                             GeometryReader { geo in
@@ -792,7 +800,7 @@ struct AlbumCircleDateLabel: View {
 
     private var titleText: some View {
         Text(album.displayTitle)
-            .font(.system(size: 18, weight: .regular))
+            .font(.system(size: GalleryAlbumGridMetrics.albumTitleFontSize, weight: .regular))
             .foregroundColor(Color(white: 0xd4/255))
             .tracking(-0.6)
             .frame(width: diameter)
@@ -807,6 +815,8 @@ struct AlbumCircleThumbnail: View {
     let diameter: CGFloat
     var showNewBadge: Bool = true
     var showHoverRing: Bool = false
+    /// Peephole glass ring/glow — off by default; enable for memory-card album covers only.
+    var showPeepholeEffect: Bool = false
 
     @State private var thumbnail: UIImage?
     @State private var loadedCoverKey: String?
@@ -816,13 +826,15 @@ struct AlbumCircleThumbnail: View {
         library: PhotoLibraryManager,
         diameter: CGFloat,
         showNewBadge: Bool = true,
-        showHoverRing: Bool = false
+        showHoverRing: Bool = false,
+        showPeepholeEffect: Bool = false
     ) {
         self.album = album
         self.library = library
         self.diameter = diameter
         self.showNewBadge = showNewBadge
         self.showHoverRing = showHoverRing
+        self.showPeepholeEffect = showPeepholeEffect
 
         let coverID = album.coverAssetID ?? album.coverAsset?.localIdentifier ?? ""
         let coverKey = "\(album.id)-\(coverID)"
@@ -847,14 +859,18 @@ struct AlbumCircleThumbnail: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            if let thumbnail {
-                PeepholeAlbumCover(
-                    imageSource: .uiImage(thumbnail, cacheKey: coverCacheKey),
-                    size: diameter,
-                    isNew: isUnviewedAlbum
-                )
+            if showPeepholeEffect {
+                if let thumbnail {
+                    PeepholeAlbumCover(
+                        imageSource: .uiImage(thumbnail, cacheKey: coverCacheKey),
+                        size: diameter,
+                        isNew: isUnviewedAlbum
+                    )
+                } else {
+                    albumCoverLoadingShell
+                }
             } else {
-                albumCoverLoadingShell
+                plainThumbnailBubble
             }
 
             if showHoverRing {
@@ -899,6 +915,23 @@ struct AlbumCircleThumbnail: View {
         .peepholeAlbumCircleGlow(isNew: isUnviewedAlbum, palette: .gallery)
     }
 
+    @ViewBuilder
+    private var plainThumbnailBubble: some View {
+        if let thumbnail {
+            Image(uiImage: thumbnail)
+                .resizable()
+                .scaledToFill()
+                .frame(width: innerDiameter, height: innerDiameter)
+                .clipShape(Circle())
+                .frame(width: diameter, height: diameter)
+        } else {
+            Circle()
+                .fill(Color(white: 0.15))
+                .frame(width: innerDiameter, height: innerDiameter)
+                .frame(width: diameter, height: diameter)
+        }
+    }
+
     private func loadThumbnail() {
         guard let asset = album.coverAsset else {
             thumbnail = nil
@@ -927,10 +960,16 @@ struct AlbumCircleCell: View {
     let album: DateAlbum
     let library: PhotoLibraryManager
     let diameter: CGFloat
+    var showPeepholeEffect: Bool = true
 
     var body: some View {
         VStack(spacing: GalleryAlbumGridMetrics.thumbnailLabelSpacing) {
-            AlbumCircleThumbnail(album: album, library: library, diameter: diameter)
+            AlbumCircleThumbnail(
+                album: album,
+                library: library,
+                diameter: diameter,
+                showPeepholeEffect: showPeepholeEffect
+            )
             AlbumCircleDateLabel(album: album, diameter: diameter)
         }
     }
@@ -943,6 +982,8 @@ struct CircularPhotoCell: View {
     let library: PhotoLibraryManager
     let diameter: CGFloat
     var isNewest: Bool = false
+    /// Peephole glass ring/glow — off by default; enable for album detail photo thumbnails only.
+    var showPeepholeEffect: Bool = false
 
     @State private var thumbnail: UIImage?
     private var innerDiameter: CGFloat { diameter - 12 }
@@ -953,14 +994,18 @@ struct CircularPhotoCell: View {
     var body: some View {
         VStack(spacing: 6) {
             ZStack(alignment: .bottomTrailing) {
-                photoBubble
-                    .peepholeAlbumCircleGlow(palette: .gallery, intensity: .photoThumbnail)
+                if showPeepholeEffect {
+                    photoBubble
+                        .peepholeAlbumCircleGlow(palette: .gallery, intensity: .photoThumbnail)
 
-                PeepholeGlassRimOverlay(
-                    outerDiameter: diameter,
-                    innerDiameter: innerDiameter,
-                    palette: .gallery
-                )
+                    PeepholeGlassRimOverlay(
+                        outerDiameter: diameter,
+                        innerDiameter: innerDiameter,
+                        palette: .gallery
+                    )
+                } else {
+                    photoBubble
+                }
 
                 if isNewest {
                     Text("new!")

@@ -37,6 +37,36 @@ struct MemoryFlowHeaderBottomKey: PreferenceKey {
     }
 }
 
+// MARK: - Toolbar-style header buttons (matches Edit Album Cancel/Save)
+
+/// Text action in the Memory Flow custom header — same look as navigation-bar toolbar buttons.
+struct MemoryFlowToolbarTextButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(title, action: action)
+            .font(.system(size: 17, weight: .regular))
+            .foregroundColor(.white)
+            .buttonStyle(.plain)
+    }
+}
+
+/// Icon action in the Memory Flow custom header — same look as toolbar buttons.
+struct MemoryFlowToolbarIconButton: View {
+    let systemName: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(.white)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - Back navigation
 
 /// Tappable chevron + title group for Memory Flow detail screens.
@@ -181,5 +211,81 @@ extension MemoryFlowHeader where Leading == EmptyView {
         self.horizontalPadding = horizontalPadding
         self.leading = { EmptyView() }
         self.trailing = trailing
+    }
+}
+
+// MARK: - Glass selection controls
+
+private enum MemoryFlowGlassStyle {
+    /// Warm brown-gray glass fill — aligned with BottomToggle accent tones.
+    static let fill = Color(red: 0x2a / 255, green: 0x23 / 255, blue: 0x20 / 255).opacity(0.48)
+    static let warmTint = Color(red: 127 / 255, green: 104 / 255, blue: 96 / 255).opacity(0.22)
+    static let border = Color.white.opacity(0.18)
+    static let shadowColor = Color.black.opacity(0.38)
+    static let iconActive = Color(white: 0.94)
+    static let iconInactive = Color(white: 0.42)
+    static let controlHeight: CGFloat = 54
+}
+
+private struct MemoryFlowGlassSurface<S: InsettableShape>: View {
+    let shape: S
+
+    var body: some View {
+        ZStack {
+            shape.fill(.ultraThinMaterial)
+            shape.fill(MemoryFlowGlassStyle.fill)
+            shape.fill(MemoryFlowGlassStyle.warmTint)
+        }
+        .overlay {
+            shape.strokeBorder(MemoryFlowGlassStyle.border, lineWidth: 0.75)
+        }
+        .shadow(color: MemoryFlowGlassStyle.shadowColor, radius: 10, x: 0, y: 5)
+    }
+}
+
+/// Circular glass action button for album selection mode.
+struct MemoryFlowGlassIconButton: View {
+    let systemName: String
+    var isEnabled: Bool = true
+    let action: () -> Void
+
+    private let diameter = MemoryFlowGlassStyle.controlHeight
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 22, weight: .regular))
+                .foregroundColor(isEnabled ? MemoryFlowGlassStyle.iconActive : MemoryFlowGlassStyle.iconInactive)
+                .frame(width: diameter, height: diameter)
+                .background {
+                    MemoryFlowGlassSurface(shape: Circle())
+                }
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+    }
+}
+
+/// Glass pill showing how many photos are selected in album detail select mode.
+struct MemoryFlowSelectionCountPill: View {
+    let count: Int
+
+    private var label: String {
+        let noun = count == 1 ? "Photo" : "Photos"
+        return "\(count) \(noun) Selected"
+    }
+
+    var body: some View {
+        Text(label)
+            .font(.system(size: 15, weight: .medium))
+            .foregroundColor(Color(white: 0.92))
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
+            .padding(.horizontal, 18)
+            .frame(height: MemoryFlowGlassStyle.controlHeight)
+            .frame(minWidth: 168)
+            .background {
+                MemoryFlowGlassSurface(shape: Capsule())
+            }
     }
 }

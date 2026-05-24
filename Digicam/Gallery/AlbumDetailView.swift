@@ -39,6 +39,8 @@ struct AlbumDetailView: View {
     @State private var swipeSelectTouched: Set<String> = []
     @State private var showDeleteSelectedConfirm = false
 
+    @Namespace private var selectionHeaderButtonNamespace
+
     private var visibleAssets: [PHAsset] {
         assets.filter { !deletedAssetIDs.contains($0.localIdentifier) }
     }
@@ -82,39 +84,55 @@ struct AlbumDetailView: View {
 
     private func memoryFlowHeader(topPadding: CGFloat) -> some View {
         MemoryFlowHeader(
-            title: isSelecting
-                ? (selectedIDs.isEmpty ? "Select Photos" : "\(selectedIDs.count) selected")
-                : albumTitle,
+            title: albumTitle,
             subtitle: PhotoLibraryManager.itemCountLabel(count: visibleAssets.count),
             topPadding: topPadding,
-            hidesCenterTitle: !isSelecting
+            hidesCenterTitle: true
         ) {
             Group {
                 if isSelecting {
-                    Button("Cancel") {
-                        isSelecting = false
-                    }
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white)
+                    Text("Select Photos")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundColor(.white)
+                        .tracking(-1.2)
+                        .lineLimit(1)
+                        .transition(.opacity)
                 } else {
                     MemoryFlowBackHeaderGroup(title: albumTitle, action: { dismiss() })
                 }
             }
+            .animation(.easeInOut(duration: 0.25), value: isSelecting)
         } trailing: {
+            selectionHeaderTrailing
+        }
+    }
+
+    @ViewBuilder
+    private var selectionHeaderTrailing: some View {
+        HStack(spacing: 16) {
+            if isSelecting {
+                MemoryFlowToolbarTextButton(title: "Select All", action: toggleSelectAll)
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+            }
+
             Group {
                 if isSelecting {
-                    Button("All") {
-                        selectedIDs = Set(visibleAssets.map { $0.localIdentifier })
+                    MemoryFlowToolbarIconButton(systemName: "xmark") {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isSelecting = false
+                        }
                     }
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.white)
                 } else {
-                    Button("Select") { isSelecting = true }
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.white)
+                    MemoryFlowToolbarTextButton(title: "Select") {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isSelecting = true
+                        }
+                    }
                 }
             }
+            .matchedGeometryEffect(id: "selectClose", in: selectionHeaderButtonNamespace)
         }
+        .animation(.easeInOut(duration: 0.25), value: isSelecting)
     }
 
     // MARK: - Photo grid
@@ -184,21 +202,28 @@ struct AlbumDetailView: View {
     private func photoCell(asset: PHAsset) -> some View {
         let isSelected = selectedIDs.contains(asset.localIdentifier)
         ZStack(alignment: .topTrailing) {
-            CircularPhotoCell(asset: asset, library: library, diameter: 118)
-            if isSelecting {
+            CircularPhotoCell(
+                asset: asset,
+                library: library,
+                diameter: 118,
+                showPeepholeEffect: true
+            )
+            if isSelecting, isSelected {
                 ZStack {
                     Circle()
-                        .fill(isSelected
-                              ? Color(red: 0x7f/255, green: 0x68/255, blue: 0x60/255)
-                              : Color.black.opacity(0.45))
-                        .frame(width: 22, height: 22)
-                    if isSelected {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                    }
+                        .fill(Color(red: 0x67/255, green: 0x3f/255, blue: 0x2d/255))
+                        .frame(width: 26, height: 26)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: 1)
+                        )
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white)
                 }
-                .padding(6)
+                .padding(.top, 9)
+                .padding(.trailing, 6)
+                .allowsHitTesting(false)
             }
         }
     }
@@ -208,33 +233,30 @@ struct AlbumDetailView: View {
     private var selectionBottomBar: some View {
         VStack {
             Spacer()
-            HStack {
-                Button {
+            HStack(alignment: .center, spacing: 0) {
+                MemoryFlowGlassIconButton(
+                    systemName: "square.and.arrow.up",
+                    isEnabled: !selectedIDs.isEmpty,
+                    action: shareSelectedPhotos
+                )
+
+                Spacer(minLength: 12)
+
+                MemoryFlowSelectionCountPill(count: selectedIDs.count)
+                    .animation(.easeInOut(duration: 0.15), value: selectedIDs.count)
+
+                Spacer(minLength: 12)
+
+                MemoryFlowGlassIconButton(
+                    systemName: "trash",
+                    isEnabled: !selectedIDs.isEmpty
+                ) {
                     guard !selectedIDs.isEmpty else { return }
                     showDeleteSelectedConfirm = true
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.system(size: 22, weight: .regular))
-                        .foregroundColor(selectedIDs.isEmpty ? Color(white: 0.4) : .white)
-                        .frame(width: 50, height: 50)
                 }
-                Spacer()
-                Button {
-                    shareSelectedPhotos()
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 22, weight: .regular))
-                        .foregroundColor(selectedIDs.isEmpty ? Color(white: 0.4) : .white)
-                        .frame(width: 50, height: 50)
-                }
-                .disabled(selectedIDs.isEmpty)
             }
-            .padding(.horizontal, 36)
-            .padding(.vertical, 14)
-            .background(
-                PeepholeVisualPalette.memoryFlowBackground
-                    .ignoresSafeArea(edges: .bottom)
-            )
+            .padding(.horizontal, 24)
+            .padding(.bottom, 36)
         }
         .ignoresSafeArea(edges: .bottom)
     }
@@ -267,6 +289,20 @@ struct AlbumDetailView: View {
     private func toggleSelection(_ id: String) {
         if selectedIDs.contains(id) { selectedIDs.remove(id) }
         else { selectedIDs.insert(id) }
+    }
+
+    private var allVisiblePhotosSelected: Bool {
+        let visible = visibleAssets
+        guard !visible.isEmpty else { return false }
+        return visible.allSatisfy { selectedIDs.contains($0.localIdentifier) }
+    }
+
+    private func toggleSelectAll() {
+        if allVisiblePhotosSelected {
+            selectedIDs = []
+        } else {
+            selectedIDs = Set(visibleAssets.map(\.localIdentifier))
+        }
     }
 
     private func deletePhoto(_ asset: PHAsset) {
