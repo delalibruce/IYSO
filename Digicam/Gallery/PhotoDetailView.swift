@@ -2,27 +2,12 @@ import SwiftUI
 import Photos
 import UIKit
 
-private struct TopRoundedRectangle: Shape {
-    let radius: CGFloat
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        p.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-        p.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
-        p.addQuadCurve(to: CGPoint(x: rect.minX + radius, y: rect.minY),
-                       control: CGPoint(x: rect.minX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
-        p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY + radius),
-                       control: CGPoint(x: rect.maxX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        p.closeSubpath()
-        return p
-    }
-}
-
 private enum PhotoDetailLayout {
     static let mainPhotoDiameter: CGFloat = 327
     /// Gap from header row to top of main photo circle.
     static let headerToPhotoSpacing: CGFloat = 48
+    /// Gap from bottom of main photo circle to top of thumbnail carousel.
+    static let photoToCarouselSpacing: CGFloat = 80
 }
 
 // Level 3 — full-screen circular photo with rotary dial navigation.
@@ -54,8 +39,8 @@ struct PhotoDetailView: View {
 
     var body: some View {
         SDCardScreenContainer { topPadding in
-            ZStack(alignment: .bottom) {
-                Color(red: 0x17/255, green: 0x0e/255, blue: 0x0b/255).ignoresSafeArea()
+            ZStack {
+                PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     header(topPadding: topPadding)
@@ -63,10 +48,14 @@ struct PhotoDetailView: View {
                     mainPhotoCircle
                         .offset(y: photoYOffset)
                         .gesture(pullDownDismiss)
+                    Spacer().frame(height: PhotoDetailLayout.photoToCarouselSpacing)
+                    RotaryNavigationView(
+                        assets: assets,
+                        library: library,
+                        currentIndex: $currentIndex
+                    )
                     Spacer(minLength: 0)
                 }
-
-                rotaryPanel
             }
             .memoryFlowSwipeToGoBack { dismiss() }
             .navigationBarHidden(true)
@@ -105,34 +94,23 @@ struct PhotoDetailView: View {
         .animation(.easeInOut(duration: 0.2), value: photoName)
     }
 
-    // MARK: - Main photo circle (plain photo; outer glow + glass rim only)
+    // MARK: - Main photo circle
 
     private var mainPhotoCircle: some View {
         let diameter = PhotoDetailLayout.mainPhotoDiameter
-        let innerDiameter = diameter - 12
 
-        return ZStack {
-            Group {
-                if let img = fullResImage ?? lowResImage {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: innerDiameter, height: innerDiameter)
-                        .clipShape(Circle())
-                } else {
-                    Circle()
-                        .fill(Color(white: 0.12))
-                        .frame(width: innerDiameter, height: innerDiameter)
-                }
+        return Group {
+            if let img = fullResImage ?? lowResImage {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: diameter, height: diameter)
+                    .clipShape(Circle())
+            } else {
+                Circle()
+                    .fill(Color(white: 0.12))
+                    .frame(width: diameter, height: diameter)
             }
-            .frame(width: diameter, height: diameter)
-            .peepholeAlbumCircleGlow(palette: .gallery)
-
-            PeepholeGlassRimOverlay(
-                outerDiameter: diameter,
-                innerDiameter: innerDiameter,
-                palette: .gallery
-            )
         }
         .frame(width: diameter, height: diameter)
         .animation(.easeInOut(duration: 0.2), value: currentIndex)
@@ -163,25 +141,6 @@ struct PhotoDetailView: View {
             }
     }
 
-    // MARK: - Rotary panel
-
-    private var rotaryPanel: some View {
-        VStack(spacing: 0) {
-            RotaryNavigationView(
-                assets: assets,
-                library: library,
-                currentIndex: $currentIndex
-            )
-            Spacer()
-        }
-        .frame(height: 282)
-        .frame(maxWidth: .infinity)
-        .background(
-            Color(red: 0x2a/255, green: 0x1a/255, blue: 0x14/255)
-                .clipShape(TopRoundedRectangle(radius: 60))
-        )
-        .shadow(color: .black.opacity(0.25), radius: 0, x: 0, y: -4)
-    }
 
     // MARK: - Image loading
 

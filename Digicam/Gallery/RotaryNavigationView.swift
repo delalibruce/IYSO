@@ -2,120 +2,131 @@ import SwiftUI
 import Photos
 import UIKit
 
-// Rotary dial strip shown at the bottom of PhotoDetailView.
-// Five circular thumbnails fanned out in a perspective arc.
-// Dragging clockwise = next, CCW = previous. Tapping a side bubble navigates directly.
+// Arc-shaped wheel carousel shown below the main photo in PhotoDetailView.
+// All album photos scroll along a curved track; the centered item is selected.
 struct RotaryNavigationView: View {
     let assets: [PHAsset]
     let library: PhotoLibraryManager
     @Binding var currentIndex: Int
 
-    @State private var accumulatedAngle: Double = 0
-    @State private var previousAngle: Double? = nil
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDragging = false
 
-    private let advanceThreshold: Double = 0.35 // radians (~20°)
+    private let baseDiameter: CGFloat = 75
+    private let selectedDiameter: CGFloat = 91
+    private let itemSpacing: CGFloat = 18
+    /// Quadratic drop per pitch unit — controls how steep the arch feels.
+    private let archDropPerUnit: CGFloat = 26
     private let haptic = UIImpactFeedbackGenerator(style: .light)
 
+    private var pitch: CGFloat { baseDiameter + itemSpacing }
+    private var selectedScale: CGFloat { selectedDiameter / baseDiameter }
+
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 26)
-                .fill(Color(red: 0x64/255, green: 0x50/255, blue: 0x47/255))
-                .frame(width: 75, height: 5)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top, 8)
-                .frame(maxHeight: .infinity, alignment: .top)
+        GeometryReader { geo in
+            let centerX = geo.size.width / 2
+            let apexY = selectedDiameter / 2 + 6
 
-            GeometryReader { geo in
-                let cx = geo.size.width / 2
-                let cy: CGFloat = 50
+            ZStack {
+                ForEach(Array(assets.enumerated()), id: \.element.localIdentifier) { index, asset in
+                    let horizontalDist = CGFloat(index - currentIndex) * pitch + dragOffset
+                    let normalizedDist = abs(horizontalDist) / pitch
+                    let yDrop = archDrop(for: horizontalDist)
 
-                ZStack {
-                    fanThumbnail(offset: -174, verticalOffset: 97, opacity: 0.5, relIndex: -2, cx: cx, cy: cy)
-                    fanThumbnail(offset: -95,  verticalOffset: 60,  opacity: 0.75, relIndex: -1, cx: cx, cy: cy)
-                    fanThumbnail(offset: 95,   verticalOffset: 60,  opacity: 0.75, relIndex: 1,  cx: cx, cy: cy)
-                    fanThumbnail(offset: 174,  verticalOffset: 97,  opacity: 0.5,  relIndex: 2,  cx: cx, cy: cy)
-                    fanThumbnail(offset: 0, verticalOffset: 34, opacity: 1.0, relIndex: 0, cx: cx, cy: cy)
+                    carouselItem(for: asset, at: index, normalizedDist: normalizedDist)
+                        .position(x: centerX + horizontalDist, y: apexY + yDrop)
                 }
             }
-            .frame(height: 200)
-            .padding(.top, 20)
         }
+        .frame(height: 168)
         .frame(maxWidth: .infinity)
-        .gesture(rotaryDrag)
+        .contentShape(Rectangle())
+        .gesture(carouselDrag)
     }
 
-    // MARK: - Fan thumbnail
+    // MARK: - Arch geometry
 
-    private func fanThumbnail(
-        offset: CGFloat,
-        verticalOffset: CGFloat,
-        opacity: Double,
-        relIndex: Int,
-        cx: CGFloat,
-        cy: CGFloat
-    ) -> some View {
-        let diameter: CGFloat = relIndex == 0 ? 91 : 75
-        let assetIndex = currentIndex + relIndex
-        let valid = assets.indices.contains(assetIndex)
+    private func archDrop(for horizontalDist: CGFloat) -> CGFloat {
+        let t = horizontalDist / pitch
+        return min(t * t * archDropPerUnit, 72)
+    }
 
-        return RotaryThumbCell(
-            asset: valid ? assets[assetIndex] : nil,
-            library: library,
-            diameter: diameter
-        )
-        .opacity(valid ? opacity : 0)
-        .position(x: cx + offset, y: verticalOffset + diameter / 2)
-        .animation(.easeInOut(duration: 0.25), value: currentIndex)
-        .onTapGesture {
-            guard relIndex != 0, valid else { return }
-            advance(by: relIndex)
+    // MARK: - Carousel item
+
+    private func carouselItem(for asset: PHAsset, at index: Int, normalizedDist: CGFloat) -> some View {
+        let isCentered = normalizedDist < 0.45
+
+        return Button {
+            selectIndex(index)
+        } label: {
+            RotaryThumbCell(
+                asset: asset,
+                library: library,
+                diameter: baseDiameter
+            )
+            .scaleEffect(scale(for: normalizedDist))
+            .saturation(isCentered ? 1 : 0)
+            .opacity(opacity(for: normalizedDist))
+            .brightness(isCentered ? 0 : -0.08)
+            .zIndex(isCentered ? 1 : 0)
+            .animation(isDragging ? nil : .easeInOut(duration: 0.25), value: currentIndex)
+        }
+        .buttonStyle(.plain)
+        .zIndex(100 - normalizedDist)
+    }
+
+    private func scale(for normalizedDist: CGFloat) -> CGFloat {
+        let falloff = min(normalizedDist, 2.5)
+        return max(0.76, selectedScale - falloff * 0.18)
+    }
+
+    private func opacity(for normalizedDist: CGFloat) -> CGFloat {
+        let falloff = min(normalizedDist, 2.5)
+        return max(0.42, 1.0 - falloff * 0.26)
+    }
+
+    // MARK: - Selection
+
+    private func selectIndex(_ index: Int) {
+        guard assets.indices.contains(index), index != currentIndex else { return }
+        haptic.impactOccurred()
+        withAnimation(.easeInOut(duration: 0.25)) {
+            currentIndex = index
+            dragOffset = 0
         }
     }
 
-    // MARK: - Circular drag gesture
+    // MARK: - Horizontal drag
 
-    private var rotaryDrag: some Gesture {
-        DragGesture(minimumDistance: 2)
+    private var carouselDrag: some Gesture {
+        DragGesture(minimumDistance: 4)
             .onChanged { value in
-                let center = CGPoint(x: UIScreen.main.bounds.width / 2, y: 0)
-                let angle = atan2(value.location.y - center.y, value.location.x - center.x)
-
-                guard let prev = previousAngle else {
-                    previousAngle = angle
-                    return
-                }
-
-                var delta = angle - prev
-                if delta > .pi  { delta -= 2 * .pi }
-                if delta < -.pi { delta += 2 * .pi }
-
-                accumulatedAngle -= delta
-                previousAngle = angle
-
-                if accumulatedAngle >= advanceThreshold {
-                    advance(by: 1)
-                    accumulatedAngle = 0
-                } else if accumulatedAngle <= -advanceThreshold {
-                    advance(by: -1)
-                    accumulatedAngle = 0
-                }
+                if !isDragging { isDragging = true }
+                dragOffset = clampedDragOffset(value.translation.width)
             }
             .onEnded { _ in
-                previousAngle = nil
-                accumulatedAngle = 0
+                isDragging = false
+                let delta = -Int(round(dragOffset / pitch))
+                let newIndex = min(max(currentIndex + delta, 0), max(assets.count - 1, 0))
+                if newIndex != currentIndex {
+                    haptic.impactOccurred()
+                }
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                    currentIndex = newIndex
+                    dragOffset = 0
+                }
             }
     }
 
-    // advance(by:) is the single source of truth for both navigation and haptics.
-    private func advance(by delta: Int) {
-        let next = currentIndex + delta
-        guard assets.indices.contains(next) else { return }
-        haptic.impactOccurred()
-        withAnimation(.easeInOut(duration: 0.2)) { currentIndex = next }
+    private func clampedDragOffset(_ proposed: CGFloat) -> CGFloat {
+        guard !assets.isEmpty else { return 0 }
+        let maxPositive = CGFloat(currentIndex) * pitch
+        let maxNegative = -CGFloat(assets.count - 1 - currentIndex) * pitch
+        return min(max(proposed, maxNegative), maxPositive)
     }
 }
 
-// MARK: - Single thumbnail in the rotary fan
+// MARK: - Single thumbnail in the carousel
 
 struct RotaryThumbCell: View {
     let asset: PHAsset?
