@@ -33,7 +33,6 @@ struct AlbumDetailView: View {
     @State private var swipeSelectTouched: Set<String> = []
     @State private var showDeleteSelectedConfirm = false
 
-    @Namespace private var selectionHeaderButtonNamespace
     @State private var memoryFlowHeaderLayoutHeight: CGFloat = 0
 
     private var visibleAssets: [PHAsset] {
@@ -48,11 +47,18 @@ struct AlbumDetailView: View {
                 ZStack(alignment: .top) {
                     photoScrollView(topPadding: topPadding)
                     memoryFlowHeader(topPadding: topPadding)
+                        .zIndex(2)
                 }
                 .onPreferenceChange(MemoryFlowHeaderLayoutHeightKey.self) {
                     memoryFlowHeaderLayoutHeight = $0
                 }
-                .memoryFlowSwipeToGoBack { dismiss() }
+                .memoryFlowSwipeToGoBack {
+                    if isSelecting {
+                        exitSelectionMode()
+                    } else {
+                        dismiss()
+                    }
+                }
 
                 if isSelecting { selectionBottomBar }
 
@@ -125,22 +131,12 @@ struct AlbumDetailView: View {
                     .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
 
-            Group {
-                if isSelecting {
-                    MemoryFlowToolbarIconButton(systemName: "xmark") {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            isSelecting = false
-                        }
-                    }
-                } else {
-                    MemoryFlowToolbarTextButton(title: "Select") {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            isSelecting = true
-                        }
-                    }
-                }
+            if isSelecting {
+                MemoryFlowToolbarIconButton(systemName: "xmark", action: exitSelectionMode)
+                    .accessibilityLabel("Done selecting")
+            } else {
+                MemoryFlowToolbarTextButton(title: "Select", action: enterSelectionMode)
             }
-            .matchedGeometryEffect(id: "selectClose", in: selectionHeaderButtonNamespace)
         }
         .animation(.easeInOut(duration: 0.25), value: isSelecting)
     }
@@ -310,6 +306,18 @@ struct AlbumDetailView: View {
     }
 
     // MARK: - Actions
+
+    private func enterSelectionMode() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            isSelecting = true
+        }
+    }
+
+    private func exitSelectionMode() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            isSelecting = false
+        }
+    }
 
     private func toggleSelection(_ id: String) {
         if selectedIDs.contains(id) { selectedIDs.remove(id) }

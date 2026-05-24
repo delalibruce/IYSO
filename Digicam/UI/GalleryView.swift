@@ -69,6 +69,8 @@ struct MemoryFlowToolbarIconButton: View {
             Image(systemName: systemName)
                 .font(.system(size: 17, weight: .medium))
                 .foregroundColor(.white)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
