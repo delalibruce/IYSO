@@ -8,9 +8,10 @@ struct RotaryNavigationView: View {
     let assets: [PHAsset]
     let library: PhotoLibraryManager
     @Binding var currentIndex: Int
+    @Binding var isDragging: Bool
 
     @State private var dragOffset: CGFloat = 0
-    @State private var isDragging = false
+    @State private var gestureStartOffset: CGFloat = 0
     @State private var lastDragHapticIndex: Int?
 
     private let baseDiameter: CGFloat = 75
@@ -56,7 +57,7 @@ struct RotaryNavigationView: View {
             // (top-center alignment double-shifts when there is only one thumbnail).
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .contentShape(Rectangle())
-            .simultaneousGesture(carouselDrag)
+            .highPriorityGesture(carouselDrag)
         }
         .frame(height: 168)
         .frame(maxWidth: .infinity)
@@ -107,6 +108,7 @@ struct RotaryNavigationView: View {
 
     // MARK: - Carousel item
 
+    @ViewBuilder
     private func carouselItem(
         for asset: PHAsset,
         at index: Int,
@@ -117,32 +119,31 @@ struct RotaryNavigationView: View {
         let thumbScale = scale(for: normalizedDist)
         let hitSize = baseDiameter * thumbScale
 
-        return Button {
-            selectIndex(index)
-        } label: {
-            ZStack {
-                RotaryThumbCell(
-                    asset: asset,
-                    library: library,
-                    diameter: baseDiameter,
-                    isCentered: isCentered
-                )
-                .scaleEffect(thumbScale)
-                .saturation(isCentered ? 1 : 0)
-                .opacity(opacity(for: normalizedDist))
-                .brightness(isCentered ? 0 : -0.08)
-            }
-            .frame(width: hitSize, height: hitSize)
-            .contentShape(Circle())
-            .frame(width: slotWidth, height: slotWidth)
-            .offset(
-                x: horizontalItemOffset(for: horizontalDist),
-                y: archDrop(for: horizontalDist)
+        ZStack {
+            RotaryThumbCell(
+                asset: asset,
+                library: library,
+                diameter: baseDiameter,
+                isCentered: isCentered
             )
-            .animation(isDragging ? nil : .easeInOut(duration: 0.25), value: currentIndex)
-            .animation(isDragging ? nil : .easeInOut(duration: 0.25), value: dragOffset)
+            .scaleEffect(thumbScale)
+            .saturation(isCentered ? 1 : 0)
+            .opacity(opacity(for: normalizedDist))
+            .brightness(isCentered ? 0 : -0.08)
         }
-        .buttonStyle(.plain)
+        .frame(width: hitSize, height: hitSize)
+        .contentShape(Circle())
+        .frame(width: slotWidth, height: slotWidth)
+        .offset(
+            x: horizontalItemOffset(for: horizontalDist),
+            y: archDrop(for: horizontalDist)
+        )
+        .animation(isDragging ? nil : .easeInOut(duration: 0.25), value: currentIndex)
+        .animation(isDragging ? nil : .easeInOut(duration: 0.25), value: dragOffset)
+        .onTapGesture {
+            guard !isDragging else { return }
+            selectIndex(index)
+        }
         .zIndex(zIndex(for: normalizedDist))
     }
 
@@ -196,30 +197,43 @@ struct RotaryNavigationView: View {
             .onChanged { value in
                 if !isDragging {
                     isDragging = true
+                    gestureStartOffset = dragOffset
                     lastDragHapticIndex = indexNearestCenter(forDragOffset: dragOffset)
                     haptic.prepare()
                 }
                 var transaction = Transaction()
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
-                    dragOffset = clampedDragOffset(value.translation.width)
+                    var offset = clampedDragOffset(gestureStartOffset + value.translation.width)
+                    rebalanceIndexWhileDragging(proposedOffset: &offset)
+                    dragOffset = offset
+                    // Keep finger position stable after index rebases mid-drag.
+                    gestureStartOffset = dragOffset - value.translation.width
                 }
-                let nearest = indexNearestCenter(forDragOffset: dragOffset)
-                emitDragHapticIfNeeded(for: nearest)
+                emitDragHapticIfNeeded(for: currentIndex)
             }
             .onEnded { _ in
                 guard isDragging else { return }
+                var offset = dragOffset
+                rebalanceIndexWhileDragging(proposedOffset: &offset)
+                dragOffset = offset
                 isDragging = false
-                let nearest = indexNearestCenter(forDragOffset: dragOffset)
-                if nearest != currentIndex {
-                    emitDragHapticIfNeeded(for: nearest)
-                }
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
-                    currentIndex = nearest
                     dragOffset = 0
                 }
                 lastDragHapticIndex = nil
             }
+    }
+
+    /// Shifts `currentIndex` to whichever thumbnail is nearest center while preserving
+    /// on-screen positions (re-bases drag offset so the track does not jump).
+    private func rebalanceIndexWhileDragging(proposedOffset: inout CGFloat) {
+        let nearest = indexNearestCenter(forDragOffset: proposedOffset)
+        guard nearest != currentIndex else { return }
+        let delta = nearest - currentIndex
+        currentIndex = nearest
+        proposedOffset += CGFloat(delta) * pitch
+        proposedOffset = clampedDragOffset(proposedOffset)
     }
 
     private func clampedDragOffset(_ proposed: CGFloat) -> CGFloat {

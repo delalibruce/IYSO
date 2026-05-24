@@ -44,6 +44,7 @@ struct PhotoDetailView: View {
     @State private var isShareSheetPresented = false
     @State private var showDeleteConfirm = false
     @State private var carouselSwipeExclusionFrame: CGRect?
+    @State private var isCarouselDragging = false
 
     init(
         assets: [PHAsset],
@@ -119,7 +120,8 @@ struct PhotoDetailView: View {
                     RotaryNavigationView(
                         assets: visibleAssets,
                         library: library,
-                        currentIndex: $currentIndex
+                        currentIndex: $currentIndex,
+                        isDragging: $isCarouselDragging
                     )
                     .opacity(pullDownChromeOpacity)
                     .allowsHitTesting(!isPhotoDragActive && heroProgress < 0.12)
@@ -216,7 +218,7 @@ struct PhotoDetailView: View {
 
     private var mainPhotoCircle: some View {
         detailPeepholePhoto(diameter: PhotoDetailLayout.mainPhotoDiameter)
-            .animation(.easeInOut(duration: 0.2), value: currentIndex)
+            .animation(isCarouselDragging ? nil : .easeInOut(duration: 0.2), value: currentIndex)
     }
 
     /// Large detail hero — original photo in a circle with glow/rim only (no bulge, vignette, or lens).
