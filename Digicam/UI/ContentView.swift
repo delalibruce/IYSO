@@ -1,17 +1,25 @@
 import SwiftUI
 
+private enum CameraLayout {
+    /// Gap from top of screen to top of the fisheye preview circle.
+    static let previewTopInset: CGFloat = 72
+    /// Gap from bottom of screen to bottom of the shutter button (sits above the tab toggle).
+    static let shutterBottomInset: CGFloat = 140
+}
+
 struct CameraView: View {
     @ObservedObject var camera: CameraManager
 
     var body: some View {
         GeometryReader { geo in
-            ZStack {
+            ZStack(alignment: .top) {
                 Color.black.ignoresSafeArea()
                 fisheyeCircle(diameter: geo.size.width)
+                    .padding(.top, CameraLayout.previewTopInset)
                 VStack {
                     Spacer()
                     shutterButton
-                        .padding(.bottom, 100)
+                        .padding(.bottom, CameraLayout.shutterBottomInset)
                 }
             }
         }
