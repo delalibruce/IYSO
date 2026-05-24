@@ -286,6 +286,7 @@ struct GalleryRootView: View {
 
     @State private var currentMonthYear = ""
     @State private var headerBottomY: CGFloat = 0
+    @State private var memoryFlowHeaderLayoutHeight: CGFloat = 0
     @State private var scrollContentOffsetY: CGFloat = 0
     @State private var scrollViewGlobalMinY: CGFloat = 0
     @State private var circleContentY: [String: CGFloat] = [:]
@@ -300,7 +301,7 @@ struct GalleryRootView: View {
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            SDCardScreenContainer { topPadding in
+            SDCardScreenContainer { topPadding, _ in
                 ZStack {
                     PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
@@ -356,14 +357,12 @@ struct GalleryRootView: View {
                 }
             }
         }
-        .confirmationDialog(
+        .memoryFlowDeleteConfirmation(
             "Delete \"\(albumPendingDelete?.displayTitle ?? "")\"?",
             isPresented: $showDeleteAlbumConfirm,
-            titleVisibility: .visible
+            deleteButtonTitle: "Delete Album and Photos"
         ) {
-            Button("Delete Album and Photos", role: .destructive) {
-                if let album = albumPendingDelete { library.deleteAlbum(album) }
-            }
+            if let album = albumPendingDelete { library.deleteAlbum(album) }
         }
         .sheet(item: $editingAlbumSheet) { item in
             AlbumEditView(resolvedAlbumID: item.id, library: library)
@@ -379,7 +378,29 @@ struct GalleryRootView: View {
     // MARK: - Album grid
 
     private func albumContent(topPadding: CGFloat) -> some View {
-        VStack(spacing: 0) {
+        let headerScrollInset = max(memoryFlowHeaderLayoutHeight, topPadding + 72)
+
+        return ZStack(alignment: .top) {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ScrollOffsetTracker { offsetY, scrollMinY in
+                        scrollContentOffsetY = offsetY
+                        scrollViewGlobalMinY = scrollMinY
+                        updateVisibleMonthYear()
+                    }
+                    .frame(width: 0, height: 0)
+
+                    Color.clear.frame(height: headerScrollInset)
+
+                    if !library.albums.isEmpty {
+                        albumGrid
+                            .padding(.top, 10)
+                    }
+                }
+                .padding(.bottom, 120)
+                .coordinateSpace(name: GalleryScrollContent.coordinateSpaceName)
+            }
+
             MemoryFlowHeader(
                 title: "memory card",
                 subtitle: currentMonthYear,
@@ -393,34 +414,11 @@ struct GalleryRootView: View {
                 }
                 .accessibilityLabel("Search")
             }
-            .background(
-                GeometryReader { geo in
-                    Color.clear.preference(
-                        key: MemoryFlowHeaderBottomKey.self,
-                        value: geo.frame(in: .global).maxY
-                    )
-                }
-            )
-
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    ScrollOffsetTracker { offsetY, scrollMinY in
-                        scrollContentOffsetY = offsetY
-                        scrollViewGlobalMinY = scrollMinY
-                        updateVisibleMonthYear()
-                    }
-                    .frame(width: 0, height: 0)
-
-                    if !library.albums.isEmpty {
-                        albumGrid
-                            .padding(.top, 10)
-                    }
-                }
-                .padding(.bottom, 120)
-                .coordinateSpace(name: GalleryScrollContent.coordinateSpaceName)
-            }
         }
         .overlay(floatingDragCard)
+        .onPreferenceChange(MemoryFlowHeaderLayoutHeightKey.self) {
+            memoryFlowHeaderLayoutHeight = $0
+        }
         .onPreferenceChange(MemoryFlowHeaderBottomKey.self) {
             headerBottomY = $0
             updateVisibleMonthYear()

@@ -8,6 +8,7 @@ struct AlbumSearchView: View {
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isSearchFocused: Bool
     @State private var searchText = ""
+    @State private var searchChromeHeight: CGFloat = 0
 
     private var results: [DateAlbum] {
         AlbumSearchUtility.filterAlbums(library.albums, query: searchText)
@@ -18,28 +19,10 @@ struct AlbumSearchView: View {
     }
 
     var body: some View {
-        SDCardScreenContainer { topPadding in
+        SDCardScreenContainer { topPadding, _ in
             ZStack {
                 PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    searchHeader(topPadding: topPadding)
-                    searchField
-                        .padding(.horizontal, 20)
-                        .padding(.top, 4)
-                        .padding(.bottom, 12)
-
-                    Group {
-                        if trimmedSearchText.isEmpty {
-                            centeredHint("Search by date or album name")
-                        } else if results.isEmpty {
-                            centeredHint("No album found")
-                        } else {
-                            resultsList
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
+                searchScreenContent(topPadding: topPadding)
             }
             .memoryFlowSwipeToGoBack { dismiss() }
             .navigationBarHidden(true)
@@ -54,18 +37,62 @@ struct AlbumSearchView: View {
         }
     }
 
+    // MARK: - Layout
+
+    private func searchScreenContent(topPadding: CGFloat) -> some View {
+        let chromeScrollInset = max(searchChromeHeight, topPadding + 120)
+
+        return ZStack(alignment: .top) {
+            Group {
+                if trimmedSearchText.isEmpty {
+                    centeredHint("Search by date or album name")
+                } else if results.isEmpty {
+                    centeredHint("No album found")
+                } else {
+                    resultsList
+                }
+            }
+            .padding(.top, chromeScrollInset)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            VStack(spacing: 0) {
+                searchHeader(topPadding: topPadding)
+                searchField
+                    .padding(.horizontal, 20)
+                    .padding(.top, 4)
+                    .padding(.bottom, 12)
+            }
+            .background {
+                MemoryFlowHeaderScrim()
+            }
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(
+                        key: MemoryFlowHeaderLayoutHeightKey.self,
+                        value: geo.size.height
+                    )
+                }
+            )
+        }
+        .onPreferenceChange(MemoryFlowHeaderLayoutHeightKey.self) {
+            searchChromeHeight = $0
+        }
+    }
+
     // MARK: - Header
 
     private func searchHeader(topPadding: CGFloat) -> some View {
         MemoryFlowHeader(
             title: "Search",
             subtitle: "",
-            topPadding: topPadding
-        ) {
-            Button("Cancel") { dismiss() }
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(.white)
-        }
+            topPadding: topPadding,
+            appliesScrim: false,
+            trailing: {
+                Button("Cancel") { dismiss() }
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(.white)
+            }
+        )
     }
 
     // MARK: - Search field

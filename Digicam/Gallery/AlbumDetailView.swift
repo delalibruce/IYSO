@@ -2,14 +2,6 @@ import SwiftUI
 import Photos
 import UIKit
 
-// Preference key for collecting photo cell frames (used by swipe-select)
-private struct PhotoGridFrameKey: PreferenceKey {
-    static var defaultValue: [String: CGRect] = [:]
-    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
-        value.merge(nextValue()) { $1 }
-    }
-}
-
 // Level 2 — all photos in album as a 3-column grid, most recent first.
 struct AlbumDetailView: View {
     let assets: [PHAsset]
@@ -35,29 +27,47 @@ struct AlbumDetailView: View {
     @State private var isSelecting = false
     @State private var selectedIDs: Set<String> = []
     @State private var cellFrames: [String: CGRect] = [:]
+    @State private var presentedPhotoIndex: Int?
+    @State private var concealedGridAssetID: String?
     @State private var swipeSelectDirection: Bool? = nil   // true = selecting, false = deselecting
     @State private var swipeSelectTouched: Set<String> = []
     @State private var showDeleteSelectedConfirm = false
 
     @Namespace private var selectionHeaderButtonNamespace
+    @State private var memoryFlowHeaderLayoutHeight: CGFloat = 0
 
     private var visibleAssets: [PHAsset] {
         assets.filter { !deletedAssetIDs.contains($0.localIdentifier) }
     }
 
     var body: some View {
-        SDCardScreenContainer { topPadding in
+        SDCardScreenContainer { topPadding, _ in
             ZStack {
                 PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
-                VStack(spacing: 0) {
+                ZStack(alignment: .top) {
+                    photoScrollView(topPadding: topPadding)
                     memoryFlowHeader(topPadding: topPadding)
-                    photoScrollView
                 }
+                .onPreferenceChange(MemoryFlowHeaderLayoutHeightKey.self) {
+                    memoryFlowHeaderLayoutHeight = $0
+                }
+                .memoryFlowSwipeToGoBack { dismiss() }
 
                 if isSelecting { selectionBottomBar }
+
+                if let presentedPhotoIndex {
+                    PhotoDetailView(
+                        assets: visibleAssets,
+                        initialIndex: presentedPhotoIndex,
+                        library: library,
+                        gridCellFrames: cellFrames,
+                        concealedGridAssetID: $concealedGridAssetID,
+                        onDismiss: closePhotoDetail
+                    )
+                    .zIndex(1)
+                }
             }
-            .memoryFlowSwipeToGoBack { dismiss() }
             .navigationBarHidden(true)
             .background(DisableSystemPopGesture())
             .onChange(of: isSelecting) { selecting in
@@ -65,14 +75,14 @@ struct AlbumDetailView: View {
                 if !selecting { selectedIDs = [] }
             }
             .onDisappear { appState.isAlbumSelecting = false }
-            .confirmationDialog("Delete Photo?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-                Button("Delete", role: .destructive) {
-                    if let asset = assetPendingDelete { deletePhoto(asset) }
-                }
+            .memoryFlowDeleteConfirmation("Delete Photo?", isPresented: $showDeleteConfirm) {
+                if let asset = assetPendingDelete { deletePhoto(asset) }
             }
-            .confirmationDialog("Delete \(selectedIDs.count) photo\(selectedIDs.count == 1 ? "" : "s")?",
-                                isPresented: $showDeleteSelectedConfirm, titleVisibility: .visible) {
-                Button("Delete", role: .destructive) { deleteSelectedPhotos() }
+            .memoryFlowDeleteConfirmation(
+                "Delete \(selectedIDs.count) photo\(selectedIDs.count == 1 ? "" : "s")?",
+                isPresented: $showDeleteSelectedConfirm
+            ) {
+                deleteSelectedPhotos()
             }
             .sheet(isPresented: $isShareSheetPresented) {
                 ShareSheet(items: sharingImages)
@@ -137,11 +147,16 @@ struct AlbumDetailView: View {
 
     // MARK: - Photo grid
 
-    private var photoScrollView: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            photoGrid
-                .padding(.top, 10)
-                .padding(.bottom, isSelecting ? 160 : 120)
+    private func photoScrollView(topPadding: CGFloat) -> some View {
+        let headerScrollInset = max(memoryFlowHeaderLayoutHeight, topPadding + 72)
+
+        return ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
+                Color.clear.frame(height: headerScrollInset)
+                photoGrid
+                    .padding(.top, 10)
+            }
+            .padding(.bottom, isSelecting ? 160 : 120)
         }
         .simultaneousGesture(swipeSelectGesture)
         .onPreferenceChange(PhotoGridFrameKey.self) { cellFrames = $0 }
@@ -189,12 +204,10 @@ struct AlbumDetailView: View {
         if isSelecting {
             cell.onTapGesture { toggleSelection(asset.localIdentifier) }
         } else {
-            NavigationLink {
-                PhotoDetailView(assets: visibleAssets, initialIndex: index, library: library)
-            } label: {
-                cell
-            }
-            .buttonStyle(.plain)
+            cell
+                .opacity(concealedGridAssetID == asset.localIdentifier ? 0 : 1)
+                .contentShape(Rectangle())
+                .onTapGesture { openPhotoDetail(at: index, assetID: asset.localIdentifier) }
         }
     }
 
@@ -282,6 +295,18 @@ struct AlbumDetailView: View {
                 swipeSelectDirection = nil
                 swipeSelectTouched = []
             }
+    }
+
+    // MARK: - Photo detail presentation
+
+    private func openPhotoDetail(at index: Int, assetID: String) {
+        concealedGridAssetID = assetID
+        presentedPhotoIndex = index
+    }
+
+    private func closePhotoDetail() {
+        presentedPhotoIndex = nil
+        concealedGridAssetID = nil
     }
 
     // MARK: - Actions

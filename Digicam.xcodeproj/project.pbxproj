@@ -28,6 +28,7 @@
 		BB0020AA00000000000020AA /* PeepholeAlbumCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */; };
 		BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */; };
 		BB0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */; };
+		BB0023AA00000000000023AA /* PhotoGridFrameKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0023AA00000000000023AA /* PhotoGridFrameKey.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 		AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeAlbumCover.swift; sourceTree = "<group>"; };
 		AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeLensOverlay.swift; sourceTree = "<group>"; };
 		AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeAlbumCoverTestView.swift; sourceTree = "<group>"; };
+		AA0023AA00000000000023AA /* PhotoGridFrameKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGridFrameKey.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* Digicam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Digicam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -144,6 +146,7 @@
 				AA0012AA00000000000012AA /* AlbumGridView.swift */,
 				AA0013AA00000000000013AA /* AlbumDetailView.swift */,
 				AA0014AA00000000000014AA /* PhotoDetailView.swift */,
+				AA0023AA00000000000023AA /* PhotoGridFrameKey.swift */,
 				AA0015AA00000000000015AA /* RotaryNavigationView.swift */,
 				AA0016AA00000000000016AA /* AlbumEditView.swift */,
 				AA0017AA00000000000017AA /* AlbumSearchUtility.swift */,
@@ -233,6 +236,7 @@
 				BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */,
 				BB0013AA00000000000013AA /* AlbumDetailView.swift in Sources */,
 				BB0014AA00000000000014AA /* PhotoDetailView.swift in Sources */,
+				BB0023AA00000000000023AA /* PhotoGridFrameKey.swift in Sources */,
 				BB0015AA00000000000015AA /* RotaryNavigationView.swift in Sources */,
 				BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */,
 				BB0017AA00000000000017AA /* AlbumSearchUtility.swift in Sources */,

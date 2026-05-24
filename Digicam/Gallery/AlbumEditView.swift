@@ -40,11 +40,11 @@ struct AlbumEditView: View {
 
                 VStack(alignment: .leading, spacing: 28) {
                     titleSection
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+
                     coverSection(for: album)
-                    Spacer()
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 24)
             }
             .navigationTitle("Edit Album")
             .navigationBarTitleDisplayMode(.inline)
@@ -66,7 +66,7 @@ struct AlbumEditView: View {
 
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Title")
+            Text("Edit Title")
                 .font(.system(size: 13, weight: .regular))
                 .foregroundColor(Color(white: 0.6))
 
@@ -85,14 +85,20 @@ struct AlbumEditView: View {
 
     // MARK: - Cover section
 
+    private static let coverGridColumns = Array(
+        repeating: GridItem(.flexible(), spacing: 12),
+        count: 3
+    )
+
     private func coverSection(for album: DateAlbum) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Cover Photo")
+            Text("Album Cover Photo")
                 .font(.system(size: 13, weight: .regular))
                 .foregroundColor(Color(white: 0.6))
+                .padding(.horizontal, 20)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVGrid(columns: Self.coverGridColumns, spacing: 16) {
                     ForEach(album.assets, id: \.localIdentifier) { asset in
                         CoverPhotoOption(
                             asset: asset,
@@ -101,12 +107,15 @@ struct AlbumEditView: View {
                                 || (selectedCoverID == nil
                                     && asset.localIdentifier == album.assets.first?.localIdentifier)
                         )
+                        .frame(maxWidth: .infinity)
                         .onTapGesture {
                             selectedCoverID = asset.localIdentifier
                         }
                     }
                 }
-                .padding(.horizontal, 2)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 6)
+                .padding(.bottom, 24)
             }
             .onAppear {
                 print("[AlbumEdit] cover picker showing assetCount=\(album.assets.count) for albumID=\(albumID)")
@@ -137,6 +146,8 @@ private struct CoverPhotoOption: View {
 
     @State private var thumbnail: UIImage?
     private let size: CGFloat = 80
+    /// Extra space so the selection ring and checkmark badge aren't clipped by the scroll view.
+    private let selectionPadding: CGFloat = 6
 
     var body: some View {
         ZStack {
@@ -164,7 +175,11 @@ private struct CoverPhotoOption: View {
                     .offset(x: size / 2 - 12, y: -(size / 2 - 12))
             }
         }
-        .frame(width: size, height: size)
+        .frame(
+            width: size + selectionPadding * 2,
+            height: size + selectionPadding * 2
+        )
+        .frame(maxWidth: .infinity)
         .onAppear { loadThumb() }
     }
 

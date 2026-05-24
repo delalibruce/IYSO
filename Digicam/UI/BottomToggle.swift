@@ -4,11 +4,46 @@ enum AppTab {
     case camera, gallery
 }
 
+/// Shared placement for the root camera toggle and in-flow overlays (e.g. photo detail).
+enum BottomToggleLayout {
+    static let width: CGFloat = 118
+    static let height: CGFloat = 64
+    /// Inset above the home indicator — keep in sync with `AppRootView`.
+    static let bottomPadding: CGFloat = 20
+
+    /// Total inset from the physical screen bottom (for full-bleed Memory Flow screens).
+    static func screenBottomInset(safeAreaBottom: CGFloat) -> CGFloat {
+        bottomPadding + safeAreaBottom
+    }
+}
+
+extension View {
+    /// Pins content to the same distance from the screen bottom as the root `BottomToggle` in `AppRootView`.
+    /// Pass `safeAreaBottom` from `SDCardScreenContainer` on full-bleed gallery screens.
+    func alignedToBottomToggle(safeAreaBottom: CGFloat = 0) -> some View {
+        padding(.bottom, BottomToggleLayout.screenBottomInset(safeAreaBottom: safeAreaBottom))
+            .modifier(BottomToggleFullBleedBottomInset(enabled: safeAreaBottom > 0))
+    }
+}
+
+/// Prevents a second safe-area lift when the parent already extends under the home indicator.
+private struct BottomToggleFullBleedBottomInset: ViewModifier {
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content.ignoresSafeArea(edges: .bottom)
+        } else {
+            content
+        }
+    }
+}
+
 struct BottomToggle: View {
     @Binding var activeTab: AppTab
 
-    private let toggleWidth: CGFloat = 118
-    private let toggleHeight: CGFloat = 64
+    private let toggleWidth = BottomToggleLayout.width
+    private let toggleHeight = BottomToggleLayout.height
     private let segmentSize: CGFloat = 47
     /// Asset catalog imageset name for the Memory toggle icon.
     private let memoryToggleLogoAssetName = "MemoryToggleLogo"

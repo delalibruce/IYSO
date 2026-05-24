@@ -14,6 +14,11 @@ enum PeepholeVisualPalette: Equatable {
         Color(red: 0x0f / 255, green: 0x0d / 255, blue: 0x0c / 255)
     }
 
+    /// Top of the Memory Flow header fade — slightly darker than the page background.
+    static var memoryFlowHeaderScrimTop: Color {
+        Color(red: 0x06 / 255, green: 0x05 / 255, blue: 0x04 / 255)
+    }
+
     var sceneBackground: Color { Self.memoryFlowBackground }
 
     var edgeMidTone: Color {
@@ -78,6 +83,8 @@ enum PeepholeCircleGlowIntensity {
     case albumCover
     /// Softer glow for individual photos inside an album (same palette, lower emphasis).
     case photoThumbnail
+    /// Subtle glow for the selected photo in the photo-detail carousel.
+    case carouselSelected
 }
 
 private enum PeepholePhotoThumbnailGlowTuning {
@@ -85,13 +92,20 @@ private enum PeepholePhotoThumbnailGlowTuning {
     static let blurScale: CGFloat = 0.62
 }
 
+private enum PeepholeCarouselSelectedGlowTuning {
+    /// Tight halo — full opacity, smaller blur than album covers.
+    static let opacityScale: Double = 0.88
+    static let blurScale: CGFloat = 0.52
+}
+
 private struct PeepholeAlbumCircleGlowModifier: ViewModifier {
     let isNew: Bool
     let palette: PeepholeVisualPalette
     let intensity: PeepholeCircleGlowIntensity
+    let glowColorOverride: Color?
 
     func body(content: Content) -> some View {
-        let glowColor = isNew ? palette.glowNew : palette.glowNormal
+        let glowColor = glowColorOverride ?? (isNew ? palette.glowNew : palette.glowNormal)
         let baseBlur = isNew ? PeepholeAlbumGlowSpread.newBlurRadius : PeepholeAlbumGlowSpread.normalBlurRadius
         let blurRadius = scaledBlur(baseBlur)
         let outerOpacity = scaledOpacity(palette.glowOuterOpacity(isNew: isNew))
@@ -118,6 +132,8 @@ private struct PeepholeAlbumCircleGlowModifier: ViewModifier {
             return opacity
         case .photoThumbnail:
             return opacity * PeepholePhotoThumbnailGlowTuning.opacityScale
+        case .carouselSelected:
+            return opacity * PeepholeCarouselSelectedGlowTuning.opacityScale
         }
     }
 
@@ -127,6 +143,8 @@ private struct PeepholeAlbumCircleGlowModifier: ViewModifier {
             return blur
         case .photoThumbnail:
             return blur * PeepholePhotoThumbnailGlowTuning.blurScale
+        case .carouselSelected:
+            return blur * PeepholeCarouselSelectedGlowTuning.blurScale
         }
     }
 }
@@ -135,9 +153,17 @@ extension View {
     func peepholeAlbumCircleGlow(
         isNew: Bool = false,
         palette: PeepholeVisualPalette = .gallery,
-        intensity: PeepholeCircleGlowIntensity = .albumCover
+        intensity: PeepholeCircleGlowIntensity = .albumCover,
+        glowColor: Color? = nil
     ) -> some View {
-        modifier(PeepholeAlbumCircleGlowModifier(isNew: isNew, palette: palette, intensity: intensity))
+        modifier(
+            PeepholeAlbumCircleGlowModifier(
+                isNew: isNew,
+                palette: palette,
+                intensity: intensity,
+                glowColorOverride: glowColor
+            )
+        )
     }
 }
 
@@ -203,6 +229,8 @@ struct PeepholeAlbumCover: View {
     var isNew: Bool = false
     /// `.gallery` for production grid; `.darkPrototype` for the isolated test screen.
     var palette: PeepholeVisualPalette = .gallery
+    var glowIntensity: PeepholeCircleGlowIntensity = .albumCover
+    var glowColor: Color? = nil
 
     @State private var processedImage: UIImage?
     @State private var processingGeneration = 0
@@ -212,12 +240,16 @@ struct PeepholeAlbumCover: View {
         imageSource: PeepholeImageSource,
         size: CGFloat,
         isNew: Bool = false,
-        palette: PeepholeVisualPalette = .gallery
+        palette: PeepholeVisualPalette = .gallery,
+        glowIntensity: PeepholeCircleGlowIntensity = .albumCover,
+        glowColor: Color? = nil
     ) {
         self.imageSource = imageSource
         self.size = size
         self.isNew = isNew
         self.palette = palette
+        self.glowIntensity = glowIntensity
+        self.glowColor = glowColor
 
         let innerDiameter = size - 12
         let outputSize = Self.outputPixelSize(for: innerDiameter)
@@ -284,7 +316,12 @@ struct PeepholeAlbumCover: View {
     var body: some View {
         ZStack {
             photoAndLensStack
-                .peepholeAlbumCircleGlow(isNew: isNew, palette: palette)
+                .peepholeAlbumCircleGlow(
+                    isNew: isNew,
+                    palette: palette,
+                    intensity: glowIntensity,
+                    glowColor: glowColor
+                )
 
             PeepholeGlassRimOverlay(
                 outerDiameter: size,

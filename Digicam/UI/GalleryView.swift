@@ -7,14 +7,14 @@ import UIKit
 
 // Wraps SD card flow screens in a full-screen GeometryReader so every header can
 // anchor to the real device safe area instead of using hardcoded offsets.
-// Usage: SDCardScreenContainer { topPadding in ... }
+// Usage: SDCardScreenContainer { topPadding, bottomSafeInset in ... }
 struct SDCardScreenContainer<Content: View>: View {
-    @ViewBuilder let content: (_ topPadding: CGFloat) -> Content
+    @ViewBuilder let content: (_ topPadding: CGFloat, _ bottomSafeInset: CGFloat) -> Content
 
     var body: some View {
         GeometryReader { geometry in
             let topInset = max(geometry.safeAreaInsets.top, Self.keyWindowSafeAreaTop)
-            content(max(16, topInset + 16))
+            content(max(16, topInset + 16), geometry.safeAreaInsets.bottom)
                 .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .ignoresSafeArea()
@@ -34,6 +34,13 @@ struct MemoryFlowHeaderBottomKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
+    }
+}
+
+struct MemoryFlowHeaderLayoutHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
@@ -93,15 +100,26 @@ struct MemoryFlowBackHeaderGroup: View {
     }
 }
 
+struct MemoryFlowSwipeBackExclusionFrameKey: PreferenceKey {
+    static var defaultValue: CGRect?
+    static func reduce(value: inout CGRect?, nextValue: () -> CGRect?) {
+        if let next = nextValue(), next != .zero {
+            value = next
+        }
+    }
+}
+
 private struct MemoryFlowSwipeToGoBackModifier: ViewModifier {
     let horizontalThreshold: CGFloat
     let maxVerticalTranslation: CGFloat
+    let excludesStartLocation: ((CGPoint) -> Bool)?
     let onBack: () -> Void
 
     func body(content: Content) -> some View {
         content.simultaneousGesture(
             DragGesture(minimumDistance: 20, coordinateSpace: .local)
                 .onEnded { value in
+                    if excludesStartLocation?(value.startLocation) == true { return }
                     guard value.translation.width > horizontalThreshold,
                           abs(value.translation.height) < maxVerticalTranslation else { return }
                     onBack()
@@ -129,20 +147,72 @@ struct DisableSystemPopGesture: UIViewControllerRepresentable {
 
 extension View {
     /// Right-swipe anywhere on the screen to go back; does not block vertical scrolling.
+    /// Use `excludesStartLocation` to opt regions out (e.g. a horizontal carousel).
     func memoryFlowSwipeToGoBack(
         horizontalThreshold: CGFloat = 80,
         maxVerticalTranslation: CGFloat = 60,
+        excludesStartLocation: ((CGPoint) -> Bool)? = nil,
         onBack: @escaping () -> Void
     ) -> some View {
         modifier(MemoryFlowSwipeToGoBackModifier(
             horizontalThreshold: horizontalThreshold,
             maxVerticalTranslation: maxVerticalTranslation,
+            excludesStartLocation: excludesStartLocation,
             onBack: onBack
+        ))
+    }
+
+    /// Marks a view's bounds so `memoryFlowSwipeToGoBack` ignores drags that begin inside it.
+    func memoryFlowSwipeBackExclusionFrame(in coordinateSpace: CoordinateSpace = .local) -> some View {
+        background(
+            GeometryReader { geo in
+                Color.clear.preference(
+                    key: MemoryFlowSwipeBackExclusionFrameKey.self,
+                    value: geo.frame(in: coordinateSpace)
+                )
+            }
+        )
+    }
+
+    /// Centered delete confirmation with scrim dismiss and a top-right close control.
+    func memoryFlowDeleteConfirmation(
+        _ title: String,
+        isPresented: Binding<Bool>,
+        deleteButtonTitle: String = "Delete",
+        onDelete: @escaping () -> Void
+    ) -> some View {
+        modifier(MemoryFlowDeleteConfirmModifier(
+            isPresented: isPresented,
+            title: title,
+            deleteButtonTitle: deleteButtonTitle,
+            onDelete: onDelete
         ))
     }
 }
 
 // MARK: - Sticky header
+
+/// Dark-to-clear gradient behind Memory Flow header chrome (content draws above this).
+struct MemoryFlowHeaderScrim: View {
+    /// How far the fade extends below the header text row.
+    static let fadeExtension: CGFloat = 36
+
+    var body: some View {
+        LinearGradient(
+            stops: [
+                .init(color: PeepholeVisualPalette.memoryFlowHeaderScrimTop, location: 0),
+                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.9), location: 0.38),
+                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.42), location: 0.72),
+                .init(color: Color.clear, location: 1),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .padding(.bottom, -Self.fadeExtension)
+        .ignoresSafeArea(edges: .top)
+        .allowsHitTesting(false)
+    }
+}
 
 /// Pinned header for Memory Flow screens: title row + optional subtitle.
 struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
@@ -152,10 +222,11 @@ struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
     var horizontalPadding: CGFloat = 20
     /// When true, the title is shown only inside `leading()` (e.g. `MemoryFlowBackHeaderGroup`).
     var hidesCenterTitle: Bool = false
+    /// Set false when a parent wraps multiple chrome rows in a single `MemoryFlowHeaderScrim`.
+    var appliesScrim: Bool = true
     @ViewBuilder let leading: () -> Leading
     @ViewBuilder let trailing: () -> Trailing
 
-    private let backgroundColor = PeepholeVisualPalette.memoryFlowBackground
     private let subtitleColor = Color(red: 0x82/255, green: 0x82/255, blue: 0x82/255)
 
     var body: some View {
@@ -182,16 +253,19 @@ struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
         .padding(.top, topPadding)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            backgroundColor
-                .ignoresSafeArea(edges: .top)
-        )
+        .background {
+            if appliesScrim {
+                MemoryFlowHeaderScrim()
+            }
+        }
         .background(
             GeometryReader { geo in
-                Color.clear.preference(
-                    key: MemoryFlowHeaderBottomKey.self,
-                    value: geo.frame(in: .global).maxY
-                )
+                Color.clear
+                    .preference(key: MemoryFlowHeaderLayoutHeightKey.self, value: geo.size.height)
+                    .preference(
+                        key: MemoryFlowHeaderBottomKey.self,
+                        value: geo.frame(in: .global).maxY
+                    )
             }
         )
     }
@@ -203,12 +277,16 @@ extension MemoryFlowHeader where Leading == EmptyView {
         subtitle: String,
         topPadding: CGFloat,
         horizontalPadding: CGFloat = 20,
+        hidesCenterTitle: Bool = false,
+        appliesScrim: Bool = true,
         @ViewBuilder trailing: @escaping () -> Trailing
     ) {
         self.title = title
         self.subtitle = subtitle
         self.topPadding = topPadding
         self.horizontalPadding = horizontalPadding
+        self.hidesCenterTitle = hidesCenterTitle
+        self.appliesScrim = appliesScrim
         self.leading = { EmptyView() }
         self.trailing = trailing
     }
@@ -287,5 +365,106 @@ struct MemoryFlowSelectionCountPill: View {
             .background {
                 MemoryFlowGlassSurface(shape: Capsule())
             }
+    }
+}
+
+// MARK: - Delete confirmation
+
+private enum MemoryFlowDeleteConfirmStyle {
+    static let scrim = Color.black.opacity(0.45)
+    static let cardFill = Color(white: 0.16)
+    static let cardBorder = Color.white.opacity(0.12)
+    static let titleColor = Color.white
+    static let separator = Color.white.opacity(0.12)
+    static let destructive = Color.red
+    static let cornerRadius: CGFloat = 14
+    static let maxWidth: CGFloat = 270
+}
+
+private struct MemoryFlowDeleteConfirmModifier: ViewModifier {
+    @Binding var isPresented: Bool
+    let title: String
+    let deleteButtonTitle: String
+    let onDelete: () -> Void
+
+    func body(content: Content) -> some View {
+        ZStack {
+            content
+            if isPresented {
+                MemoryFlowDeleteConfirmOverlay(
+                    title: title,
+                    deleteButtonTitle: deleteButtonTitle,
+                    onDismiss: { isPresented = false },
+                    onDelete: {
+                        isPresented = false
+                        onDelete()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(200)
+            }
+        }
+        .animation(.easeInOut(duration: 0.22), value: isPresented)
+    }
+}
+
+private struct MemoryFlowDeleteConfirmOverlay: View {
+    let title: String
+    let deleteButtonTitle: String
+    let onDismiss: () -> Void
+    let onDelete: () -> Void
+
+    var body: some View {
+        ZStack {
+            MemoryFlowDeleteConfirmStyle.scrim
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onDismiss)
+
+            VStack(spacing: 0) {
+                ZStack(alignment: .topTrailing) {
+                    Text(title)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(MemoryFlowDeleteConfirmStyle.titleColor)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 20)
+                        .padding(.horizontal, 36)
+                        .padding(.bottom, 16)
+
+                    Button(action: onDismiss) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(white: 0.75))
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .padding(.top, 4)
+                    .padding(.trailing, 4)
+                    .accessibilityLabel("Close")
+                }
+
+                MemoryFlowDeleteConfirmStyle.separator
+                    .frame(height: 0.5)
+
+                Button(action: onDelete) {
+                    Text(deleteButtonTitle)
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(MemoryFlowDeleteConfirmStyle.destructive)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+                .buttonStyle(.plain)
+            }
+            .frame(maxWidth: MemoryFlowDeleteConfirmStyle.maxWidth)
+            .background(
+                RoundedRectangle(cornerRadius: MemoryFlowDeleteConfirmStyle.cornerRadius, style: .continuous)
+                    .fill(MemoryFlowDeleteConfirmStyle.cardFill)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: MemoryFlowDeleteConfirmStyle.cornerRadius, style: .continuous)
+                    .strokeBorder(MemoryFlowDeleteConfirmStyle.cardBorder, lineWidth: 0.5)
+            )
+        }
     }
 }
