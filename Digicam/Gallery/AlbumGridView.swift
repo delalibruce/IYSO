@@ -259,8 +259,10 @@ private struct AlbumEditorSheetItem: Identifiable {
 
 struct GalleryRootView: View {
     @ObservedObject var library: PhotoLibraryManager
+    @EnvironmentObject private var appBlocking: AppBlockingManager
 
     @State private var navigationPath: [GalleryNav] = []
+    @State private var isSettingsPresented = false
 
     private static let albumDragThreshold: CGFloat = 25
 
@@ -373,6 +375,10 @@ struct GalleryRootView: View {
         .sheet(isPresented: $isShareSheetPresented) {
             ShareSheet(items: sharingImages)
         }
+        .sheet(isPresented: $isSettingsPresented) {
+            SettingsView()
+                .environmentObject(appBlocking)
+        }
     }
 
     // MARK: - Album grid
@@ -404,16 +410,30 @@ struct GalleryRootView: View {
             MemoryFlowHeader(
                 title: "memory card",
                 subtitle: currentMonthYear,
-                topPadding: topPadding
-            ) {
-                Button(action: { navigationPath.append(.search) }) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 20, weight: .regular))
-                        .foregroundColor(.white)
-                        .frame(width: 24, height: 24)
+                topPadding: topPadding,
+                leading: {
+                    ModeBadge(mode: .memory)
+                },
+                trailing: {
+                    HStack(spacing: 4) {
+                        Button(action: { isSettingsPresented = true }) {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 18, weight: .regular))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                        }
+                        .accessibilityLabel("Settings")
+
+                        Button(action: { navigationPath.append(.search) }) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 20, weight: .regular))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                        }
+                        .accessibilityLabel("Search")
+                    }
                 }
-                .accessibilityLabel("Search")
-            }
+            )
         }
         .overlay(floatingDragCard)
         .onPreferenceChange(MemoryFlowHeaderLayoutHeightKey.self) {

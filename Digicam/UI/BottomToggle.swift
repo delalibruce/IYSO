@@ -41,13 +41,15 @@ private struct BottomToggleFullBleedBottomInset: ViewModifier {
 
 struct BottomToggle: View {
     @Binding var activeTab: AppTab
+    /// When set, replaces the default tab-switch on camera icon tap (used to gate behind NFC).
+    var onCameraRequested: (() -> Void)? = nil
+    /// When set, replaces the default tab-switch on gallery icon tap (used to show exit modal in IYSO Mode).
+    var onGalleryRequested: (() -> Void)? = nil
 
     private let toggleWidth = BottomToggleLayout.width
     private let toggleHeight = BottomToggleLayout.height
     private let segmentSize: CGFloat = 47
-    /// Asset catalog imageset name for the Memory toggle icon.
     private let memoryToggleLogoAssetName = "MemoryToggleLogo"
-    /// Display size for the Memory logo — adjust width/height here.
     private let memoryLogoSize: CGFloat = 28
     private let iconActive = Color(white: 0.94)
     private let iconInactive = Color(white: 0.42)
@@ -61,11 +63,7 @@ struct BottomToggle: View {
             HStack(spacing: 12) {
                 memoryToggleSegment()
 
-                toggleSegment(
-                    tab: .camera,
-                    systemName: "camera.fill",
-                    iconSize: 18
-                )
+                cameraToggleSegment()
             }
             .zIndex(1)
         }
@@ -76,7 +74,11 @@ struct BottomToggle: View {
         let isActive = activeTab == .gallery
 
         return Button {
-            withAnimation(.easeInOut(duration: 0.2)) { activeTab = .gallery }
+            if let handler = onGalleryRequested {
+                handler()
+            } else {
+                withAnimation(.easeInOut(duration: 0.2)) { activeTab = .gallery }
+            }
         } label: {
             ZStack {
                 if isActive {
@@ -98,11 +100,15 @@ struct BottomToggle: View {
         .buttonStyle(.plain)
     }
 
-    private func toggleSegment(tab: AppTab, systemName: String, iconSize: CGFloat) -> some View {
-        let isActive = activeTab == tab
+    private func cameraToggleSegment() -> some View {
+        let isActive = activeTab == .camera
 
         return Button {
-            withAnimation(.easeInOut(duration: 0.2)) { activeTab = tab }
+            if let handler = onCameraRequested {
+                handler()
+            } else {
+                withAnimation(.easeInOut(duration: 0.2)) { activeTab = .camera }
+            }
         } label: {
             ZStack {
                 if isActive {
@@ -110,8 +116,8 @@ struct BottomToggle: View {
                         .allowsHitTesting(false)
                 }
 
-                Image(systemName: systemName)
-                    .font(.system(size: iconSize, weight: .regular))
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 18, weight: .regular))
                     .foregroundColor(isActive ? iconActive : iconInactive)
             }
             .frame(width: segmentSize, height: segmentSize)

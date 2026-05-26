@@ -20,6 +20,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>IYSO uses NFC to detect when your lens clip is attached, which activates IYSO Mode.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Digicam uses the camera to capture photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
