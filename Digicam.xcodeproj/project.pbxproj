@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		BB0001AA00000000000001AA /* DigicamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001AA00000000000001AA /* DigicamApp.swift */; };
-		BB0042AA00000000000042AA /* AppCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0042AA00000000000042AA /* AppCapabilities.swift */; };
 		BB0002AA00000000000002AA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0002AA00000000000002AA /* ContentView.swift */; };
 		BB0003AA00000000000003AA /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0003AA00000000000003AA /* CameraManager.swift */; };
 		BB0004AA00000000000004AA /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0004AA00000000000004AA /* CameraPreviewView.swift */; };
@@ -16,7 +15,6 @@
 		BB0007AA00000000000007AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0007AA00000000000007AA /* Assets.xcassets */; };
 		BB0008AA00000000000008AA /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0008AA00000000000008AA /* GalleryView.swift */; };
 		BB0009AA00000000000009AA /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0009AA00000000000009AA /* AppRootView.swift */; };
-		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
 		BB0010AA00000000000010AA /* BottomToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0010AA00000000000010AA /* BottomToggle.swift */; };
 		BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0011AA00000000000011AA /* PhotoLibraryManager.swift */; };
 		BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0012AA00000000000012AA /* AlbumGridView.swift */; };
@@ -43,16 +41,17 @@
 		BB0033AA00000000000033AA /* NameEntryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0033AA00000000000033AA /* NameEntryScreen.swift */; };
 		BB0034AA00000000000034AA /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0034AA00000000000034AA /* WelcomeScreen.swift */; };
 		BB0035AA00000000000035AA /* ExplainerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0035AA00000000000035AA /* ExplainerScreen.swift */; };
-		BB0044AA00000000000044AA /* CapturePermissionSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */; };
 		BB0036AA00000000000036AA /* AppBlockingSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */; };
 		BB0037AA00000000000037AA /* NFCCalibrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0037AA00000000000037AA /* NFCCalibrationScreen.swift */; };
 		BB0038AA00000000000038AA /* LensDetectedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0038AA00000000000038AA /* LensDetectedScreen.swift */; };
 		BB0039AA00000000000039AA /* MemoryModeEntryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */; };
 		BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0040AA00000000000040AA /* OnboardingCoordinator.swift */; };
+		BB0042AA00000000000042AA /* AppCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0042AA00000000000042AA /* AppCapabilities.swift */; };
 		BB0043AA00000000000043AA /* IYSOLoadingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */; };
+		BB0044AA00000000000044AA /* CapturePermissionSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */; };
+		BB0045AA00000000000045AA /* IYSOFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0045AA00000000000045AA /* IYSOFont.swift */; };
 		BB0046AA00000000000046AA /* BootzyTM.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0046AA00000000000046AA /* BootzyTM.ttf */; };
 		BB0047AA00000000000047AA /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0047AA00000000000047AA /* Inter-Regular.ttf */; };
-		BB0045AA00000000000045AA /* IYSOFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0045AA00000000000045AA /* IYSOFont.swift */; };
 		BB0048AA00000000000048AA /* IYSOGlassSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0048AA00000000000048AA /* IYSOGlassSurface.swift */; };
 		BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0049AA00000000000049AA /* OnboardingContinueButton.swift */; };
 		BB004AAA0000000000004AAA /* OnboardingBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004AAA0000000000004AAA /* OnboardingBackButton.swift */; };
@@ -60,11 +59,11 @@
 		BB004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */; };
 		BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */; };
 		BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */; };
+		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AA0001AA00000000000001AA /* DigicamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigicamApp.swift; sourceTree = "<group>"; };
-		AA0042AA00000000000042AA /* AppCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCapabilities.swift; sourceTree = "<group>"; };
 		AA0002AA00000000000002AA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA0003AA00000000000003AA /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		AA0004AA00000000000004AA /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
@@ -73,7 +72,6 @@
 		AA0007AA00000000000007AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0008AA00000000000008AA /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
 		AA0009AA00000000000009AA /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
-		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
 		AA0010AA00000000000010AA /* BottomToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToggle.swift; sourceTree = "<group>"; };
 		AA0011AA00000000000011AA /* PhotoLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryManager.swift; sourceTree = "<group>"; };
 		AA0012AA00000000000012AA /* AlbumGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumGridView.swift; sourceTree = "<group>"; };
@@ -100,16 +98,18 @@
 		AA0033AA00000000000033AA /* NameEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameEntryScreen.swift; sourceTree = "<group>"; };
 		AA0034AA00000000000034AA /* WelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeScreen.swift; sourceTree = "<group>"; };
 		AA0035AA00000000000035AA /* ExplainerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplainerScreen.swift; sourceTree = "<group>"; };
-		AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePermissionSetupScreen.swift; sourceTree = "<group>"; };
 		AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingSetupScreen.swift; sourceTree = "<group>"; };
 		AA0037AA00000000000037AA /* NFCCalibrationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCCalibrationScreen.swift; sourceTree = "<group>"; };
 		AA0038AA00000000000038AA /* LensDetectedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensDetectedScreen.swift; sourceTree = "<group>"; };
 		AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryModeEntryScreen.swift; sourceTree = "<group>"; };
 		AA0040AA00000000000040AA /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
+		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
+		AA0042AA00000000000042AA /* AppCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCapabilities.swift; sourceTree = "<group>"; };
 		AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOLoadingScreen.swift; sourceTree = "<group>"; };
+		AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePermissionSetupScreen.swift; sourceTree = "<group>"; };
+		AA0045AA00000000000045AA /* IYSOFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOFont.swift; sourceTree = "<group>"; };
 		AA0046AA00000000000046AA /* BootzyTM.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = BootzyTM.ttf; sourceTree = "<group>"; };
 		AA0047AA00000000000047AA /* Inter-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Regular.ttf"; sourceTree = "<group>"; };
-		AA0045AA00000000000045AA /* IYSOFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOFont.swift; sourceTree = "<group>"; };
 		AA0048AA00000000000048AA /* IYSOGlassSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOGlassSurface.swift; sourceTree = "<group>"; };
 		AA0049AA00000000000049AA /* OnboardingContinueButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContinueButton.swift; sourceTree = "<group>"; };
 		AA004AAA0000000000004AAA /* OnboardingBackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBackButton.swift; sourceTree = "<group>"; };
@@ -117,7 +117,7 @@
 		AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOShootingModeAnimationView.swift; sourceTree = "<group>"; };
 		AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeButton.swift; sourceTree = "<group>"; };
 		AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeAnimationView.swift; sourceTree = "<group>"; };
-		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
+		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* Digicam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Digicam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -154,14 +154,6 @@
 				CC0006AA00000000000006AA /* Resources */,
 			);
 			path = Digicam;
-			sourceTree = "<group>";
-		};
-		CC0012AA00000000000012AA /* Debug */ = {
-			isa = PBXGroup;
-			children = (
-				AA0050AA00000000000050AA /* DebugOverrides.swift */,
-			);
-			path = Debug;
 			sourceTree = "<group>";
 		};
 		CC0002AA00000000000002AA /* Products */ = {
@@ -225,15 +217,6 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		CC0011AA00000000000011AA /* Fonts */ = {
-			isa = PBXGroup;
-			children = (
-				AA0046AA00000000000046AA /* BootzyTM.ttf */,
-				AA0047AA00000000000047AA /* Inter-Regular.ttf */,
-			);
-			path = Fonts;
-			sourceTree = "<group>";
-		};
 		CC0007AA00000000000007AA /* Gallery */ = {
 			isa = PBXGroup;
 			children = (
@@ -288,6 +271,23 @@
 				AA0040AA00000000000040AA /* OnboardingCoordinator.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		CC0011AA00000000000011AA /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				AA0046AA00000000000046AA /* BootzyTM.ttf */,
+				AA0047AA00000000000047AA /* Inter-Regular.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		CC0012AA00000000000012AA /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				AA0050AA00000000000050AA /* DebugOverrides.swift */,
+			);
+			path = Debug;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -538,7 +538,7 @@
 				CODE_SIGN_ENTITLEMENTS = Digicam/App/Digicam.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = V2ALZ9XFDZ;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Digicam/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -563,7 +563,7 @@
 				CODE_SIGN_ENTITLEMENTS = Digicam/App/Digicam.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = V2ALZ9XFDZ;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Digicam/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;

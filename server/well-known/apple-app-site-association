@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["V2ALZ9XFDZ.com.candacecang.digicam"],
+        "components": [
+          {
+            "/": "/open*",
+            "comment": "NFC lens deep-link"
+          }
+        ]
+      }
+    ]
+  }
+}

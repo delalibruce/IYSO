@@ -91,6 +91,9 @@ struct AppRootView: View {
             guard AppCapabilities.usesNFC, state == .detected, hasCompletedOnboarding else { return }
             handleLensDetected()
         }
+        .onOpenURL { url in
+            handleUniversalLink(url)
+        }
     }
 
     // MARK: - Camera session
@@ -202,6 +205,14 @@ struct AppRootView: View {
                 appState.showLensDetectedBanner = false
             }
         }
+    }
+
+    private func handleUniversalLink(_ url: URL) {
+        guard url.host == "iyso.app" || url.host == "www.iyso.app",
+              url.path == "/open" else { return }
+        // Mark onboarding complete so the app doesn't block the deep-link launch
+        hasCompletedOnboarding = true
+        handleLensDetected()
     }
 
     private func exitIYSOMode() {
