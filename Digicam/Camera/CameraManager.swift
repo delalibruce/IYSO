@@ -137,8 +137,15 @@ class CameraManager: NSObject, ObservableObject {
             try device.lockForConfiguration()
             defer { device.unlockForConfiguration() }
 
-            // Zoom: 1.0 on the ultra-wide = 0.5x equivalent — no digital zoom
-            device.videoZoomFactor = 1.0
+            // Zoom: 1.0 on ultra-wide ≈ 0.5x equivalent; ~1.8 ≈ 0.9x equivalent
+            let ultraWideNativeEquivalent: CGFloat = 0.5
+            let targetEquivalentZoom: CGFloat = 0.9
+            let requestedZoomFactor = targetEquivalentZoom / ultraWideNativeEquivalent
+            let clampedZoomFactor = min(
+                max(requestedZoomFactor, device.minAvailableVideoZoomFactor),
+                device.maxAvailableVideoZoomFactor
+            )
+            device.videoZoomFactor = clampedZoomFactor
 
             // Focus: locked at infinity (lensPosition 1.0 = farthest)
             if device.isFocusModeSupported(.locked) {
