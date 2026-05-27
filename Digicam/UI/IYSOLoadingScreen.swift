@@ -4,11 +4,13 @@ import SwiftUI
 
 enum IYSOLoadingConfig {
     /// Shown under the wordmark while the launch screen is visible.
-    static let caption = "loading memory card..."
+    static let caption = "pronounced \"eye-so\"..."
+
+    /// Set to `false` while tuning orb motion only.
+    static let autoDismisses = true
 
     /// How long the branded loading screen stays up before fading out.
-    /// TODO: set back to 2.5 after testing.
-    static let displayDuration: TimeInterval = 10
+    static let displayDuration: TimeInterval = 2.5
 
     /// Duration of the progress bar fill animation (matches display duration).
     static var progressAnimationDuration: TimeInterval { displayDuration }
@@ -28,18 +30,34 @@ private enum IYSOLaunchPalette {
     static let progressFill = Color(red: 0x9a / 255, green: 0x78 / 255, blue: 0x5c / 255)
 }
 
+// MARK: - Center orb palette
+
+private enum LoadingOrbPalette {
+    static let warmAccent = Color(red: 0xA5 / 255, green: 0x44 / 255, blue: 0x1D / 255)
+    static let coolAccent = Color(red: 0x8E / 255, green: 0xE6 / 255, blue: 0xF6 / 255)
+    static let neutralWarmOuter = Color(red: 0x72 / 255, green: 0x52 / 255, blue: 0x36 / 255)
+    static let neutralWarmCore = Color(red: 0x9a / 255, green: 0x78 / 255, blue: 0x5c / 255)
+    static let coreDark = Color(red: 0x12 / 255, green: 0x0f / 255, blue: 0x0c / 255)
+}
+
 // MARK: - Center orb motion (glow layers only)
 
 private enum LoadingOrbAnimation {
-    static let cycleDuration: TimeInterval = 3.2
-    static let scaleAtRest: CGFloat = 1.0
-    static let scaleAtPeak: CGFloat = 1.03
-    static let floatOffsetAtRest: CGFloat = 0
-    static let floatOffsetAtPeak: CGFloat = -4
-    static let glowStrengthAtRest: CGFloat = 0.88
-    static let glowStrengthAtPeak: CGFloat = 1.0
-    static let outerBlurAtRest: CGFloat = 52
-    static let outerBlurAtPeak: CGFloat = 58
+    static let cycleDuration: TimeInterval = 3.6
+    static let scaleAtRest: CGFloat = 0.96
+    static let scaleAtPeak: CGFloat = 1.04
+    static let floatOffsetAtRest: CGFloat = 5
+    static let floatOffsetAtPeak: CGFloat = -6
+    static let glowStrengthAtRest: CGFloat = 0.52
+    static let glowStrengthAtPeak: CGFloat = 1.1
+    static let blurAtRest: CGFloat = 36
+    static let blurAtPeak: CGFloat = 54
+    static let driftAtRest = CGSize(width: -14, height: 10)
+    static let driftAtPeak = CGSize(width: 16, height: -14)
+    static let warmBiasAtRest: CGFloat = 0.72
+    static let warmBiasAtPeak: CGFloat = 1.35
+    static let coolBiasAtRest: CGFloat = 0.45
+    static let coolBiasAtPeak: CGFloat = 1.05
 }
 
 // MARK: - Loading screen
@@ -52,7 +70,10 @@ struct IYSOLoadingScreen: View {
     @State private var orbScale: CGFloat = LoadingOrbAnimation.scaleAtRest
     @State private var orbFloatOffset: CGFloat = LoadingOrbAnimation.floatOffsetAtRest
     @State private var orbGlowStrength: CGFloat = LoadingOrbAnimation.glowStrengthAtRest
-    @State private var orbOuterBlur: CGFloat = LoadingOrbAnimation.outerBlurAtRest
+    @State private var orbBlur: CGFloat = LoadingOrbAnimation.blurAtRest
+    @State private var orbDrift: CGSize = LoadingOrbAnimation.driftAtRest
+    @State private var warmBias: CGFloat = LoadingOrbAnimation.warmBiasAtRest
+    @State private var coolBias: CGFloat = LoadingOrbAnimation.coolBiasAtRest
     @State private var indicatorLit = false
     @State private var progress: CGFloat = 0
 
@@ -88,12 +109,13 @@ struct IYSOLoadingScreen: View {
         .overlay {
             RadialGradient(
                 colors: [
-                    IYSOLaunchPalette.warmGlow.opacity(0.14),
+                    LoadingOrbPalette.neutralWarmOuter.opacity(0.06 + 0.2 * orbGlowStrength),
+                    IYSOLaunchPalette.warmGlow.opacity(0.05 + 0.16 * orbGlowStrength),
                     Color.clear,
                 ],
                 center: .center,
                 startRadius: 20,
-                endRadius: 280
+                endRadius: 300
             )
         }
     }
@@ -112,18 +134,118 @@ struct IYSOLoadingScreen: View {
 
     private var centerOrb: some View {
         ZStack {
+            // Brown neutral atmosphere
             Circle()
-                .fill(IYSOLaunchPalette.warmGlow.opacity(0.38 * orbGlowStrength))
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            LoadingOrbPalette.neutralWarmOuter.opacity(0.38 * orbGlowStrength),
+                            LoadingOrbPalette.neutralWarmCore.opacity(0.24 * orbGlowStrength),
+                            Color.clear,
+                        ],
+                        center: UnitPoint(x: 0.5, y: 0.55),
+                        startRadius: 10,
+                        endRadius: 98
+                    )
+                )
                 .frame(width: 200, height: 200)
-                .blur(radius: orbOuterBlur)
+                .blur(radius: orbBlur)
+                .offset(x: orbDrift.width * 0.25, y: orbDrift.height * 0.2)
 
+            // Warm brand bloom — primary read
             Circle()
-                .fill(IYSOLaunchPalette.warmGlowCore.opacity(0.24 * orbGlowStrength))
-                .frame(width: 120, height: 120)
-                .blur(radius: 32 + (orbOuterBlur - LoadingOrbAnimation.outerBlurAtRest) * 0.35)
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            LoadingOrbPalette.warmAccent.opacity(0.5 * warmBias * orbGlowStrength),
+                            LoadingOrbPalette.warmAccent.opacity(0.28 * warmBias),
+                            LoadingOrbPalette.neutralWarmOuter.opacity(0.16 * orbGlowStrength),
+                            Color.clear,
+                        ],
+                        center: UnitPoint(x: 0.44, y: 0.58),
+                        startRadius: 2,
+                        endRadius: 96
+                    )
+                )
+                .frame(width: 196, height: 196)
+                .blur(radius: orbBlur * 0.88)
+                .offset(x: -orbDrift.width * 0.15, y: orbDrift.height * 0.12)
+
+            // Tight warm ember core (extra copper punch)
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            LoadingOrbPalette.warmAccent.opacity(0.55 * warmBias),
+                            LoadingOrbPalette.warmAccent.opacity(0.22 * warmBias),
+                            Color.clear,
+                        ],
+                        center: UnitPoint(x: 0.48, y: 0.56),
+                        startRadius: 0,
+                        endRadius: 58
+                    )
+                )
+                .frame(width: 118, height: 118)
+                .blur(radius: orbBlur * 0.55)
+
+            // Cool cyan wash — softer, smaller
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            LoadingOrbPalette.coolAccent.opacity(0.18 * coolBias * orbGlowStrength),
+                            LoadingOrbPalette.coolAccent.opacity(0.07 * coolBias),
+                            Color.clear,
+                        ],
+                        center: UnitPoint(x: 0.62, y: 0.34),
+                        startRadius: 2,
+                        endRadius: 82
+                    )
+                )
+                .frame(width: 168, height: 168)
+                .blur(radius: orbBlur * 0.85)
+                .offset(x: orbDrift.width * 0.55, y: orbDrift.height * 0.5)
+
+            // Mid body
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            LoadingOrbPalette.neutralWarmCore.opacity(0.4 * orbGlowStrength),
+                            LoadingOrbPalette.warmAccent.opacity(0.36 * warmBias),
+                            LoadingOrbPalette.coolAccent.opacity(0.1 * coolBias),
+                            Color.clear,
+                        ],
+                        center: .center,
+                        startRadius: 8,
+                        endRadius: 72
+                    )
+                )
+                .frame(width: 148, height: 148)
+                .blur(radius: orbBlur * 0.62)
+
+            // Soft core
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            LoadingOrbPalette.coreDark.opacity(0.82),
+                            LoadingOrbPalette.warmAccent.opacity(0.58 * warmBias * orbGlowStrength),
+                            LoadingOrbPalette.coolAccent.opacity(0.18 * coolBias * orbGlowStrength),
+                            LoadingOrbPalette.neutralWarmOuter.opacity(0.26 * orbGlowStrength),
+                            Color.clear,
+                        ],
+                        center: UnitPoint(x: 0.5, y: 0.52),
+                        startRadius: 0,
+                        endRadius: 58
+                    )
+                )
+                .frame(width: 118, height: 118)
+                .blur(radius: orbBlur * 0.42)
         }
+        .compositingGroup()
         .scaleEffect(orbScale)
-        .offset(y: orbFloatOffset)
+        .offset(x: orbDrift.width, y: orbFloatOffset + orbDrift.height)
     }
 
     private var captionRow: some View {
@@ -161,8 +283,10 @@ struct IYSOLoadingScreen: View {
             contentOpacity = 1
         }
 
-        withAnimation(.easeInOut(duration: IYSOLoadingConfig.progressAnimationDuration)) {
-            progress = 1
+        if IYSOLoadingConfig.autoDismisses {
+            withAnimation(.easeInOut(duration: IYSOLoadingConfig.progressAnimationDuration)) {
+                progress = 1
+            }
         }
 
         startOrbAnimation()
@@ -180,7 +304,10 @@ struct IYSOLoadingScreen: View {
             orbScale = LoadingOrbAnimation.scaleAtPeak
             orbFloatOffset = LoadingOrbAnimation.floatOffsetAtPeak
             orbGlowStrength = LoadingOrbAnimation.glowStrengthAtPeak
-            orbOuterBlur = LoadingOrbAnimation.outerBlurAtPeak
+            orbBlur = LoadingOrbAnimation.blurAtPeak
+            orbDrift = LoadingOrbAnimation.driftAtPeak
+            warmBias = LoadingOrbAnimation.warmBiasAtPeak
+            coolBias = LoadingOrbAnimation.coolBiasAtPeak
         }
     }
 }

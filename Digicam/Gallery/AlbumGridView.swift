@@ -415,12 +415,12 @@ struct GalleryRootView: View {
                 trailing: {
                     HStack(spacing: 4) {
                         Button(action: { isSettingsPresented = true }) {
-                            Image(systemName: "ellipsis")
+                            Image(systemName: "shield.lefthalf.filled")
                                 .font(.system(size: 18, weight: .regular))
                                 .foregroundColor(.white)
                                 .frame(width: 36, height: 36)
                         }
-                        .accessibilityLabel("Settings")
+                        .accessibilityLabel("Focus Lock settings")
 
                         Button(action: { navigationPath.append(.search) }) {
                             Image(systemName: "magnifyingglass")

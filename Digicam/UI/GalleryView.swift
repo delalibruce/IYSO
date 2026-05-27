@@ -13,18 +13,11 @@ struct SDCardScreenContainer<Content: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let topInset = max(geometry.safeAreaInsets.top, Self.keyWindowSafeAreaTop)
-            content(max(16, topInset + 16), geometry.safeAreaInsets.bottom)
+            let topPadding = RootTabHeaderLayout.topPadding(geometrySafeAreaTop: geometry.safeAreaInsets.top)
+            content(topPadding, geometry.safeAreaInsets.bottom)
                 .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .ignoresSafeArea()
-    }
-
-    private static var keyWindowSafeAreaTop: CGFloat {
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow)
-            ?? scenes.first?.windows.first
-        return window?.safeAreaInsets.top ?? 0
     }
 }
 
@@ -196,15 +189,16 @@ extension View {
 
 /// Dark-to-clear gradient behind Memory Flow header chrome (content draws above this).
 struct MemoryFlowHeaderScrim: View {
-    /// How far the fade extends below the header text row.
-    static let fadeExtension: CGFloat = 36
+    /// How far the fade extends below the header text row (covers month subheader + a bit below).
+    static let fadeExtension: CGFloat = 52
 
     var body: some View {
         LinearGradient(
             stops: [
                 .init(color: PeepholeVisualPalette.memoryFlowHeaderScrimTop, location: 0),
                 .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.9), location: 0.38),
-                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.42), location: 0.72),
+                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.52), location: 0.68),
+                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.24), location: 0.86),
                 .init(color: Color.clear, location: 1),
             ],
             startPoint: .top,

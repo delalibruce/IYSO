@@ -60,10 +60,13 @@ struct AppRootView: View {
         .animation(.easeInOut(duration: 0.35), value: hasCompletedOnboarding)
         .animation(.easeInOut(duration: 0.55), value: isShowingLaunchLoading)
         .onAppear {
-            camera.requestPermissionsAndStart()
             library.requestAccessAndLoad()
             if hasCompletedOnboarding, AppCapabilities.usesNFC { nfc.scanOnLaunch() }
             dismissLaunchLoadingIfNeeded()
+            syncCameraSession()
+        }
+        .onChange(of: appState.activeTab) { _ in
+            syncCameraSession()
         }
         .onChange(of: nfc.scanState) { state in
             guard AppCapabilities.usesNFC, state == .detected, hasCompletedOnboarding else { return }
@@ -71,10 +74,20 @@ struct AppRootView: View {
         }
     }
 
+    // MARK: - Camera session
+
+    private func syncCameraSession() {
+        if appState.activeTab == .camera {
+            camera.startSession()
+        } else {
+            camera.stopSession()
+        }
+    }
+
     // MARK: - Launch loading
 
     private func dismissLaunchLoadingIfNeeded() {
-        guard isShowingLaunchLoading else { return }
+        guard isShowingLaunchLoading, IYSOLoadingConfig.autoDismisses else { return }
         Task {
             try? await Task.sleep(for: .seconds(IYSOLoadingConfig.displayDuration))
             await MainActor.run {

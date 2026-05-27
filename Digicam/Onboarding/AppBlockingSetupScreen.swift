@@ -160,7 +160,6 @@ struct AppBlockingSetupScreen: View {
         )
     }
 }
-
 private struct OnboardingAppRow: View {
     let name: String
     let isEnabled: Bool
@@ -192,3 +191,4 @@ private struct OnboardingAppRow: View {
         .contentShape(Rectangle())
     }
 }
+
