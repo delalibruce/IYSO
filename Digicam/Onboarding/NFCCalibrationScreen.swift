@@ -18,7 +18,7 @@ struct NFCCalibrationScreen: View {
                 VStack(spacing: 44) {
                     VStack(spacing: 12) {
                         Text("One last thing.")
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.white)
 
                         Text("Attach your lens clip near the top of your iPhone to connect it.")
@@ -147,18 +147,7 @@ struct NFCCalibrationScreen: View {
     private var bottomControls: some View {
         VStack(spacing: 16) {
             if nfc.scanState == .unavailable {
-                Button(action: onSkip) {
-                    Text("Continue without lens")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.white)
-                        )
-                }
-                .buttonStyle(.plain)
+                OnboardingContinueButton(title: "continue without lens", action: onSkip)
             }
 
             Button(action: onSkip) {

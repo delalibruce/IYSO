@@ -16,6 +16,7 @@
 		BB0007AA00000000000007AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0007AA00000000000007AA /* Assets.xcassets */; };
 		BB0008AA00000000000008AA /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0008AA00000000000008AA /* GalleryView.swift */; };
 		BB0009AA00000000000009AA /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0009AA00000000000009AA /* AppRootView.swift */; };
+		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
 		BB0010AA00000000000010AA /* BottomToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0010AA00000000000010AA /* BottomToggle.swift */; };
 		BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0011AA00000000000011AA /* PhotoLibraryManager.swift */; };
 		BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0012AA00000000000012AA /* AlbumGridView.swift */; };
@@ -50,7 +51,15 @@
 		BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0040AA00000000000040AA /* OnboardingCoordinator.swift */; };
 		BB0043AA00000000000043AA /* IYSOLoadingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */; };
 		BB0046AA00000000000046AA /* BootzyTM.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0046AA00000000000046AA /* BootzyTM.ttf */; };
+		BB0047AA00000000000047AA /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0047AA00000000000047AA /* Inter-Regular.ttf */; };
 		BB0045AA00000000000045AA /* IYSOFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0045AA00000000000045AA /* IYSOFont.swift */; };
+		BB0048AA00000000000048AA /* IYSOGlassSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0048AA00000000000048AA /* IYSOGlassSurface.swift */; };
+		BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0049AA00000000000049AA /* OnboardingContinueButton.swift */; };
+		BB004AAA0000000000004AAA /* OnboardingBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004AAA0000000000004AAA /* OnboardingBackButton.swift */; };
+		BB004BAA0000000000004BAA /* LensAttachAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004BAA0000000000004BAA /* LensAttachAnimationView.swift */; };
+		BB004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */; };
+		BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */; };
+		BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +73,7 @@
 		AA0007AA00000000000007AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0008AA00000000000008AA /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
 		AA0009AA00000000000009AA /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
 		AA0010AA00000000000010AA /* BottomToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToggle.swift; sourceTree = "<group>"; };
 		AA0011AA00000000000011AA /* PhotoLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryManager.swift; sourceTree = "<group>"; };
 		AA0012AA00000000000012AA /* AlbumGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumGridView.swift; sourceTree = "<group>"; };
@@ -98,7 +108,15 @@
 		AA0040AA00000000000040AA /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
 		AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOLoadingScreen.swift; sourceTree = "<group>"; };
 		AA0046AA00000000000046AA /* BootzyTM.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = BootzyTM.ttf; sourceTree = "<group>"; };
+		AA0047AA00000000000047AA /* Inter-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Regular.ttf"; sourceTree = "<group>"; };
 		AA0045AA00000000000045AA /* IYSOFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOFont.swift; sourceTree = "<group>"; };
+		AA0048AA00000000000048AA /* IYSOGlassSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOGlassSurface.swift; sourceTree = "<group>"; };
+		AA0049AA00000000000049AA /* OnboardingContinueButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContinueButton.swift; sourceTree = "<group>"; };
+		AA004AAA0000000000004AAA /* OnboardingBackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBackButton.swift; sourceTree = "<group>"; };
+		AA004BAA0000000000004BAA /* LensAttachAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensAttachAnimationView.swift; sourceTree = "<group>"; };
+		AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOShootingModeAnimationView.swift; sourceTree = "<group>"; };
+		AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeButton.swift; sourceTree = "<group>"; };
+		AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeAnimationView.swift; sourceTree = "<group>"; };
 		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* Digicam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Digicam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -127,6 +145,7 @@
 			children = (
 				CC0003AA00000000000003AA /* App */,
 				CC0004AA00000000000004AA /* Camera */,
+				CC0012AA00000000000012AA /* Debug */,
 				CC0005AA00000000000005AA /* UI */,
 				CC0007AA00000000000007AA /* Gallery */,
 				CC0008AA00000000000008AA /* NFC */,
@@ -135,6 +154,14 @@
 				CC0006AA00000000000006AA /* Resources */,
 			);
 			path = Digicam;
+			sourceTree = "<group>";
+		};
+		CC0012AA00000000000012AA /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				AA0050AA00000000000050AA /* DebugOverrides.swift */,
+			);
+			path = Debug;
 			sourceTree = "<group>";
 		};
 		CC0002AA00000000000002AA /* Products */ = {
@@ -174,11 +201,13 @@
 				AA0009AA00000000000009AA /* AppRootView.swift */,
 				AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */,
 				AA0045AA00000000000045AA /* IYSOFont.swift */,
+				AA0048AA00000000000048AA /* IYSOGlassSurface.swift */,
 				AA0010AA00000000000010AA /* BottomToggle.swift */,
 				AA0028AA00000000000028AA /* ModeBadge.swift */,
 				AA0029AA00000000000029AA /* LensDetectedBanner.swift */,
 				AA0030AA00000000000030AA /* AttachLensModal.swift */,
 				AA0031AA00000000000031AA /* ExitIYSOModal.swift */,
+				AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */,
 				AA0019AA00000000000019AA /* PeepholeImageProcessor.swift */,
 				AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */,
 				AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */,
@@ -200,6 +229,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0046AA00000000000046AA /* BootzyTM.ttf */,
+				AA0047AA00000000000047AA /* Inter-Regular.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -242,9 +272,14 @@
 			isa = PBXGroup;
 			children = (
 				AA0032AA00000000000032AA /* OnboardingProgressDots.swift */,
+				AA0049AA00000000000049AA /* OnboardingContinueButton.swift */,
+				AA004AAA0000000000004AAA /* OnboardingBackButton.swift */,
 				AA0033AA00000000000033AA /* NameEntryScreen.swift */,
 				AA0034AA00000000000034AA /* WelcomeScreen.swift */,
 				AA0035AA00000000000035AA /* ExplainerScreen.swift */,
+				AA004BAA0000000000004BAA /* LensAttachAnimationView.swift */,
+				AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */,
+				AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */,
 				AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */,
 				AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */,
 				AA0037AA00000000000037AA /* NFCCalibrationScreen.swift */,
@@ -315,6 +350,7 @@
 			files = (
 				BB0007AA00000000000007AA /* Assets.xcassets in Resources */,
 				BB0046AA00000000000046AA /* BootzyTM.ttf in Resources */,
+				BB0047AA00000000000047AA /* Inter-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,6 +369,7 @@
 				BB0005AA00000000000005AA /* PhotoCaptureProcessor.swift in Sources */,
 				BB0008AA00000000000008AA /* GalleryView.swift in Sources */,
 				BB0009AA00000000000009AA /* AppRootView.swift in Sources */,
+				BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */,
 				BB0010AA00000000000010AA /* BottomToggle.swift in Sources */,
 				BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */,
 				BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */,
@@ -359,6 +396,10 @@
 				BB0033AA00000000000033AA /* NameEntryScreen.swift in Sources */,
 				BB0034AA00000000000034AA /* WelcomeScreen.swift in Sources */,
 				BB0035AA00000000000035AA /* ExplainerScreen.swift in Sources */,
+				BB004BAA0000000000004BAA /* LensAttachAnimationView.swift in Sources */,
+				BB004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift in Sources */,
+				BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */,
+				BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */,
 				BB0044AA00000000000044AA /* CapturePermissionSetupScreen.swift in Sources */,
 				BB0036AA00000000000036AA /* AppBlockingSetupScreen.swift in Sources */,
 				BB0037AA00000000000037AA /* NFCCalibrationScreen.swift in Sources */,
@@ -367,6 +408,9 @@
 				BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */,
 				BB0043AA00000000000043AA /* IYSOLoadingScreen.swift in Sources */,
 				BB0045AA00000000000045AA /* IYSOFont.swift in Sources */,
+				BB0048AA00000000000048AA /* IYSOGlassSurface.swift in Sources */,
+				BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */,
+				BB004AAA0000000000004AAA /* OnboardingBackButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

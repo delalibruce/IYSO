@@ -2,12 +2,18 @@ import SwiftUI
 
 struct NameEntryScreen: View {
     @Binding var name: String
-    /// When false, the name field must not take focus (e.g. launch loading still visible).
+    /// When false, keyboard focus waits until launch loading has finished.
     var isLaunchLoadingComplete: Bool = true
     let onContinue: () -> Void
 
     @FocusState private var isFocused: Bool
     @State private var focusTask: Task<Void, Never>?
+    @State private var inputRevealedAt: Date?
+    @State private var showsInput = false
+
+    private let inputRevealAnimationDuration: TimeInterval = 0.22
+    private let inputRevealAnimation: Animation = .easeOut(duration: 0.22)
+    private let keyboardFocusDelay: Duration = .milliseconds(40)
 
     private var canContinue: Bool {
         !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -22,7 +28,7 @@ struct NameEntryScreen: View {
 
                 VStack(spacing: 32) {
                     Text("What's your name?")
-                        .font(.system(size: 34, weight: .bold))
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
 
@@ -44,6 +50,9 @@ struct NameEntryScreen: View {
                             alignment: .bottom
                         )
                         .padding(.horizontal, 40)
+                        .opacity(showsInput ? 1 : 0)
+                        .offset(y: showsInput ? 0 : 14)
+                        .allowsHitTesting(showsInput)
                 }
 
                 Spacer()
@@ -53,48 +62,57 @@ struct NameEntryScreen: View {
                     .padding(.bottom, 48)
             }
         }
-        .onAppear { scheduleKeyboardFocus() }
+        .onAppear {
+            inputRevealedAt = Date()
+            withAnimation(inputRevealAnimation) {
+                showsInput = true
+            }
+            scheduleKeyboardFocus()
+        }
         .onChange(of: isLaunchLoadingComplete) { _ in scheduleKeyboardFocus() }
+        .onChange(of: showsInput) { isVisible in
+            if isVisible { scheduleKeyboardFocus() }
+        }
         .onDisappear {
             focusTask?.cancel()
             isFocused = false
+            showsInput = false
+            inputRevealedAt = nil
         }
     }
 
+    /// Requests first responder after the field is visible and launch loading has cleared.
     private func scheduleKeyboardFocus() {
-        guard isLaunchLoadingComplete else {
-            focusTask?.cancel()
-            isFocused = false
+        focusTask?.cancel()
+        guard showsInput, isLaunchLoadingComplete else {
+            if !isLaunchLoadingComplete { isFocused = false }
             return
         }
 
-        focusTask?.cancel()
         focusTask = Task {
-            try? await Task.sleep(for: .seconds(1))
-            guard !Task.isCancelled else { return }
-            await MainActor.run { isFocused = true }
+            // Wait for the reveal animation so hit testing and layout are stable.
+            let revealElapsed = inputRevealedAt.map { Date().timeIntervalSince($0) } ?? inputRevealAnimationDuration
+            let revealRemaining = max(0, inputRevealAnimationDuration - revealElapsed)
+            try? await Task.sleep(for: .seconds(revealRemaining))
+            guard !Task.isCancelled, showsInput, isLaunchLoadingComplete else { return }
+
+            try? await Task.sleep(for: keyboardFocusDelay)
+            guard !Task.isCancelled, showsInput, isLaunchLoadingComplete else { return }
+
+            await MainActor.run {
+                // Toggle focus once so UIKit reliably presents the keyboard.
+                isFocused = false
+                isFocused = true
+            }
         }
     }
 
     private var continueButton: some View {
-        Button(action: {
+        OnboardingContinueButton(isEnabled: canContinue) {
             let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else { return }
             name = trimmed
             onContinue()
-        }) {
-            Text("Continue")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(canContinue ? .black : Color(white: 0.45))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(canContinue ? Color.white : Color(white: 1, opacity: 0.12))
-                )
         }
-        .buttonStyle(.plain)
-        .disabled(!canContinue)
-        .animation(.easeInOut(duration: 0.15), value: canContinue)
     }
 }

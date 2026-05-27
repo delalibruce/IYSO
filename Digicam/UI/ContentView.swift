@@ -37,14 +37,11 @@ struct CameraView: View {
 
     private func cameraChrome(topPadding: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: RootTabHeaderLayout.modeLabelToTitleSpacing) {
+            HStack(alignment: .center) {
                 ModeBadge(mode: .iyso)
-
-                HStack {
-                    Spacer(minLength: 0)
-                    if appState.isIYSOMode {
-                        exitButton
-                    }
+                Spacer(minLength: 0)
+                if appState.isIYSOMode {
+                    exitButton
                 }
             }
             .padding(.horizontal, RootTabHeaderLayout.horizontalPadding)
@@ -63,16 +60,7 @@ struct CameraView: View {
 
     private var exitButton: some View {
         Button(action: { onExitIYSOTapped?() }) {
-            Text("Exit IYSO Mode")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(
-                    Capsule()
-                        .fill(Color(white: 1, opacity: 0.12))
-                        .overlay(Capsule().strokeBorder(Color(white: 1, opacity: 0.2), lineWidth: 0.5))
-                )
+            ExitIYSOModeButton()
         }
         .buttonStyle(.plain)
     }

@@ -19,6 +19,12 @@ class CameraManager: NSObject, ObservableObject {
     // MARK: - Session lifecycle
 
     func startSession() {
+        #if DEBUG
+        if DebugOverrides.forceDeniedCamera || DebugOverrides.suppressPermissionPrompts {
+            print("[Digicam] Debug: suppressing camera permission prompt/session start")
+            return
+        }
+        #endif
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             sessionQueue.async { self.configureIfNeededAndStart() }
@@ -207,6 +213,12 @@ class CameraManager: NSObject, ObservableObject {
     // MARK: - Save
 
     private func saveToPhotoLibrary(_ image: UIImage) {
+        #if DEBUG
+        if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
+            print("[Digicam] Debug: suppressing photo library permission prompt/save")
+            return
+        }
+        #endif
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {
                 print("[Digicam] Photo library access denied: \(status.rawValue)")

@@ -398,7 +398,11 @@ struct GalleryRootView: View {
 
                     Color.clear.frame(height: headerScrollInset)
 
-                    if !library.albums.isEmpty {
+                    if library.albums.isEmpty {
+                        memoryCardEmptyState
+                            .padding(.top, 34)
+                            .padding(.horizontal, 24)
+                    } else {
                         albumGrid
                             .padding(.top, 10)
                     }
@@ -408,7 +412,7 @@ struct GalleryRootView: View {
             }
 
             MemoryFlowHeader(
-                title: "memory card",
+                title: "Memory Card",
                 subtitle: currentMonthYear,
                 topPadding: topPadding,
                 mode: .memory,
@@ -464,6 +468,44 @@ struct GalleryRootView: View {
         .onDisappear {
             library.stopAllCoverThumbnailCaching()
         }
+    }
+
+    private var memoryCardEmptyState: some View {
+        VStack(spacing: 18) {
+            Circle()
+                .fill(Color.white.opacity(0.06))
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                )
+                .frame(width: 68, height: 68)
+                .overlay(
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundColor(Color.white.opacity(0.85))
+                )
+
+            VStack(spacing: 8) {
+                Text("Your memory card is empty.")
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundColor(.white)
+                    .tracking(-0.7)
+                    .multilineTextAlignment(.center)
+
+                Text("Take your first photo in IYSO Mode to start your albums.")
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(Color(white: 0.68))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+
+                Text("Use the camera toggle at the bottom to jump into IYSO Mode.")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(Color(white: 0.52))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func prefetchAlbumCoverThumbnails() {

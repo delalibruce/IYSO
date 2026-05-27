@@ -12,6 +12,11 @@ final class AppState: ObservableObject {
 }
 
 struct AppRootView: View {
+    #if DEBUG
+    /// Set to `true` while working on onboarding; set back to `false` for normal Debug runs.
+    private static let resetOnboardingEveryDebugLaunch = true
+    #endif
+
     @StateObject private var camera = CameraManager()
     @StateObject private var library = PhotoLibraryManager()
     @StateObject private var appState = AppState()
@@ -60,7 +65,21 @@ struct AppRootView: View {
         .animation(.easeInOut(duration: 0.35), value: hasCompletedOnboarding)
         .animation(.easeInOut(duration: 0.55), value: isShowingLaunchLoading)
         .onAppear {
+            #if DEBUG
+            if Self.resetOnboardingEveryDebugLaunch
+                || DebugOverrides.resetOnboarding {
+                hasCompletedOnboarding = false
+            }
+            #endif
+            #if DEBUG
+            if !DebugOverrides.suppressPermissionPrompts {
+                library.requestAccessAndLoad()
+            } else {
+                library.authorizationStatus = .denied
+            }
+            #else
             library.requestAccessAndLoad()
+            #endif
             if hasCompletedOnboarding, AppCapabilities.usesNFC { nfc.scanOnLaunch() }
             dismissLaunchLoadingIfNeeded()
             syncCameraSession()

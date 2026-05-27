@@ -10,7 +10,7 @@ enum IYSOLoadingConfig {
     static let autoDismisses = true
 
     /// How long the branded loading screen stays up before fading out.
-    static let displayDuration: TimeInterval = 2.5
+    static let displayDuration: TimeInterval = 1.6
 
     /// Duration of the progress bar fill animation (matches display duration).
     static var progressAnimationDuration: TimeInterval { displayDuration }
@@ -124,7 +124,7 @@ struct IYSOLoadingScreen: View {
         ZStack {
             centerOrb
 
-            Text("iyso")
+            Text("IYSO")
                 .font(IYSOFont.bootzy(size: wordmarkFontSize))
                 .tracking(IYSOFont.tracking(percentOfFontSize: wordmarkLetterSpacingPercent, fontSize: wordmarkFontSize))
                 .foregroundStyle(IYSOLaunchPalette.title)

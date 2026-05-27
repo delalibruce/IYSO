@@ -3,13 +3,9 @@ import SwiftUI
 enum OnboardingStep: Int, CaseIterable {
     case nameEntry = 0
     case welcome
-    case explainerLens
-    case explainerIYSO
-    case explainerMemory
-    case explainerNoPeeking
+    case explainer
     case capturePermissionSetup
     case appBlockingSetup
-    case nfcCalibration
     case lensDetected
     case memoryModeEntry
 }
@@ -22,6 +18,7 @@ struct OnboardingFlowView: View {
 
     @State private var step: OnboardingStep = .nameEntry
     @State private var name: String = ""
+    @State private var wantsLensModeAfterOnboarding = false
 
     var body: some View {
         ZStack {
@@ -33,7 +30,21 @@ struct OnboardingFlowView: View {
                 ))
                 .id(step)
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if showsFlowBackButton {
+                HStack {
+                    OnboardingBackButton(action: goBack)
+                    Spacer()
+                }
+                .padding(.horizontal, 8)
+                .padding(.bottom, 4)
+            }
+        }
         .animation(.easeInOut(duration: 0.28), value: step)
+    }
+
+    private var showsFlowBackButton: Bool {
+        step != .nameEntry && step != .explainer
     }
 
     @ViewBuilder
@@ -49,17 +60,14 @@ struct OnboardingFlowView: View {
         case .welcome:
             WelcomeScreen(name: name, onContinue: advance)
 
-        case .explainerLens:
-            ExplainerScreen(config: .lens, onContinue: advance)
-
-        case .explainerIYSO:
-            ExplainerScreen(config: .iysoMode, onContinue: advance)
-
-        case .explainerMemory:
-            ExplainerScreen(config: .memoryMode, onContinue: advance)
-
-        case .explainerNoPeeking:
-            ExplainerScreen(config: .noPeeking, onContinue: advance)
+        case .explainer:
+            ExplainerFlowView(
+                onComplete: { connectedLens in
+                    wantsLensModeAfterOnboarding = connectedLens
+                    advance()
+                },
+                onBack: goBack
+            )
 
         case .capturePermissionSetup:
             CapturePermissionSetupScreen(onContinue: advance)
@@ -67,15 +75,8 @@ struct OnboardingFlowView: View {
         case .appBlockingSetup:
             AppBlockingSetupScreen(
                 appBlocking: appBlocking,
-                onContinue: advance,
-                onSkip: advance
-            )
-
-        case .nfcCalibration:
-            NFCCalibrationScreen(
-                nfc: nfc,
-                onLensConnected: { advance(to: .lensDetected) },
-                onSkip: { advance(to: .memoryModeEntry) }
+                onContinue: advanceFromBlockingSetup,
+                onSkip: advanceFromBlockingSetup
             )
 
         case .lensDetected:
@@ -94,8 +95,18 @@ struct OnboardingFlowView: View {
         step = next
     }
 
+    private func goBack() {
+        guard let current = OnboardingStep(rawValue: step.rawValue),
+              let previous = OnboardingStep(rawValue: current.rawValue - 1) else { return }
+        step = previous
+    }
+
     private func advance(to target: OnboardingStep) {
         step = target
+    }
+
+    private func advanceFromBlockingSetup() {
+        advance(to: wantsLensModeAfterOnboarding ? .lensDetected : .memoryModeEntry)
     }
 
     // MARK: - Completion

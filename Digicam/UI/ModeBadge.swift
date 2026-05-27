@@ -32,12 +32,22 @@ enum AppMode {
 
 struct ModeBadge: View {
     let mode: AppMode
+    /// When false, the status dot uses a muted green (e.g. onboarding before lens connects).
+    var isIndicatorActive: Bool = true
+
+    private static let activeIndicator = Color(red: 0x00 / 255, green: 0xdf / 255, blue: 0x4f / 255)
+    private static let inactiveIndicator = Color(red: 0x00 / 255, green: 0x6b / 255, blue: 0x33 / 255)
 
     var body: some View {
         HStack(spacing: 5) {
             Circle()
-                .fill(Color(red: 0x00/255, green: 0xdf/255, blue: 0x4f/255))
+                .fill(isIndicatorActive ? Self.activeIndicator : Self.inactiveIndicator)
                 .frame(width: 6, height: 6)
+                .shadow(
+                    color: Self.activeIndicator.opacity(isIndicatorActive ? 0.5 : 0),
+                    radius: 3
+                )
+                .animation(.easeOut(duration: 0.2), value: isIndicatorActive)
             Text(mode.label)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.white)

@@ -10,6 +10,9 @@ enum CapturePermissionAccess: Equatable {
     case denied
 
     static func camera() -> CapturePermissionAccess {
+        #if DEBUG
+        if DebugOverrides.forceDeniedCamera { return .denied }
+        #endif
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized: return .authorized
         case .notDetermined: return .notDetermined
@@ -19,6 +22,9 @@ enum CapturePermissionAccess: Equatable {
     }
 
     static func photos() -> CapturePermissionAccess {
+        #if DEBUG
+        if DebugOverrides.forceDeniedPhotos { return .denied }
+        #endif
         switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
         case .authorized, .limited: return .authorized
         case .notDetermined: return .notDetermined
@@ -76,8 +82,8 @@ struct CapturePermissionSetupScreen: View {
 
     private var headerText: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("set up capture")
-                .font(.system(size: 28, weight: .bold))
+            Text("Set up capture")
+                .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
             Text("IYSO needs access to your camera and photos to create your memory card.")
@@ -130,29 +136,18 @@ struct CapturePermissionSetupScreen: View {
     // MARK: - Continue
 
     private var continueButton: some View {
-        Button(action: onContinue) {
-            Text("Continue")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(allGranted ? .black : Color(white: 0.45))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(allGranted ? Color.white : Color(white: 1, opacity: 0.12))
+        OnboardingContinueButton(isEnabled: allGranted, action: onContinue)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 48)
+            .background(
+                LinearGradient(
+                    colors: [Color.black.opacity(0), Color.black],
+                    startPoint: .top,
+                    endPoint: UnitPoint(x: 0.5, y: 0.4)
                 )
-        }
-        .buttonStyle(.plain)
-        .padding(.horizontal, 24)
-        .padding(.bottom, 48)
-        .background(
-            LinearGradient(
-                colors: [Color.black.opacity(0), Color.black],
-                startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.4)
+                .ignoresSafeArea()
             )
-            .ignoresSafeArea()
-        )
-        .animation(.easeInOut(duration: 0.15), value: allGranted)
+            .animation(.easeInOut(duration: 0.15), value: allGranted)
     }
 
     // MARK: - Requests
@@ -263,27 +258,12 @@ private struct CapturePermissionRow: View {
     }
 
     private var enableButton: some View {
-        Button(action: onEnable) {
-            Group {
-                if isLoading {
-                    ProgressView()
-                        .tint(.white)
-                        .frame(width: 20, height: 20)
-                } else {
-                    Text(enableLabel)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.black)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.white)
-            )
-        }
-        .buttonStyle(.plain)
-        .disabled(isLoading)
+        OnboardingContinueButton(
+            title: enableLabel.lowercased(),
+            layout: .compact,
+            showsLoading: isLoading,
+            action: onEnable
+        )
     }
 
     private var enabledBadge: some View {
@@ -303,17 +283,11 @@ private struct CapturePermissionRow: View {
     }
 
     private var deniedBadge: some View {
-        Button(action: onEnable) {
-            Text("Denied")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(white: 0.45))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color(white: 1, opacity: 0.08))
-                )
-        }
-        .buttonStyle(.plain)
+        OnboardingContinueButton(
+            title: "denied",
+            muted: true,
+            layout: .compact,
+            action: onEnable
+        )
     }
 }

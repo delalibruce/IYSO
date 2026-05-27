@@ -31,20 +31,9 @@ struct MemoryModeEntryScreen: View {
 
                 Spacer()
 
-                Button(action: onComplete) {
-                    Text("Open my memory card")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.white)
-                        )
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 48)
+                OnboardingContinueButton(title: "open my memory card", action: onComplete)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 48)
             }
         }
     }
