@@ -7,6 +7,7 @@ enum OnboardingStep: Int, CaseIterable {
     case explainerIYSO
     case explainerMemory
     case explainerNoPeeking
+    case capturePermissionSetup
     case appBlockingSetup
     case nfcCalibration
     case lensDetected
@@ -16,6 +17,7 @@ enum OnboardingStep: Int, CaseIterable {
 struct OnboardingFlowView: View {
     @ObservedObject var nfc: NFCManager
     @ObservedObject var appBlocking: AppBlockingManager
+    var isLaunchLoadingComplete: Bool = true
     let onComplete: (_ enteredIYSOMode: Bool) -> Void
 
     @State private var step: OnboardingStep = .nameEntry
@@ -38,7 +40,11 @@ struct OnboardingFlowView: View {
     private var stepView: some View {
         switch step {
         case .nameEntry:
-            NameEntryScreen(name: $name, onContinue: advance)
+            NameEntryScreen(
+                name: $name,
+                isLaunchLoadingComplete: isLaunchLoadingComplete,
+                onContinue: advance
+            )
 
         case .welcome:
             WelcomeScreen(name: name, onContinue: advance)
@@ -54,6 +60,9 @@ struct OnboardingFlowView: View {
 
         case .explainerNoPeeking:
             ExplainerScreen(config: .noPeeking, onContinue: advance)
+
+        case .capturePermissionSetup:
+            CapturePermissionSetupScreen(onContinue: advance)
 
         case .appBlockingSetup:
             AppBlockingSetupScreen(

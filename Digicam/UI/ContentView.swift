@@ -3,8 +3,6 @@ import SwiftUI
 private enum CameraLayout {
     static let previewTopInset: CGFloat = 72
     static let shutterBottomInset: CGFloat = 140
-    static let chromeTopPadding: CGFloat = 56
-    static let chromeHorizontalPadding: CGFloat = 16
 }
 
 struct CameraView: View {
@@ -27,24 +25,27 @@ struct CameraView: View {
                         .padding(.bottom, CameraLayout.shutterBottomInset)
                 }
 
-                cameraChrome
+                cameraChrome(safeAreaTop: geo.safeAreaInsets.top)
             }
         }
     }
 
-    // MARK: - Chrome overlay (badge + exit button + banner)
+    // MARK: - Chrome overlay (mode label + exit button + banner)
 
-    private var cameraChrome: some View {
-        VStack(spacing: 10) {
-            HStack(alignment: .center) {
+    private func cameraChrome(safeAreaTop: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: RootTabHeaderLayout.modeLabelToTitleSpacing) {
                 ModeBadge(mode: .iyso)
-                Spacer()
-                if appState.isIYSOMode {
-                    exitButton
+
+                HStack {
+                    Spacer(minLength: 0)
+                    if appState.isIYSOMode {
+                        exitButton
+                    }
                 }
             }
-            .padding(.horizontal, CameraLayout.chromeHorizontalPadding)
-            .padding(.top, CameraLayout.chromeTopPadding)
+            .padding(.horizontal, RootTabHeaderLayout.horizontalPadding)
+            .padding(.top, RootTabHeaderLayout.topPadding(safeAreaTop: safeAreaTop))
 
             if appState.showLensDetectedBanner {
                 LensDetectedBanner()

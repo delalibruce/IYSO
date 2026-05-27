@@ -221,7 +221,8 @@ struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
     let title: String
     let subtitle: String
     let topPadding: CGFloat
-    var horizontalPadding: CGFloat = 20
+    var mode: AppMode? = nil
+    var horizontalPadding: CGFloat = RootTabHeaderLayout.horizontalPadding
     /// When true, the title is shown only inside `leading()` (e.g. `MemoryFlowBackHeaderGroup`).
     var hidesCenterTitle: Bool = false
     /// Set false when a parent wraps multiple chrome rows in a single `MemoryFlowHeaderScrim`.
@@ -232,7 +233,10 @@ struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
     private let subtitleColor = Color(red: 0x82/255, green: 0x82/255, blue: 0x82/255)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: RootTabHeaderLayout.modeLabelToTitleSpacing) {
+            if let mode {
+                ModeBadge(mode: mode)
+            }
             HStack(spacing: 8) {
                 leading()
                 if !hidesCenterTitle {
@@ -278,7 +282,8 @@ extension MemoryFlowHeader where Leading == EmptyView {
         title: String,
         subtitle: String,
         topPadding: CGFloat,
-        horizontalPadding: CGFloat = 20,
+        mode: AppMode? = nil,
+        horizontalPadding: CGFloat = RootTabHeaderLayout.horizontalPadding,
         hidesCenterTitle: Bool = false,
         appliesScrim: Bool = true,
         @ViewBuilder trailing: @escaping () -> Trailing
@@ -286,6 +291,7 @@ extension MemoryFlowHeader where Leading == EmptyView {
         self.title = title
         self.subtitle = subtitle
         self.topPadding = topPadding
+        self.mode = mode
         self.horizontalPadding = horizontalPadding
         self.hidesCenterTitle = hidesCenterTitle
         self.appliesScrim = appliesScrim

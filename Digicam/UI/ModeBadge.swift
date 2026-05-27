@@ -1,5 +1,15 @@
 import SwiftUI
 
+/// Shared placement for root tab headers (Memory Card grid + Camera).
+enum RootTabHeaderLayout {
+    static let horizontalPadding: CGFloat = 20
+    static let modeLabelToTitleSpacing: CGFloat = 6
+
+    static func topPadding(safeAreaTop: CGFloat) -> CGFloat {
+        max(16, safeAreaTop + 16)
+    }
+}
+
 enum AppMode {
     case iyso, memory
 

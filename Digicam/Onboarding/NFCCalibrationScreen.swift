@@ -41,8 +41,10 @@ struct NFCCalibrationScreen: View {
         }
         .onAppear {
             startPulse()
-            if nfc.isNFCAvailable {
+            if AppCapabilities.usesNFC, nfc.isNFCAvailable {
                 nfc.startScanning()
+            } else if !AppCapabilities.usesNFC {
+                nfc.scanState = .unavailable
             }
         }
         .onDisappear {
@@ -166,13 +168,23 @@ struct NFCCalibrationScreen: View {
             }
             .buttonStyle(.plain)
 
-            #if targetEnvironment(simulator)
-            Button(action: { nfc.simulateDetect() }) {
-                Text("Simulate Detect (Simulator)")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+            if !AppCapabilities.usesNFC {
+                Button(action: { nfc.simulateDetect() }) {
+                    Text("Simulate lens connection")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            #if targetEnvironment(simulator)
+            if AppCapabilities.usesNFC {
+                Button(action: { nfc.simulateDetect() }) {
+                    Text("Simulate Detect (Simulator)")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                }
+                .buttonStyle(.plain)
+            }
             #endif
         }
     }

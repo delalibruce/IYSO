@@ -411,9 +411,7 @@ struct GalleryRootView: View {
                 title: "memory card",
                 subtitle: currentMonthYear,
                 topPadding: topPadding,
-                leading: {
-                    ModeBadge(mode: .memory)
-                },
+                mode: .memory,
                 trailing: {
                     HStack(spacing: 4) {
                         Button(action: { isSettingsPresented = true }) {

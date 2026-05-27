@@ -2,9 +2,12 @@ import SwiftUI
 
 struct NameEntryScreen: View {
     @Binding var name: String
+    /// When false, the name field must not take focus (e.g. launch loading still visible).
+    var isLaunchLoadingComplete: Bool = true
     let onContinue: () -> Void
 
     @FocusState private var isFocused: Bool
+    @State private var focusTask: Task<Void, Never>?
 
     private var canContinue: Bool {
         !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -50,7 +53,27 @@ struct NameEntryScreen: View {
                     .padding(.bottom, 48)
             }
         }
-        .onAppear { isFocused = true }
+        .onAppear { scheduleKeyboardFocus() }
+        .onChange(of: isLaunchLoadingComplete) { _ in scheduleKeyboardFocus() }
+        .onDisappear {
+            focusTask?.cancel()
+            isFocused = false
+        }
+    }
+
+    private func scheduleKeyboardFocus() {
+        guard isLaunchLoadingComplete else {
+            focusTask?.cancel()
+            isFocused = false
+            return
+        }
+
+        focusTask?.cancel()
+        focusTask = Task {
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled else { return }
+            await MainActor.run { isFocused = true }
+        }
     }
 
     private var continueButton: some View {

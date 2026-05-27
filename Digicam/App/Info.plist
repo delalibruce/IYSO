@@ -23,11 +23,11 @@
 	<key>NFCReaderUsageDescription</key>
 	<string>IYSO uses NFC to detect when your lens clip is attached, which activates IYSO Mode.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Digicam uses the camera to capture photos.</string>
+	<string>IYSO uses your camera to take photos through your lens.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Digicam saves captured photos to your library.</string>
+	<string>IYSO saves your captures to your photo library for your memory card.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Digicam reads your photo library to display captured photos in the gallery.</string>
+	<string>IYSO needs photo library access to save and show your captures in your memory card.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -48,5 +48,10 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Dark</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>BootzyTM.ttf</string>
+		<string>Fonts/BootzyTM.ttf</string>
+	</array>
 </dict>
 </plist>

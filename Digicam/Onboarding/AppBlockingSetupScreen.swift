@@ -28,7 +28,11 @@ struct AppBlockingSetupScreen: View {
                 bottomButtons
             }
         }
-        .task { await appBlocking.requestAuthorizationIfNeeded() }
+        .task {
+            if AppCapabilities.usesFamilyControls {
+                await appBlocking.requestAuthorizationIfNeeded()
+            }
+        }
     }
 
     // MARK: - Header
