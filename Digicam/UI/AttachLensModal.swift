@@ -83,15 +83,21 @@ struct AttachLensModal: View {
                 pulseScale = 1.08
                 pulseOpacity = 1.0
             }
-            nfc.startScanning()
+            if AppCapabilities.usesNFC {
+                nfc.startScanning()
+            }
         }
         .onDisappear {
-            nfc.cancelScanning()
+            if AppCapabilities.usesNFC {
+                nfc.cancelScanning()
+            }
         }
     }
 
     private func dismiss() {
         appState.showAttachLensSheet = false
-        nfc.cancelScanning()
+        if AppCapabilities.usesNFC {
+            nfc.cancelScanning()
+        }
     }
 }

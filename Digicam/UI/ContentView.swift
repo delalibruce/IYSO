@@ -1,10 +1,8 @@
 import SwiftUI
 
 private enum CameraLayout {
-    static let previewTopInset: CGFloat = 72
+    static let previewTopInset: CGFloat = 152
     static let shutterBottomInset: CGFloat = 140
-    static let chromeTopPadding: CGFloat = 56
-    static let chromeHorizontalPadding: CGFloat = 16
 }
 
 struct CameraView: View {
@@ -15,6 +13,8 @@ struct CameraView: View {
 
     var body: some View {
         GeometryReader { geo in
+            let topPadding = RootTabHeaderLayout.topPadding(geometrySafeAreaTop: geo.safeAreaInsets.top)
+
             ZStack(alignment: .top) {
                 Color.black.ignoresSafeArea()
 
@@ -27,24 +27,25 @@ struct CameraView: View {
                         .padding(.bottom, CameraLayout.shutterBottomInset)
                 }
 
-                cameraChrome
+                cameraChrome(topPadding: topPadding)
             }
         }
+        .ignoresSafeArea()
     }
 
-    // MARK: - Chrome overlay (badge + exit button + banner)
+    // MARK: - Chrome overlay (mode label + exit button + banner)
 
-    private var cameraChrome: some View {
-        VStack(spacing: 10) {
+    private func cameraChrome(topPadding: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center) {
                 ModeBadge(mode: .iyso)
-                Spacer()
+                Spacer(minLength: 0)
                 if appState.isIYSOMode {
                     exitButton
                 }
             }
-            .padding(.horizontal, CameraLayout.chromeHorizontalPadding)
-            .padding(.top, CameraLayout.chromeTopPadding)
+            .padding(.horizontal, RootTabHeaderLayout.horizontalPadding)
+            .padding(.top, topPadding)
 
             if appState.showLensDetectedBanner {
                 LensDetectedBanner()
@@ -59,16 +60,7 @@ struct CameraView: View {
 
     private var exitButton: some View {
         Button(action: { onExitIYSOTapped?() }) {
-            Text("Exit IYSO Mode")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(
-                    Capsule()
-                        .fill(Color(white: 1, opacity: 0.12))
-                        .overlay(Capsule().strokeBorder(Color(white: 1, opacity: 0.2), lineWidth: 0.5))
-                )
+            ExitIYSOModeButton()
         }
         .buttonStyle(.plain)
     }

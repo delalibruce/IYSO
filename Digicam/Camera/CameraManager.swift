@@ -14,29 +14,66 @@ class CameraManager: NSObject, ObservableObject {
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
     private let photoOutput = AVCapturePhotoOutput()
     private var activeCaptureProcessor: PhotoCaptureProcessor?
+    private var isConfigured = false
 
-    // MARK: - Permissions + start
+    // MARK: - Session lifecycle
 
-    func requestPermissionsAndStart() {
+    func startSession() {
+        #if DEBUG
+        if DebugOverrides.forceDeniedCamera || DebugOverrides.suppressPermissionPrompts {
+            print("[Digicam] Debug: suppressing camera permission prompt/session start")
+            return
+        }
+        #endif
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
-            sessionQueue.async { self.configureAndStart() }
+            sessionQueue.async { self.configureIfNeededAndStart() }
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { granted in
                 guard granted else {
                     print("[Digicam] Camera permission denied")
                     return
                 }
-                self.sessionQueue.async { self.configureAndStart() }
+                self.sessionQueue.async { self.configureIfNeededAndStart() }
             }
         default:
             print("[Digicam] Camera access not available")
         }
     }
 
+    func stopSession() {
+        sessionQueue.async {
+            guard self.session.isRunning else { return }
+            self.session.stopRunning()
+            DispatchQueue.main.async {
+                self.isSessionRunning = false
+            }
+        }
+    }
+
     // MARK: - Session setup
 
-    private func configureAndStart() {
+    private func configureIfNeededAndStart() {
+        if !isConfigured {
+            configureSession()
+            isConfigured = true
+        }
+
+        guard !session.isRunning else {
+            DispatchQueue.main.async {
+                self.isSessionRunning = true
+            }
+            return
+        }
+
+        session.startRunning()
+
+        DispatchQueue.main.async {
+            self.isSessionRunning = self.session.isRunning
+        }
+    }
+
+    private func configureSession() {
         session.beginConfiguration()
         session.sessionPreset = .photo
 
@@ -74,12 +111,6 @@ class CameraManager: NSObject, ObservableObject {
 
         // Device configuration must happen after session is committed
         configureDevice(device)
-
-        session.startRunning()
-
-        DispatchQueue.main.async {
-            self.isSessionRunning = self.session.isRunning
-        }
     }
 
     private func discoverUltraWideCamera() -> AVCaptureDevice? {
@@ -182,6 +213,12 @@ class CameraManager: NSObject, ObservableObject {
     // MARK: - Save
 
     private func saveToPhotoLibrary(_ image: UIImage) {
+        #if DEBUG
+        if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
+            print("[Digicam] Debug: suppressing photo library permission prompt/save")
+            return
+        }
+        #endif
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {
                 print("[Digicam] Photo library access denied: \(status.rawValue)")

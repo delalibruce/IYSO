@@ -18,7 +18,7 @@ struct NFCCalibrationScreen: View {
                 VStack(spacing: 44) {
                     VStack(spacing: 12) {
                         Text("One last thing.")
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.white)
 
                         Text("Attach your lens clip near the top of your iPhone to connect it.")
@@ -41,8 +41,10 @@ struct NFCCalibrationScreen: View {
         }
         .onAppear {
             startPulse()
-            if nfc.isNFCAvailable {
+            if AppCapabilities.usesNFC, nfc.isNFCAvailable {
                 nfc.startScanning()
+            } else if !AppCapabilities.usesNFC {
+                nfc.scanState = .unavailable
             }
         }
         .onDisappear {
@@ -145,18 +147,7 @@ struct NFCCalibrationScreen: View {
     private var bottomControls: some View {
         VStack(spacing: 16) {
             if nfc.scanState == .unavailable {
-                Button(action: onSkip) {
-                    Text("Continue without lens")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.white)
-                        )
-                }
-                .buttonStyle(.plain)
+                OnboardingContinueButton(title: "continue without lens", action: onSkip)
             }
 
             Button(action: onSkip) {
@@ -166,13 +157,23 @@ struct NFCCalibrationScreen: View {
             }
             .buttonStyle(.plain)
 
-            #if targetEnvironment(simulator)
-            Button(action: { nfc.simulateDetect() }) {
-                Text("Simulate Detect (Simulator)")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+            if !AppCapabilities.usesNFC {
+                Button(action: { nfc.simulateDetect() }) {
+                    Text("Simulate lens connection")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            #if targetEnvironment(simulator)
+            if AppCapabilities.usesNFC {
+                Button(action: { nfc.simulateDetect() }) {
+                    Text("Simulate Detect (Simulator)")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                }
+                .buttonStyle(.plain)
+            }
             #endif
         }
     }

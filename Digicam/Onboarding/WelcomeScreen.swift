@@ -17,7 +17,7 @@ struct WelcomeScreen: View {
                         .foregroundColor(.white)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Welcome to iyso.")
+                        Text("Welcome to IYSO.")
                             .font(.system(size: 20, weight: .regular))
                             .foregroundColor(Color(white: 0.85))
 
@@ -31,20 +31,9 @@ struct WelcomeScreen: View {
 
                 Spacer()
 
-                Button(action: onContinue) {
-                    Text("Let's go")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.white)
-                        )
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 48)
+                OnboardingContinueButton(title: "show me IYSO.", action: onContinue)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 48)
             }
         }
     }

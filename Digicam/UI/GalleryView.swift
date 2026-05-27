@@ -13,18 +13,11 @@ struct SDCardScreenContainer<Content: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let topInset = max(geometry.safeAreaInsets.top, Self.keyWindowSafeAreaTop)
-            content(max(16, topInset + 16), geometry.safeAreaInsets.bottom)
+            let topPadding = RootTabHeaderLayout.topPadding(geometrySafeAreaTop: geometry.safeAreaInsets.top)
+            content(topPadding, geometry.safeAreaInsets.bottom)
                 .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .ignoresSafeArea()
-    }
-
-    private static var keyWindowSafeAreaTop: CGFloat {
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow)
-            ?? scenes.first?.windows.first
-        return window?.safeAreaInsets.top ?? 0
     }
 }
 
@@ -196,15 +189,16 @@ extension View {
 
 /// Dark-to-clear gradient behind Memory Flow header chrome (content draws above this).
 struct MemoryFlowHeaderScrim: View {
-    /// How far the fade extends below the header text row.
-    static let fadeExtension: CGFloat = 36
+    /// How far the fade extends below the header text row (covers month subheader + a bit below).
+    static let fadeExtension: CGFloat = 52
 
     var body: some View {
         LinearGradient(
             stops: [
                 .init(color: PeepholeVisualPalette.memoryFlowHeaderScrimTop, location: 0),
                 .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.9), location: 0.38),
-                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.42), location: 0.72),
+                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.52), location: 0.68),
+                .init(color: PeepholeVisualPalette.memoryFlowBackground.opacity(0.24), location: 0.86),
                 .init(color: Color.clear, location: 1),
             ],
             startPoint: .top,
@@ -221,7 +215,8 @@ struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
     let title: String
     let subtitle: String
     let topPadding: CGFloat
-    var horizontalPadding: CGFloat = 20
+    var mode: AppMode? = nil
+    var horizontalPadding: CGFloat = RootTabHeaderLayout.horizontalPadding
     /// When true, the title is shown only inside `leading()` (e.g. `MemoryFlowBackHeaderGroup`).
     var hidesCenterTitle: Bool = false
     /// Set false when a parent wraps multiple chrome rows in a single `MemoryFlowHeaderScrim`.
@@ -232,7 +227,10 @@ struct MemoryFlowHeader<Leading: View, Trailing: View>: View {
     private let subtitleColor = Color(red: 0x82/255, green: 0x82/255, blue: 0x82/255)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: RootTabHeaderLayout.modeLabelToTitleSpacing) {
+            if let mode {
+                ModeBadge(mode: mode)
+            }
             HStack(spacing: 8) {
                 leading()
                 if !hidesCenterTitle {
@@ -278,7 +276,8 @@ extension MemoryFlowHeader where Leading == EmptyView {
         title: String,
         subtitle: String,
         topPadding: CGFloat,
-        horizontalPadding: CGFloat = 20,
+        mode: AppMode? = nil,
+        horizontalPadding: CGFloat = RootTabHeaderLayout.horizontalPadding,
         hidesCenterTitle: Bool = false,
         appliesScrim: Bool = true,
         @ViewBuilder trailing: @escaping () -> Trailing
@@ -286,6 +285,7 @@ extension MemoryFlowHeader where Leading == EmptyView {
         self.title = title
         self.subtitle = subtitle
         self.topPadding = topPadding
+        self.mode = mode
         self.horizontalPadding = horizontalPadding
         self.hidesCenterTitle = hidesCenterTitle
         self.appliesScrim = appliesScrim

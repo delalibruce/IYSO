@@ -19,6 +19,7 @@ final class NFCManager: NSObject, ObservableObject {
     #endif
 
     var isNFCAvailable: Bool {
+        guard AppCapabilities.usesNFC else { return false }
         #if targetEnvironment(simulator)
         return false
         #else
@@ -31,11 +32,15 @@ final class NFCManager: NSObject, ObservableObject {
     }
 
     func scanOnLaunch() {
-        guard isNFCAvailable else { return }
+        guard AppCapabilities.usesNFC, isNFCAvailable else { return }
         startScanning()
     }
 
     func startScanning() {
+        guard AppCapabilities.usesNFC else {
+            scanState = .unavailable
+            return
+        }
         #if targetEnvironment(simulator)
         scanState = .scanning
         #else

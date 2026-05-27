@@ -8,6 +8,7 @@ xcuserdata/
 
 # Build products
 DerivedData/
+.derivedData/
 build/
 *.ipa
 *.dSYM.zip

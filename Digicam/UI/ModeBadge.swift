@@ -1,4 +1,23 @@
 import SwiftUI
+import UIKit
+
+/// Shared placement for root tab headers (Memory Card grid + Camera).
+enum RootTabHeaderLayout {
+    static let horizontalPadding: CGFloat = 20
+    static let modeLabelToTitleSpacing: CGFloat = 6
+
+    /// Matches `SDCardScreenContainer` — distance from the physical screen top to the mode label.
+    static func topPadding(geometrySafeAreaTop: CGFloat) -> CGFloat {
+        max(16, max(geometrySafeAreaTop, keyWindowSafeAreaTop) + 16)
+    }
+
+    static var keyWindowSafeAreaTop: CGFloat {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow)
+            ?? scenes.first?.windows.first
+        return window?.safeAreaInsets.top ?? 0
+    }
+}
 
 enum AppMode {
     case iyso, memory
@@ -13,24 +32,34 @@ enum AppMode {
 
 struct ModeBadge: View {
     let mode: AppMode
+    /// When false, the status dot uses a muted green (e.g. onboarding before lens connects).
+    var isIndicatorActive: Bool = true
+
+    private static let activeIndicator = Color(red: 0x00 / 255, green: 0xdf / 255, blue: 0x4f / 255)
+    private static let inactiveIndicator = Color(red: 0x00 / 255, green: 0x6b / 255, blue: 0x33 / 255)
 
     var body: some View {
         HStack(spacing: 5) {
             Circle()
-                .fill(Color(red: 0x00/255, green: 0xdf/255, blue: 0x4f/255))
+                .fill(isIndicatorActive ? Self.activeIndicator : Self.inactiveIndicator)
                 .frame(width: 6, height: 6)
+                .shadow(
+                    color: Self.activeIndicator.opacity(isIndicatorActive ? 0.5 : 0),
+                    radius: 3
+                )
+                .animation(.easeOut(duration: 0.2), value: isIndicatorActive)
             Text(mode.label)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.white)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(
             Capsule()
-                .fill(Color(white: 1, opacity: 0.10))
+                .fill(Color(white: 1, opacity: 0.05))
                 .overlay(
                     Capsule()
-                        .strokeBorder(Color(white: 1, opacity: 0.18), lineWidth: 0.5)
+                        .strokeBorder(Color(white: 1, opacity: 0.10), lineWidth: 0.5)
                 )
         )
     }

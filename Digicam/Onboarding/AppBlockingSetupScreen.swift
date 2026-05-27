@@ -28,18 +28,22 @@ struct AppBlockingSetupScreen: View {
                 bottomButtons
             }
         }
-        .task { await appBlocking.requestAuthorizationIfNeeded() }
+        .task {
+            if AppCapabilities.usesFamilyControls {
+                await appBlocking.requestAuthorizationIfNeeded()
+            }
+        }
     }
 
     // MARK: - Header
 
     private var headerText: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Put the distractions away.")
-                .font(.system(size: 28, weight: .bold))
+            Text("Put the distractions away")
+                .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
-            Text("These apps are put away while iyso mode is on. Change them any time in settings.")
+            Text("These apps are put away while IYSO mode is on. Change them any time in settings.")
                 .font(.system(size: 15, weight: .regular))
                 .foregroundColor(Color(white: 0.55))
                 .fixedSize(horizontal: false, vertical: true)
@@ -124,18 +128,7 @@ struct AppBlockingSetupScreen: View {
 
     private var bottomButtons: some View {
         VStack(spacing: 12) {
-            Button(action: onContinue) {
-                Text("Continue")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color.white)
-                    )
-            }
-            .buttonStyle(.plain)
+            OnboardingContinueButton(action: onContinue)
 
             Button(action: onSkip) {
                 Text("Skip for now")
@@ -156,7 +149,6 @@ struct AppBlockingSetupScreen: View {
         )
     }
 }
-
 private struct OnboardingAppRow: View {
     let name: String
     let isEnabled: Bool
@@ -188,3 +180,4 @@ private struct OnboardingAppRow: View {
         .contentShape(Rectangle())
     }
 }
+

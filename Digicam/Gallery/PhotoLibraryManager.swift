@@ -91,6 +91,13 @@ class PhotoLibraryManager: ObservableObject {
     // MARK: - Access
 
     func requestAccessAndLoad() {
+        #if DEBUG
+        if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
+            authorizationStatus = .denied
+            albums = []
+            return
+        }
+        #endif
         let current = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         if current == .authorized || current == .limited {
             authorizationStatus = current

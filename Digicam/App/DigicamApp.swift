@@ -6,6 +6,10 @@ private let showPeepholeTestScreen = false
 
 @main
 struct DigicamApp: App {
+    init() {
+        IYSOFont.registerFonts()
+    }
+
     var body: some Scene {
         WindowGroup {
             #if DEBUG

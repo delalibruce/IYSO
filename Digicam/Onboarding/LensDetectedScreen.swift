@@ -10,35 +10,45 @@ struct LensDetectedScreen: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            VStack(spacing: 28) {
-                checkmarkView
+            VStack(spacing: 0) {
+                Spacer()
 
-                VStack(spacing: 10) {
-                    Text("You're all set, \(name).")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
+                VStack(spacing: 28) {
+                    checkmarkView
+
+                    VStack(spacing: 10) {
+                        Text("You're all set, \(name).")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+
+                        VStack(spacing: 4) {
+                            Text("Your lens is connected. IYSO Mode is on.")
+                                .font(.system(size: 17, weight: .regular))
+                                .foregroundColor(Color(white: 0.65))
+
+                            Text("Snap away.")
+                                .font(.system(size: 17, weight: .regular))
+                                .foregroundColor(Color(white: 0.4))
+                        }
                         .multilineTextAlignment(.center)
-
-                    VStack(spacing: 4) {
-                        Text("Your lens is connected. IYSO Mode is on.")
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(Color(white: 0.65))
-
-                        Text("Snap away.")
-                            .font(.system(size: 17, weight: .regular))
-                            .foregroundColor(Color(white: 0.4))
                     }
-                    .multilineTextAlignment(.center)
                 }
+                .padding(.horizontal, 30)
+
+                Spacer()
+
+                OnboardingContinueButton(
+                    title: "open my camera",
+                    action: onComplete
+                )
+                .padding(.horizontal, 24)
+                .padding(.bottom, 48)
             }
-            .padding(.horizontal, 30)
         }
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 showCheckmark = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                onComplete()
             }
         }
     }

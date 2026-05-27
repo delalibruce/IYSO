@@ -12,6 +12,11 @@ final class AppState: ObservableObject {
 }
 
 struct AppRootView: View {
+    #if DEBUG
+    /// Keep `false` for normal Debug runs; temporary onboarding resets can use launch args.
+    private static let resetOnboardingEveryDebugLaunch = false
+    #endif
+
     @StateObject private var camera = CameraManager()
     @StateObject private var library = PhotoLibraryManager()
     @StateObject private var appState = AppState()
@@ -19,6 +24,7 @@ struct AppRootView: View {
     @StateObject private var appBlocking = AppBlockingManager()
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var isShowingLaunchLoading = true
 
     private var hidesBottomToggle: Bool {
         guard appState.activeTab == .gallery else { return false }
@@ -32,7 +38,11 @@ struct AppRootView: View {
             mainApp
 
             if !hasCompletedOnboarding {
-                OnboardingFlowView(nfc: nfc, appBlocking: appBlocking) { enteredIYSOMode in
+                OnboardingFlowView(
+                    nfc: nfc,
+                    appBlocking: appBlocking,
+                    isLaunchLoadingComplete: !isShowingLaunchLoading
+                ) { enteredIYSOMode in
                     hasCompletedOnboarding = true
                     if enteredIYSOMode {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -45,16 +55,65 @@ struct AppRootView: View {
                 .transition(.opacity)
                 .zIndex(1000)
             }
+
+            if isShowingLaunchLoading {
+                IYSOLoadingScreen()
+                    .transition(.opacity)
+                    .zIndex(2000)
+            }
         }
         .animation(.easeInOut(duration: 0.35), value: hasCompletedOnboarding)
+        .animation(.easeInOut(duration: 0.55), value: isShowingLaunchLoading)
         .onAppear {
-            camera.requestPermissionsAndStart()
+            #if DEBUG
+            if Self.resetOnboardingEveryDebugLaunch
+                || DebugOverrides.resetOnboarding {
+                hasCompletedOnboarding = false
+            }
+            #endif
+            #if DEBUG
+            if !DebugOverrides.suppressPermissionPrompts {
+                library.requestAccessAndLoad()
+            } else {
+                library.authorizationStatus = .denied
+            }
+            #else
             library.requestAccessAndLoad()
-            if hasCompletedOnboarding { nfc.scanOnLaunch() }
+            #endif
+            if hasCompletedOnboarding, AppCapabilities.usesNFC { nfc.scanOnLaunch() }
+            dismissLaunchLoadingIfNeeded()
+            syncCameraSession()
+        }
+        .onChange(of: appState.activeTab) { _ in
+            syncCameraSession()
         }
         .onChange(of: nfc.scanState) { state in
-            guard state == .detected, hasCompletedOnboarding else { return }
+            guard AppCapabilities.usesNFC, state == .detected, hasCompletedOnboarding else { return }
             handleLensDetected()
+        }
+    }
+
+    // MARK: - Camera session
+
+    private func syncCameraSession() {
+        if appState.activeTab == .camera {
+            camera.startSession()
+        } else {
+            camera.stopSession()
+        }
+    }
+
+    // MARK: - Launch loading
+
+    private func dismissLaunchLoadingIfNeeded() {
+        guard isShowingLaunchLoading, IYSOLoadingConfig.autoDismisses else { return }
+        Task {
+            try? await Task.sleep(for: .seconds(IYSOLoadingConfig.displayDuration))
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.55)) {
+                    isShowingLaunchLoading = false
+                }
+            }
         }
     }
 
@@ -115,7 +174,7 @@ struct AppRootView: View {
     // MARK: - Mode transitions
 
     private func handleCameraRequested() {
-        if appState.isIYSOMode || nfc.isLensConnected {
+        if !AppCapabilities.usesNFC || appState.isIYSOMode || nfc.isLensConnected {
             withAnimation(.easeInOut(duration: 0.2)) { appState.activeTab = .camera }
         } else {
             appState.showAttachLensSheet = true
