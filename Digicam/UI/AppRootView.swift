@@ -13,8 +13,8 @@ final class AppState: ObservableObject {
 
 struct AppRootView: View {
     #if DEBUG
-    /// Set to `true` while working on onboarding; set back to `false` for normal Debug runs.
-    private static let resetOnboardingEveryDebugLaunch = true
+    /// Keep `false` for normal Debug runs; temporary onboarding resets can use launch args.
+    private static let resetOnboardingEveryDebugLaunch = false
     #endif
 
     @StateObject private var camera = CameraManager()
