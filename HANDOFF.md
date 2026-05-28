@@ -4,10 +4,10 @@ Use this when **you** develop locally and **someone else** signs/archives for Te
 
 ## Publisher must set (in Xcode, once)
 
-1. Open `Digicam.xcodeproj`
-2. Target **Digicam** → **Signing & Capabilities**
+1. Open `IYSO.xcodeproj`
+2. Target **IYSO** → **Signing & Capabilities**
 3. Set **Team** to the publishing Apple Developer team
-4. Set **Bundle Identifier** to the App ID registered on that team (example: `com.yourcompany.iyso`)
+4. Confirm **Bundle Identifier** is `app.iyso` (already set on `main`)
 5. Confirm capabilities on that App ID in [developer.apple.com](https://developer.apple.com):
    - Near Field Communication Tag Reading
    - Family Controls
