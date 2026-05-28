@@ -138,7 +138,7 @@ final class NFCManager: NSObject, ObservableObject {
 
 #if !targetEnvironment(simulator)
 extension NFCManager: NFCTagReaderSessionDelegate {
-    func readerSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
+    func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
         DispatchQueue.main.async {
             if self.scanState == .scanning { self.scanState = .idle }
             self.tagSession = nil
