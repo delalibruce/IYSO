@@ -118,7 +118,7 @@
 		AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeButton.swift; sourceTree = "<group>"; };
 		AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeAnimationView.swift; sourceTree = "<group>"; };
 		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
-		DD0002AA00000000000002AA /* Digicam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Digicam.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD0002AA00000000000002AA /* IYSO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IYSO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,12 +135,12 @@
 		CC0000AA00000000000000AA = {
 			isa = PBXGroup;
 			children = (
-				CC0001AA00000000000001AA /* Digicam */,
+				CC0001AA00000000000001AA /* IYSO */,
 				CC0002AA00000000000002AA /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		CC0001AA00000000000001AA /* Digicam */ = {
+		CC0001AA00000000000001AA /* IYSO */ = {
 			isa = PBXGroup;
 			children = (
 				CC0003AA00000000000003AA /* App */,
@@ -153,13 +153,13 @@
 				CC0010AA00000000000010AA /* Onboarding */,
 				CC0006AA00000000000006AA /* Resources */,
 			);
-			path = Digicam;
+			path = IYSO;
 			sourceTree = "<group>";
 		};
 		CC0002AA00000000000002AA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DD0002AA00000000000002AA /* Digicam.app */,
+				DD0002AA00000000000002AA /* IYSO.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -293,9 +293,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DD0001AA00000000000001AA /* Digicam */ = {
+		DD0001AA00000000000001AA /* IYSO */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = GG0002AA00000000000002AA /* Build configuration list for PBXNativeTarget "Digicam" */;
+			buildConfigurationList = GG0002AA00000000000002AA /* Build configuration list for PBXNativeTarget "IYSO" */;
 			buildPhases = (
 				EE0001AA00000000000001AA /* Sources */,
 				EE0002AA00000000000002AA /* Resources */,
@@ -305,9 +305,9 @@
 			);
 			dependencies = (
 			);
-			name = Digicam;
-			productName = Digicam;
-			productReference = DD0002AA00000000000002AA /* Digicam.app */;
+			name = IYSO;
+			productName = IYSO;
+			productReference = DD0002AA00000000000002AA /* IYSO.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -325,7 +325,7 @@
 					};
 				};
 			};
-			buildConfigurationList = GG0001AA00000000000001AA /* Build configuration list for PBXProject "Digicam" */;
+			buildConfigurationList = GG0001AA00000000000001AA /* Build configuration list for PBXProject "IYSO" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -338,7 +338,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DD0001AA00000000000001AA /* Digicam */,
+				DD0001AA00000000000001AA /* IYSO */,
 			);
 		};
 /* End PBXProject section */
@@ -535,12 +535,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Digicam/App/Digicam.entitlements;
+				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Digicam/App/Info.plist;
+				INFOPLIST_FILE = IYSO/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -560,12 +560,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Digicam/App/Digicam.entitlements;
+				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Digicam/App/Info.plist;
+				INFOPLIST_FILE = IYSO/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -583,7 +583,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		GG0001AA00000000000001AA /* Build configuration list for PBXProject "Digicam" */ = {
+		GG0001AA00000000000001AA /* Build configuration list for PBXProject "IYSO" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FF0001AA00000000000001AA /* Debug */,
@@ -592,7 +592,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		GG0002AA00000000000002AA /* Build configuration list for PBXNativeTarget "Digicam" */ = {
+		GG0002AA00000000000002AA /* Build configuration list for PBXNativeTarget "IYSO" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FF0003AA00000000000003AA /* Debug */,
