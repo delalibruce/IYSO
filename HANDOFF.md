@@ -1,71 +1,65 @@
-# Release handoff (new Apple team + bundle ID)
+# Release handoff (IYSO / app.iyso)
 
 Use this when **you** develop locally and **someone else** signs/archives for TestFlight.
 
-## Publisher must set (in Xcode, once)
+## Project layout (after rename)
 
-1. Open `IYSO.xcodeproj`
+| Item | Path / value |
+|------|----------------|
+| Xcode project | `IYSO.xcodeproj` |
+| Scheme (shared, Xcode Cloud) | **IYSO** |
+| Source folder | `IYSO/` |
+| App entry | `IYSO/App/DigicamApp.swift` |
+| Bundle ID | `app.iyso` |
+| App Store display name | `IYSO*` (`CFBundleDisplayName` in `IYSO/App/Info.plist`) |
+
+Filenames **DigicamApp.swift** and **Digicam.entitlements** are intentional (not renamed).
+
+## Publisher setup (once in Xcode)
+
+1. Open **`IYSO.xcodeproj`**
 2. Target **IYSO** → **Signing & Capabilities**
-3. Set **Team** to the publishing Apple Developer team
-4. Confirm **Bundle Identifier** is `app.iyso` (already set on `main`)
-5. Confirm capabilities on that App ID in [developer.apple.com](https://developer.apple.com):
+3. Team = publishing Apple Developer team
+4. Bundle ID = **`app.iyso`**
+5. On [developer.apple.com](https://developer.apple.com), enable on that App ID:
    - Near Field Communication Tag Reading
    - Family Controls
    - Associated Domains (`applinks:iyso.app`)
 
-## Build configurations in this repo
+## Signing / entitlements
 
-| Config  | Entitlements file              | Runtime NFC / Family Controls |
-|---------|--------------------------------|-------------------------------|
-| Debug   | `IYSO/App/Digicam.entitlements.dev` (empty) | Simulated / UI-only path      |
-| Release | `IYSO/App/Digicam.entitlements.production`  | Real hardware + Screen Time   |
+| Config | `CODE_SIGN_ENTITLEMENTS` | Purpose |
+|--------|--------------------------|---------|
+| **Debug** | `IYSO/App/Digicam.entitlements.dev` (empty) | Your Personal Team; UI + simulate NFC |
+| **Release** | `IYSO/App/Digicam.entitlements` | TestFlight; NFC + Family Controls + Universal Links |
 
-**You (local, Personal Team):** run **Debug** on device to test flows with simulate buttons.
+`Digicam.entitlements.production` mirrors Release entitlements for reference only.
 
-**Publisher:** archive **Release** on their team to validate real NFC tags and app shields.
+**Release** build settings also set `DEVELOPMENT_TEAM = T73K2F5HAL` (publisher). **Debug** leaves team unset so you pick your Personal Team in Xcode.
+
+## Xcode Cloud
+
+See [`XCODE_CLOUD.md`](XCODE_CLOUD.md). Use only **IYSO** workflows (`IYSO.xcodeproj`, scheme **IYSO**, **Release** archive). Disable all **Digicam | …** workflows.
 
 ## AASA (`iyso.app`)
 
-File template: `deployment/iyso.app/.well-known/apple-app-site-association`
+Template: `deployment/iyso.app/.well-known/apple-app-site-association`
 
-Before deploy, set:
+Set `"appID": "<TEAM_ID>.app.iyso"` before deploy.
 
-```json
-"appID": "<TEAM_ID>.<BUNDLE_ID>"
-```
-
-Example: `AB12CD34EF.com.yourcompany.iyso`
-
-Verify after deploy:
+## Git before handoff
 
 ```bash
-curl -i https://iyso.app/.well-known/apple-app-site-association
+git checkout main
+git pull origin main
 ```
 
-## Publisher QA script (15 minutes, Release build, physical iPhone)
+Open **`IYSO.xcodeproj`** (not `Digicam.xcodeproj`).
 
-1. Fresh install → complete onboarding
-2. Family Controls: approve permission → pick apps/categories in picker
-3. NFC onboarding: first scan **pairs** lens tag
-4. Exit IYSO → re-enter camera → scan **same** tag → unlocks
-5. Scan **different** tag → rejected
-6. IYSO on → selected apps blocked
-7. Exit IYSO → blocks removed
-8. Force-quit app → reopen → same tag still unlocks
+## Publisher QA (Release, physical iPhone)
 
-Record pass/fail for each step.
-
-## What you can verify without publisher access
-
-- Onboarding order and navigation
-- Attach-lens modal and exit-IYSO modal
-- Toggle gating UI (camera vs memory)
-- Settings / app list persistence
-- Debug simulate NFC (`Simulate lens connection` on NFC screen)
-
-## Git checklist before handoff
-
-- [ ] Code pushed to GitHub
-- [ ] AASA on Vercel (Team ID + bundle ID filled in, or PR ready for publisher)
-- [ ] `HANDOFF.md` + README reviewed
-- [ ] Publisher has NFC tag for testing
+1. Fresh install → onboarding
+2. Family Controls → pick apps
+3. NFC pair lens tag → exit/re-enter → same tag unlocks
+4. Different tag → rejected
+5. IYSO on → apps blocked; exit → unblocked

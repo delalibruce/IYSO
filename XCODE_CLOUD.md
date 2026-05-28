@@ -1,35 +1,32 @@
-# Xcode Cloud setup (after Digicam → IYSO rename)
+# Xcode Cloud (IYSO only)
 
-## Use only the IYSO project
+## Required workflow settings
 
-The app was renamed to **IYSO**. Xcode Cloud workflows tied to the old **Digicam** project will fail because `Digicam.xcodeproj` no longer exists.
+| Setting | Value |
+|---------|--------|
+| Project | **`IYSO.xcodeproj`** |
+| Scheme | **IYSO** (shared: `IYSO.xcodeproj/xcshareddata/xcschemes/IYSO.xcscheme`) |
+| Archive configuration | **Release** |
+| Bundle ID | **`app.iyso`** |
 
-In [App Store Connect](https://appstoreconnect.apple.com) → your app → **Xcode Cloud**:
+## Disable old Digicam workflows
 
-1. **Disable or delete** workflows named `Digicam | …` (Default, First Workflow, etc.).
-2. Keep or create a single workflow: **IYSO | Default** (or similar).
-3. Set the workflow to build **`IYSO.xcodeproj`**, scheme **IYSO**, **Release** for TestFlight archives.
+Workflows named **`Digicam | …`** fail because **`Digicam.xcodeproj` was removed**. In App Store Connect → Xcode Cloud, delete or disable them. Keep only **IYSO** workflows.
 
-## Required App Store Connect settings
+## If Archive fails
 
-- Bundle ID: **`app.iyso`**
-- Capabilities on that App ID: NFC Tag Reading, Family Controls, Associated Domains (`applinks:iyso.app`)
-- Xcode Cloud uses the workflow’s Apple Developer **Team** (must match the App ID).
+1. Open **Archive - iOS** logs.
+2. **Signing / entitlements:** App ID `app.iyso` must include NFC, Family Controls, and Associated Domains. Release uses `IYSO/App/Digicam.entitlements`.
+3. **Wrong project:** workflow must point at `IYSO.xcodeproj`, not Digicam.
+4. **Team:** workflow team must match the `app.iyso` App ID (project Release config uses team `T73K2F5HAL`).
 
-## If Archive still fails
-
-1. Open the failed **Archive - iOS** log in Xcode Cloud.
-2. Common fixes on `main`:
-   - Duplicate keys in `IYSO/App/Info.plist` (should not happen after latest `main`)
-   - Entitlements mismatch → Release must use `Digicam.entitlements.production`
-   - Wrong project selected in workflow (must be **IYSO**, not Digicam)
-
-## Local verify before pushing
+## Verify locally
 
 ```bash
 git pull origin main
-xcodebuild -project IYSO.xcodeproj -scheme IYSO -sdk iphonesimulator \
-  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project IYSO.xcodeproj -scheme IYSO \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO build
 ```
 
-Publisher archives **Release** on device/TestFlight with their team in Xcode or Xcode Cloud.
+Publisher: archive **Release** in Xcode or rerun the **IYSO** Xcode Cloud workflow.

@@ -106,6 +106,8 @@
 		AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryModeEntryScreen.swift; sourceTree = "<group>"; };
 		AA0040AA00000000000040AA /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
 		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
+		AA0053AA00000000000053AA /* Digicam.entitlements.dev */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.dev; sourceTree = "<group>"; };
+		AA0054AA00000000000054AA /* Digicam.entitlements.production */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.production; sourceTree = "<group>"; };
 		AA0042AA00000000000042AA /* AppCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCapabilities.swift; sourceTree = "<group>"; };
 		AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOLoadingScreen.swift; sourceTree = "<group>"; };
 		AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePermissionSetupScreen.swift; sourceTree = "<group>"; };
@@ -175,6 +177,8 @@
 				AA0042AA00000000000042AA /* AppCapabilities.swift */,
 				AA0006AA00000000000006AA /* Info.plist */,
 				AA0041AA00000000000041AA /* Digicam.entitlements */,
+				AA0053AA00000000000053AA /* Digicam.entitlements.dev */,
+				AA0054AA00000000000054AA /* Digicam.entitlements.production */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -546,7 +550,6 @@
 				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements.dev;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IYSO/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -568,7 +571,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements.production;
+				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = T73K2F5HAL;

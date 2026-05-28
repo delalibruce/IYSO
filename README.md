@@ -1,31 +1,30 @@
-## Digicam / IYSO — release setup
+## IYSO (formerly Digicam)
 
-NFC unlock, IYSO mode, and Family Controls shielding are implemented in code.  
-Signing and TestFlight are done on the **publishing** Apple Developer account.
+NFC unlock, IYSO mode, and Family Controls are in the `IYSO/` source tree. TestFlight uses the **publisher** Apple Developer account.
 
-**Start here:** [`HANDOFF.md`](HANDOFF.md)
+**Start here:** [`HANDOFF.md`](HANDOFF.md) · Xcode Cloud: [`XCODE_CLOUD.md`](XCODE_CLOUD.md)
 
 ## Quick reference
 
-| Item | Value / location |
-|------|------------------|
-| Bundle ID (default in project) | `app.iyso` |
-| Xcode project | `IYSO.xcodeproj`, scheme **IYSO** |
-| Associated domain | `iyso.app` → `IYSO/App/Digicam.entitlements.production` |
-| Production entitlements (Release / TestFlight) | `IYSO/App/Digicam.entitlements.production` |
-| Local dev entitlements (Personal Team) | `IYSO/App/Digicam.entitlements.dev` (Debug only) |
-| Xcode Cloud | See [`XCODE_CLOUD.md`](XCODE_CLOUD.md) |
+| Item | Value |
+|------|--------|
+| Xcode project | `IYSO.xcodeproj` |
+| Scheme | **IYSO** |
+| Bundle ID | `app.iyso` |
+| Display name | `IYSO*` |
+| Release entitlements | `IYSO/App/Digicam.entitlements` |
+| Debug entitlements (Personal Team) | `IYSO/App/Digicam.entitlements.dev` |
 | AASA template | `deployment/iyso.app/.well-known/apple-app-site-association` |
 
-## Local development (your Mac, Personal Team)
+## Local development (Personal Team)
 
-1. Open project in Xcode
-2. Select your **Personal Team** under Signing (Debug)
-3. Run **Debug** on a physical iPhone (`Cmd+R`)
-4. Use **Simulate lens connection** on NFC onboarding when testing without entitlements
-
-Debug builds use empty entitlements so Personal Team signing works; Release uses full NFC + Family Controls for the publisher.
+1. `git pull origin main`
+2. Open **`IYSO.xcodeproj`**
+3. Scheme **IYSO**, configuration **Debug**
+4. Signing: your **Personal Team** (Debug has no fixed `DEVELOPMENT_TEAM`)
+5. Run on a physical iPhone (`Cmd+R`)
+6. Use **Simulate lens connection** on NFC onboarding when needed
 
 ## Publisher (TestFlight)
 
-See [`HANDOFF.md`](HANDOFF.md) for Team ID, bundle ID, AASA, capabilities, and the 15-minute QA script.
+Archive **Release** with team **T73K2F5HAL** (or update `DEVELOPMENT_TEAM` in the project if your team ID differs). See [`HANDOFF.md`](HANDOFF.md).
