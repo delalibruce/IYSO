@@ -25,7 +25,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NFCReaderUsageDescription</key>
-	<string>IYSO uses NFC to detect when your lens clip is attached, which activates IYSO Mode.</string>
+	<string>IYSO uses NFC to detect when your lens clip is attached.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>IYSO uses your camera to take photos through your lens.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

@@ -62,6 +62,9 @@
 		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
 		BB0051AA00000000000051AA /* PhotoFileNameEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */; };
 		BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0052AA00000000000052AA /* BlockedAppIconView.swift */; };
+		BB0055AA00000000000055AA /* NFCLensManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0055AA00000000000055AA /* NFCLensManager.swift */; };
+		BB0056AA00000000000056AA /* IYSOStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0056AA00000000000056AA /* IYSOStateManager.swift */; };
+		BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -106,8 +109,6 @@
 		AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryModeEntryScreen.swift; sourceTree = "<group>"; };
 		AA0040AA00000000000040AA /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
 		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
-		AA0053AA00000000000053AA /* Digicam.entitlements.dev */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.dev; sourceTree = "<group>"; };
-		AA0054AA00000000000054AA /* Digicam.entitlements.production */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.production; sourceTree = "<group>"; };
 		AA0042AA00000000000042AA /* AppCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCapabilities.swift; sourceTree = "<group>"; };
 		AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOLoadingScreen.swift; sourceTree = "<group>"; };
 		AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePermissionSetupScreen.swift; sourceTree = "<group>"; };
@@ -124,6 +125,11 @@
 		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
 		AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoFileNameEditView.swift; sourceTree = "<group>"; };
 		AA0052AA00000000000052AA /* BlockedAppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedAppIconView.swift; sourceTree = "<group>"; };
+		AA0053AA00000000000053AA /* Digicam.entitlements.dev */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.dev; sourceTree = "<group>"; };
+		AA0054AA00000000000054AA /* Digicam.entitlements.production */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.production; sourceTree = "<group>"; };
+		AA0055AA00000000000055AA /* NFCLensManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCLensManager.swift; sourceTree = "<group>"; };
+		AA0056AA00000000000056AA /* IYSOStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOStateManager.swift; sourceTree = "<group>"; };
+		AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingSettingsView.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* IYSO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IYSO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -175,6 +181,7 @@
 			children = (
 				AA0001AA00000000000001AA /* DigicamApp.swift */,
 				AA0042AA00000000000042AA /* AppCapabilities.swift */,
+				AA0056AA00000000000056AA /* IYSOStateManager.swift */,
 				AA0006AA00000000000006AA /* Info.plist */,
 				AA0041AA00000000000041AA /* Digicam.entitlements */,
 				AA0053AA00000000000053AA /* Digicam.entitlements.dev */,
@@ -247,6 +254,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0024AA00000000000024AA /* NFCManager.swift */,
+				AA0055AA00000000000055AA /* NFCLensManager.swift */,
 			);
 			path = NFC;
 			sourceTree = "<group>";
@@ -257,6 +265,7 @@
 				AA0025AA00000000000025AA /* BlockedApp.swift */,
 				AA0026AA00000000000026AA /* AppBlockingManager.swift */,
 				AA0027AA00000000000027AA /* SettingsView.swift */,
+				AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -423,6 +432,9 @@
 				BB0048AA00000000000048AA /* IYSOGlassSurface.swift in Sources */,
 				BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */,
 				BB004AAA0000000000004AAA /* OnboardingBackButton.swift in Sources */,
+				BB0055AA00000000000055AA /* NFCLensManager.swift in Sources */,
+				BB0056AA00000000000056AA /* IYSOStateManager.swift in Sources */,
+				BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -550,6 +562,7 @@
 				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements.dev;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IYSO/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;

@@ -9,6 +9,7 @@ import ManagedSettings
 
 @MainActor
 final class AppBlockingManager: ObservableObject {
+    static let shared = AppBlockingManager()
     @Published var blockedApps: [BlockedApp] = BlockedApp.defaults
     @Published var isAuthorized: Bool = false
     #if canImport(FamilyControls)
@@ -83,6 +84,18 @@ final class AppBlockingManager: ObservableObject {
     // MARK: - FamilyActivitySelection
 
     #if canImport(FamilyControls)
+    func loadBlockList() -> FamilyActivitySelection? {
+        guard let data = UserDefaults.standard.data(forKey: familySelectionUDKey),
+              let selection = try? PropertyListDecoder().decode(FamilyActivitySelection.self, from: data)
+        else { return nil }
+        return selection
+    }
+
+    func saveBlockList(_ selection: FamilyActivitySelection) {
+        familyActivitySelection = selection
+        saveFamilyActivitySelection()
+    }
+
     func updateFamilyActivitySelection(_ selection: FamilyActivitySelection) {
         familyActivitySelection = selection
         saveFamilyActivitySelection()
