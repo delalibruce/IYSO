@@ -9,10 +9,12 @@ Signing and TestFlight are done on the **publishing** Apple Developer account.
 
 | Item | Value / location |
 |------|------------------|
-| Bundle ID (default in project) | `com.iyso.digicam` — publisher may change in Xcode |
-| Associated domain | `iyso.app` → `Digicam/App/Digicam.entitlements` |
-| Production entitlements | `Digicam/App/Digicam.entitlements` |
-| Local dev entitlements (Personal Team) | `Digicam/App/Digicam.entitlements.dev` (Debug only) |
+| Bundle ID (default in project) | `app.iyso` |
+| Xcode project | `IYSO.xcodeproj`, scheme **IYSO** |
+| Associated domain | `iyso.app` → `IYSO/App/Digicam.entitlements.production` |
+| Production entitlements (Release / TestFlight) | `IYSO/App/Digicam.entitlements.production` |
+| Local dev entitlements (Personal Team) | `IYSO/App/Digicam.entitlements.dev` (Debug only) |
+| Xcode Cloud | See [`XCODE_CLOUD.md`](XCODE_CLOUD.md) |
 | AASA template | `deployment/iyso.app/.well-known/apple-app-site-association` |
 
 ## Local development (your Mac, Personal Team)

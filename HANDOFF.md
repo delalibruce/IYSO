@@ -17,8 +17,8 @@ Use this when **you** develop locally and **someone else** signs/archives for Te
 
 | Config  | Entitlements file              | Runtime NFC / Family Controls |
 |---------|--------------------------------|-------------------------------|
-| Debug   | `Digicam.entitlements.dev` (empty) | Simulated / UI-only path      |
-| Release | `Digicam.entitlements` (full)      | Real hardware + Screen Time   |
+| Debug   | `IYSO/App/Digicam.entitlements.dev` (empty) | Simulated / UI-only path      |
+| Release | `IYSO/App/Digicam.entitlements.production`  | Real hardware + Screen Time   |
 
 **You (local, Personal Team):** run **Debug** on device to test flows with simulate buttons.
 
