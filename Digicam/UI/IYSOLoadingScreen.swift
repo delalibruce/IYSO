@@ -12,8 +12,11 @@ enum IYSOLoadingConfig {
     /// How long the branded loading screen stays up before fading out.
     static let displayDuration: TimeInterval = 1.6
 
-    /// Duration of the progress bar fill animation (matches display duration).
-    static var progressAnimationDuration: TimeInterval { displayDuration }
+    /// Extra dwell time for the user's first-ever app open.
+    static let firstLaunchDisplayDuration: TimeInterval = 4.0
+
+    /// Show launch loading again only after this much idle time.
+    static let relaunchAfterIdleInterval: TimeInterval = 20 * 60
 }
 
 // MARK: - Brand palette (launch screen only)
@@ -65,6 +68,8 @@ private enum LoadingOrbAnimation {
 struct IYSOLoadingScreen: View {
     private let wordmarkFontSize: CGFloat = 72
     private let wordmarkLetterSpacingPercent: CGFloat = 8
+    private let displayDuration: TimeInterval
+    private let usesSlowFirstLaunchProgress: Bool
 
     @State private var contentOpacity: Double = 0
     @State private var orbScale: CGFloat = LoadingOrbAnimation.scaleAtRest
@@ -76,6 +81,14 @@ struct IYSOLoadingScreen: View {
     @State private var coolBias: CGFloat = LoadingOrbAnimation.coolBiasAtRest
     @State private var indicatorLit = false
     @State private var progress: CGFloat = 0
+
+    init(
+        displayDuration: TimeInterval = IYSOLoadingConfig.displayDuration,
+        usesSlowFirstLaunchProgress: Bool = false
+    ) {
+        self.displayDuration = displayDuration
+        self.usesSlowFirstLaunchProgress = usesSlowFirstLaunchProgress
+    }
 
     var body: some View {
         ZStack {
@@ -284,7 +297,10 @@ struct IYSOLoadingScreen: View {
         }
 
         if IYSOLoadingConfig.autoDismisses {
-            withAnimation(.easeInOut(duration: IYSOLoadingConfig.progressAnimationDuration)) {
+            let progressAnimation: Animation = usesSlowFirstLaunchProgress
+                ? .linear(duration: displayDuration)
+                : .easeInOut(duration: displayDuration)
+            withAnimation(progressAnimation) {
                 progress = 1
             }
         }

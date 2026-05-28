@@ -6,6 +6,7 @@ enum OnboardingStep: Int, CaseIterable {
     case explainer
     case capturePermissionSetup
     case appBlockingSetup
+    case nfcCalibration
     case lensDetected
     case memoryModeEntry
 }
@@ -18,7 +19,6 @@ struct OnboardingFlowView: View {
 
     @State private var step: OnboardingStep = .nameEntry
     @State private var name: String = ""
-    @State private var wantsLensModeAfterOnboarding = false
 
     var body: some View {
         ZStack {
@@ -62,10 +62,7 @@ struct OnboardingFlowView: View {
 
         case .explainer:
             ExplainerFlowView(
-                onComplete: { connectedLens in
-                    wantsLensModeAfterOnboarding = connectedLens
-                    advance()
-                },
+                onComplete: advance,
                 onBack: goBack
             )
 
@@ -77,6 +74,13 @@ struct OnboardingFlowView: View {
                 appBlocking: appBlocking,
                 onContinue: advanceFromBlockingSetup,
                 onSkip: advanceFromBlockingSetup
+            )
+
+        case .nfcCalibration:
+            NFCCalibrationScreen(
+                nfc: nfc,
+                onLensConnected: { advance(to: .lensDetected) },
+                onSkip: { advance(to: .memoryModeEntry) }
             )
 
         case .lensDetected:
@@ -106,7 +110,7 @@ struct OnboardingFlowView: View {
     }
 
     private func advanceFromBlockingSetup() {
-        advance(to: wantsLensModeAfterOnboarding ? .lensDetected : .memoryModeEntry)
+        advance(to: .nfcCalibration)
     }
 
     // MARK: - Completion

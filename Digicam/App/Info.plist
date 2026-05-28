@@ -6,6 +6,10 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleDisplayName</key>
+	<string>IYSO</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -28,6 +32,13 @@
 	<string>IYSO saves your captures to your photo library for your memory card.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>IYSO needs photo library access to save and show your captures in your memory card.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>BootzyTM.ttf</string>
+		<string>Fonts/BootzyTM.ttf</string>
+		<string>Inter-Regular.ttf</string>
+		<string>Fonts/Inter-Regular.ttf</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -48,12 +59,5 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Dark</string>
-	<key>UIAppFonts</key>
-	<array>
-		<string>BootzyTM.ttf</string>
-		<string>Fonts/BootzyTM.ttf</string>
-		<string>Inter-Regular.ttf</string>
-		<string>Fonts/Inter-Regular.ttf</string>
-	</array>
 </dict>
 </plist>

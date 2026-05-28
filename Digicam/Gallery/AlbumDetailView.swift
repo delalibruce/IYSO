@@ -16,8 +16,7 @@ struct AlbumDetailView: View {
     @State private var deletedAssetIDs: Set<String> = []
 
     // Photo to share (triggers sheet)
-    @State private var sharingImages: [UIImage] = []
-    @State private var isShareSheetPresented = false
+    @State private var shareSheetPayload: ShareSheetPayload?
 
     // Confirmation for delete
     @State private var assetPendingDelete: PHAsset? = nil
@@ -90,8 +89,8 @@ struct AlbumDetailView: View {
             ) {
                 deleteSelectedPhotos()
             }
-            .sheet(isPresented: $isShareSheetPresented) {
-                ShareSheet(items: sharingImages)
+            .sheet(item: $shareSheetPayload) { payload in
+                ShareSheet(items: payload.items)
             }
         }
     }
@@ -353,8 +352,7 @@ struct AlbumDetailView: View {
     private func sharePhoto(_ asset: PHAsset) {
         library.fullResImage(for: asset) { image in
             guard let image else { return }
-            sharingImages = [image]
-            isShareSheetPresented = true
+            shareSheetPayload = ShareSheetPayload(items: [image])
         }
     }
 
@@ -371,8 +369,7 @@ struct AlbumDetailView: View {
         }
         group.notify(queue: .main) {
             guard !images.isEmpty else { return }
-            sharingImages = images
-            isShareSheetPresented = true
+            shareSheetPayload = ShareSheetPayload(items: images)
         }
     }
 }

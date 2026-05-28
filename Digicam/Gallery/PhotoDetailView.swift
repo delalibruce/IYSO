@@ -40,8 +40,7 @@ struct PhotoDetailView: View {
     @State private var heroSettleProgress: CGFloat = 0
     @State private var layoutPhotoFrame: CGRect = .zero
     @State private var deletedAssetIDs: Set<String> = []
-    @State private var sharingImages: [UIImage] = []
-    @State private var isShareSheetPresented = false
+    @State private var shareSheetPayload: ShareSheetPayload?
     @State private var showDeleteConfirm = false
     @State private var carouselSwipeExclusionFrame: CGRect?
     @State private var isCarouselDragging = false
@@ -165,8 +164,8 @@ struct PhotoDetailView: View {
             .memoryFlowDeleteConfirmation("Delete Photo?", isPresented: $showDeleteConfirm) {
                 deleteCurrentPhoto()
             }
-            .sheet(isPresented: $isShareSheetPresented) {
-                ShareSheet(items: sharingImages)
+            .sheet(item: $shareSheetPayload) { payload in
+                ShareSheet(items: payload.items)
             }
         }
     }
@@ -393,8 +392,7 @@ struct PhotoDetailView: View {
         guard let asset = currentAsset else { return }
         library.fullResImage(for: asset) { image in
             guard let image else { return }
-            sharingImages = [image]
-            isShareSheetPresented = true
+            shareSheetPayload = ShareSheetPayload(items: [image])
         }
     }
 

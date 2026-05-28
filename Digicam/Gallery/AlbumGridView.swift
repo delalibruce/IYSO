@@ -283,8 +283,7 @@ struct GalleryRootView: View {
     @State private var titleEditingAlbum: DateAlbum? = nil
     @State private var albumPendingDelete: DateAlbum? = nil
     @State private var showDeleteAlbumConfirm = false
-    @State private var sharingImages: [UIImage] = []
-    @State private var isShareSheetPresented = false
+    @State private var shareSheetPayload: ShareSheetPayload?
 
     @State private var currentMonthYear = ""
     @State private var headerBottomY: CGFloat = 0
@@ -334,7 +333,7 @@ struct GalleryRootView: View {
                 }
             }
         }
-        .onAppear { library.requestAccessAndLoad() }
+        .onAppear { library.refreshAuthorizationStatusAndLoadIfAuthorized() }
         .onReceive(library.$albums) { _ in
             guard let menuAlbum = contextMenuAlbum else { return }
             let resolvedID = library.resolvedAlbumID(for: menuAlbum.id)
@@ -372,8 +371,8 @@ struct GalleryRootView: View {
         .sheet(item: $titleEditingAlbum) { album in
             AlbumTitleEditView(album: album, library: library)
         }
-        .sheet(isPresented: $isShareSheetPresented) {
-            ShareSheet(items: sharingImages)
+        .sheet(item: $shareSheetPayload) { payload in
+            ShareSheet(items: payload.items)
         }
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView()
@@ -386,56 +385,59 @@ struct GalleryRootView: View {
     private func albumContent(topPadding: CGFloat) -> some View {
         let headerScrollInset = max(memoryFlowHeaderLayoutHeight, topPadding + 72)
 
-        return ZStack(alignment: .top) {
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    ScrollOffsetTracker { offsetY, scrollMinY in
-                        scrollContentOffsetY = offsetY
-                        scrollViewGlobalMinY = scrollMinY
-                        updateVisibleMonthYear()
-                    }
-                    .frame(width: 0, height: 0)
+        return GeometryReader { proxy in
+            ZStack(alignment: .top) {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ScrollOffsetTracker { offsetY, scrollMinY in
+                            scrollContentOffsetY = offsetY
+                            scrollViewGlobalMinY = scrollMinY
+                            updateVisibleMonthYear()
+                        }
+                        .frame(width: 0, height: 0)
 
-                    Color.clear.frame(height: headerScrollInset)
+                        Color.clear.frame(height: headerScrollInset)
 
-                    if library.albums.isEmpty {
-                        memoryCardEmptyState
-                            .padding(.top, 34)
+                        if library.albums.isEmpty {
+                            memoryCardEmptyState(
+                                minHeight: max(0, proxy.size.height - headerScrollInset - 120)
+                            )
                             .padding(.horizontal, 24)
-                    } else {
-                        albumGrid
-                            .padding(.top, 10)
+                        } else {
+                            albumGrid
+                                .padding(.top, 10)
+                        }
                     }
+                    .padding(.bottom, 120)
+                    .coordinateSpace(name: GalleryScrollContent.coordinateSpaceName)
                 }
-                .padding(.bottom, 120)
-                .coordinateSpace(name: GalleryScrollContent.coordinateSpaceName)
+
+                MemoryFlowHeader(
+                    title: "Memory Card",
+                    subtitle: currentMonthYear,
+                    topPadding: topPadding,
+                    mode: .memory,
+                    trailing: {
+                        HStack(spacing: 4) {
+                            Button(action: { isSettingsPresented = true }) {
+                                Image(systemName: "shield.lefthalf.filled")
+                                    .font(.system(size: 18, weight: .regular))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                            }
+                            .accessibilityLabel("Focus Lock settings")
+
+                            Button(action: { navigationPath.append(.search) }) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 20, weight: .regular))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                            }
+                            .accessibilityLabel("Search")
+                        }
+                    }
+                )
             }
-
-            MemoryFlowHeader(
-                title: "Memory Card",
-                subtitle: currentMonthYear,
-                topPadding: topPadding,
-                mode: .memory,
-                trailing: {
-                    HStack(spacing: 4) {
-                        Button(action: { isSettingsPresented = true }) {
-                            Image(systemName: "shield.lefthalf.filled")
-                                .font(.system(size: 18, weight: .regular))
-                                .foregroundColor(.white)
-                                .frame(width: 36, height: 36)
-                        }
-                        .accessibilityLabel("Focus Lock settings")
-
-                        Button(action: { navigationPath.append(.search) }) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 20, weight: .regular))
-                                .foregroundColor(.white)
-                                .frame(width: 36, height: 36)
-                        }
-                        .accessibilityLabel("Search")
-                    }
-                }
-            )
         }
         .overlay(floatingDragCard)
         .onPreferenceChange(MemoryFlowHeaderLayoutHeightKey.self) {
@@ -470,7 +472,7 @@ struct GalleryRootView: View {
         }
     }
 
-    private var memoryCardEmptyState: some View {
+    private func memoryCardEmptyState(minHeight: CGFloat) -> some View {
         VStack(spacing: 18) {
             Circle()
                 .fill(Color.white.opacity(0.06))
@@ -506,6 +508,7 @@ struct GalleryRootView: View {
             }
         }
         .frame(maxWidth: .infinity)
+        .frame(minHeight: minHeight, alignment: .center)
     }
 
     private func prefetchAlbumCoverThumbnails() {
@@ -814,8 +817,7 @@ struct GalleryRootView: View {
         }
         group.notify(queue: .main) {
             guard !images.isEmpty else { return }
-            sharingImages = images
-            isShareSheetPresented = true
+            shareSheetPayload = ShareSheetPayload(items: images)
         }
     }
 
@@ -1128,4 +1130,9 @@ struct ShareSheet: UIViewControllerRepresentable {
         UIActivityViewController(activityItems: items, applicationActivities: nil)
     }
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+struct ShareSheetPayload: Identifiable {
+    let id = UUID()
+    let items: [Any]
 }

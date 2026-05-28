@@ -22,9 +22,16 @@ struct AppRootView: View {
     @StateObject private var appState = AppState()
     @StateObject private var nfc = NFCManager()
     @StateObject private var appBlocking = AppBlockingManager()
+    @Environment(\.scenePhase) private var scenePhase
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("hasShownInitialLaunchLoading") private var hasShownInitialLaunchLoading = false
+    @AppStorage("lastBackgroundedAtTimestamp") private var lastBackgroundedAtTimestamp: Double = 0
     @State private var isShowingLaunchLoading = true
+    @State private var currentLaunchLoadingDuration = IYSOLoadingConfig.displayDuration
+    @State private var isCurrentLoadingFirstLaunch = false
+    @State private var hasAppeared = false
+    @State private var launchLoadingDismissTask: Task<Void, Never>?
 
     private var hidesBottomToggle: Bool {
         guard appState.activeTab == .gallery else { return false }
@@ -44,6 +51,7 @@ struct AppRootView: View {
                     isLaunchLoadingComplete: !isShowingLaunchLoading
                 ) { enteredIYSOMode in
                     hasCompletedOnboarding = true
+                    library.requestAccessAndLoad()
                     if enteredIYSOMode {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             appState.activeTab = .camera
@@ -57,7 +65,10 @@ struct AppRootView: View {
             }
 
             if isShowingLaunchLoading {
-                IYSOLoadingScreen()
+                IYSOLoadingScreen(
+                    displayDuration: currentLaunchLoadingDuration,
+                    usesSlowFirstLaunchProgress: isCurrentLoadingFirstLaunch
+                )
                     .transition(.opacity)
                     .zIndex(2000)
             }
@@ -71,24 +82,34 @@ struct AppRootView: View {
                 hasCompletedOnboarding = false
             }
             #endif
-            #if DEBUG
-            if !DebugOverrides.suppressPermissionPrompts {
+            if hasCompletedOnboarding {
                 library.requestAccessAndLoad()
             } else {
-                library.authorizationStatus = .denied
+                library.refreshAuthorizationStatusAndLoadIfAuthorized()
             }
-            #else
-            library.requestAccessAndLoad()
-            #endif
             if hasCompletedOnboarding, AppCapabilities.usesNFC { nfc.scanOnLaunch() }
-            dismissLaunchLoadingIfNeeded()
+            presentLaunchLoading()
             syncCameraSession()
+            hasAppeared = true
+        }
+        .onChange(of: scenePhase) { phase in
+            guard hasAppeared else { return }
+            switch phase {
+            case .active:
+                if shouldShowLoadingAfterInactivity() {
+                    presentLaunchLoading()
+                }
+            case .inactive, .background:
+                lastBackgroundedAtTimestamp = Date().timeIntervalSince1970
+            @unknown default:
+                break
+            }
         }
         .onChange(of: appState.activeTab) { _ in
             syncCameraSession()
         }
         .onChange(of: nfc.scanState) { state in
-            guard AppCapabilities.usesNFC, state == .detected, hasCompletedOnboarding else { return }
+            guard state == .detected, hasCompletedOnboarding else { return }
             handleLensDetected()
         }
     }
@@ -105,16 +126,42 @@ struct AppRootView: View {
 
     // MARK: - Launch loading
 
+    private func presentLaunchLoading() {
+        let behavior = nextLaunchLoadingBehavior()
+        currentLaunchLoadingDuration = behavior.duration
+        isCurrentLoadingFirstLaunch = behavior.isFirstLaunch
+        isShowingLaunchLoading = true
+        dismissLaunchLoadingIfNeeded()
+    }
+
     private func dismissLaunchLoadingIfNeeded() {
+        let duration = currentLaunchLoadingDuration
+        launchLoadingDismissTask?.cancel()
         guard isShowingLaunchLoading, IYSOLoadingConfig.autoDismisses else { return }
-        Task {
-            try? await Task.sleep(for: .seconds(IYSOLoadingConfig.displayDuration))
+        launchLoadingDismissTask = Task {
+            try? await Task.sleep(for: .seconds(duration))
+            guard !Task.isCancelled else { return }
             await MainActor.run {
                 withAnimation(.easeInOut(duration: 0.55)) {
                     isShowingLaunchLoading = false
                 }
             }
         }
+    }
+
+    private func nextLaunchLoadingBehavior() -> (duration: TimeInterval, isFirstLaunch: Bool) {
+        let isFirstEverOpen = !hasCompletedOnboarding && !hasShownInitialLaunchLoading
+        if isFirstEverOpen {
+            hasShownInitialLaunchLoading = true
+            return (IYSOLoadingConfig.firstLaunchDisplayDuration, true)
+        }
+        return (IYSOLoadingConfig.displayDuration, false)
+    }
+
+    private func shouldShowLoadingAfterInactivity() -> Bool {
+        guard lastBackgroundedAtTimestamp > 0 else { return false }
+        let elapsed = Date().timeIntervalSince1970 - lastBackgroundedAtTimestamp
+        return elapsed >= IYSOLoadingConfig.relaunchAfterIdleInterval
     }
 
     // MARK: - Main app
@@ -174,7 +221,7 @@ struct AppRootView: View {
     // MARK: - Mode transitions
 
     private func handleCameraRequested() {
-        if !AppCapabilities.usesNFC || appState.isIYSOMode || nfc.isLensConnected {
+        if appState.isIYSOMode || nfc.isLensConnected {
             withAnimation(.easeInOut(duration: 0.2)) { appState.activeTab = .camera }
         } else {
             appState.showAttachLensSheet = true

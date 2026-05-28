@@ -10,6 +10,7 @@ struct CameraView: View {
     @EnvironmentObject private var appState: AppState
 
     var onExitIYSOTapped: (() -> Void)?
+    private let shutterButtonSize: CGFloat = 82
 
     var body: some View {
         GeometryReader { geo in
@@ -28,6 +29,12 @@ struct CameraView: View {
                 }
 
                 cameraChrome(topPadding: topPadding)
+
+                if appState.showLensDetectedBanner {
+                    LensDetectedBanner()
+                        .position(x: geo.size.width / 2, y: lensBannerVerticalCenterY(in: geo))
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
         }
         .ignoresSafeArea()
@@ -47,15 +54,16 @@ struct CameraView: View {
             .padding(.horizontal, RootTabHeaderLayout.horizontalPadding)
             .padding(.top, topPadding)
 
-            if appState.showLensDetectedBanner {
-                LensDetectedBanner()
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
-
             Spacer()
         }
         .animation(.easeInOut(duration: 0.22), value: appState.showLensDetectedBanner)
         .animation(.easeInOut(duration: 0.22), value: appState.isIYSOMode)
+    }
+
+    private func lensBannerVerticalCenterY(in geo: GeometryProxy) -> CGFloat {
+        let fisheyeBottomY = CameraLayout.previewTopInset + geo.size.width
+        let shutterTopY = geo.size.height - CameraLayout.shutterBottomInset - shutterButtonSize
+        return (fisheyeBottomY + shutterTopY) / 2
     }
 
     private var exitButton: some View {

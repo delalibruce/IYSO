@@ -90,6 +90,24 @@ class PhotoLibraryManager: ObservableObject {
 
     // MARK: - Access
 
+    /// Sync in-memory authorization state without triggering the system prompt.
+    func refreshAuthorizationStatusAndLoadIfAuthorized() {
+        #if DEBUG
+        if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
+            authorizationStatus = .denied
+            albums = []
+            return
+        }
+        #endif
+        let current = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        authorizationStatus = current
+        if current == .authorized || current == .limited {
+            loadAlbums()
+        } else {
+            albums = []
+        }
+    }
+
     func requestAccessAndLoad() {
         #if DEBUG
         if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {

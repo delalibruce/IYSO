@@ -140,13 +140,19 @@ class CameraManager: NSObject, ObservableObject {
             // Zoom: 1.0 on the ultra-wide = 0.5x equivalent — no digital zoom
             device.videoZoomFactor = 1.0
 
-            // Focus: locked at infinity (lensPosition 1.0 = farthest)
-            if device.isFocusModeSupported(.locked) {
-                device.setFocusModeLocked(lensPosition: 1.0) { _ in
-                    print("[Digicam] Focus locked — lensPosition=1.0")
+            // Focus: keep autofocus active so close/far subjects stay sharp.
+            if device.isFocusModeSupported(.continuousAutoFocus) {
+                device.focusMode = .continuousAutoFocus
+                if device.isFocusPointOfInterestSupported {
+                    device.focusPointOfInterest = CGPoint(x: 0.5, y: 0.5)
                 }
+                device.isSubjectAreaChangeMonitoringEnabled = true
+                print("[Digicam] Focus configured: continuous auto-focus")
+            } else if device.isFocusModeSupported(.autoFocus) {
+                device.focusMode = .autoFocus
+                print("[Digicam] Focus configured: single auto-focus")
             } else {
-                print("[Digicam] Locked focus not supported on this device")
+                print("[Digicam] Auto-focus not supported on this device")
             }
 
             // White balance: locked (prevent auto-adaptation)
