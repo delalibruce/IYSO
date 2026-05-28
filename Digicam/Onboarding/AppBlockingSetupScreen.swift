@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(FamilyControls)
+import FamilyControls
+#endif
 
 struct AppBlockingSetupScreen: View {
     @ObservedObject var appBlocking: AppBlockingManager
@@ -6,6 +9,9 @@ struct AppBlockingSetupScreen: View {
     let onSkip: () -> Void
 
     @State private var showAddMore = false
+    #if canImport(FamilyControls)
+    @State private var showFamilyActivityPicker = false
+    #endif
 
     var body: some View {
         ZStack {
@@ -34,6 +40,15 @@ struct AppBlockingSetupScreen: View {
             }
             await AppIconResolver.shared.prefetch(apps: appBlocking.blockedApps)
         }
+        #if canImport(FamilyControls)
+        .familyActivityPicker(
+            isPresented: $showFamilyActivityPicker,
+            selection: Binding(
+                get: { appBlocking.familyActivitySelection },
+                set: { appBlocking.updateFamilyActivitySelection($0) }
+            )
+        )
+        #endif
     }
 
     // MARK: - Header
@@ -98,7 +113,7 @@ struct AppBlockingSetupScreen: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Add more section (placeholder for FamilyActivityPicker integration)
+    // MARK: - Add more section
 
     private var addMoreSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -117,11 +132,32 @@ struct AppBlockingSetupScreen: View {
             .padding(.horizontal, 24)
             .padding(.top, 8)
 
-            Text("Custom app picker available in Settings after setup.")
+            #if canImport(FamilyControls)
+            Button(action: { showFamilyActivityPicker = true }) {
+                HStack {
+                    Text("Choose apps and categories")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                    Spacer()
+                    Text("\(appBlocking.selectedItemCount) selected")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(Color(white: 0.45))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color(white: 1, opacity: 0.04))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(.horizontal, 20)
+                .padding(.bottom, 8)
+            }
+            .buttonStyle(.plain)
+            #else
+            Text("Custom app picker requires Family Controls capability.")
                 .font(.system(size: 14, weight: .regular))
                 .foregroundColor(Color(white: 0.35))
                 .padding(.horizontal, 24)
                 .padding(.bottom, 8)
+            #endif
         }
     }
 

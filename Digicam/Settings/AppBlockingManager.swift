@@ -5,22 +5,26 @@ import FamilyControls
 import ManagedSettings
 #endif
 
-// ApplicationToken wiring requires FamilyActivityPicker (cannot create tokens from bundle IDs).
-// v1: persists user selections and manages authorization. Shield application is a v2 task.
+// App/category blocking is enforced through FamilyActivitySelection tokens.
 
 @MainActor
 final class AppBlockingManager: ObservableObject {
     @Published var blockedApps: [BlockedApp] = BlockedApp.defaults
     @Published var isAuthorized: Bool = false
+    #if canImport(FamilyControls)
+    @Published var familyActivitySelection = FamilyActivitySelection()
+    #endif
 
     #if canImport(FamilyControls)
     private let store = ManagedSettingsStore()
     #endif
     private let udKey = "com.delali.digicam.blockedApps"
+    private let familySelectionUDKey = "com.delali.digicam.familyActivitySelection"
 
     init() {
         loadSavedApps()
         if AppCapabilities.usesFamilyControls {
+            loadFamilyActivitySelection()
             refreshAuthorizationStatus()
         } else {
             isAuthorized = true
@@ -55,7 +59,18 @@ final class AppBlockingManager: ObservableObject {
 
     func applyShields() {
         guard AppCapabilities.usesFamilyControls else { return }
-        // ApplicationToken-based shielding wired in v2 via FamilyActivityPicker.
+        guard isAuthorized else { return }
+        #if canImport(FamilyControls)
+        store.shield.applications = familyActivitySelection.applicationTokens.isEmpty
+            ? nil
+            : familyActivitySelection.applicationTokens
+        store.shield.webDomains = familyActivitySelection.webDomainTokens.isEmpty
+            ? nil
+            : familyActivitySelection.webDomainTokens
+        store.shield.applicationCategories = familyActivitySelection.categoryTokens.isEmpty
+            ? nil
+            : .specific(familyActivitySelection.categoryTokens)
+        #endif
     }
 
     func removeShields() {
@@ -64,6 +79,35 @@ final class AppBlockingManager: ObservableObject {
         store.clearAllSettings()
         #endif
     }
+
+    // MARK: - FamilyActivitySelection
+
+    #if canImport(FamilyControls)
+    func updateFamilyActivitySelection(_ selection: FamilyActivitySelection) {
+        familyActivitySelection = selection
+        saveFamilyActivitySelection()
+        applyShields()
+    }
+
+    var selectedItemCount: Int {
+        familyActivitySelection.applicationTokens.count
+            + familyActivitySelection.categoryTokens.count
+            + familyActivitySelection.webDomainTokens.count
+    }
+
+    private func saveFamilyActivitySelection() {
+        guard let data = try? PropertyListEncoder().encode(familyActivitySelection) else { return }
+        UserDefaults.standard.set(data, forKey: familySelectionUDKey)
+    }
+
+    private func loadFamilyActivitySelection() {
+        guard let data = UserDefaults.standard.data(forKey: familySelectionUDKey),
+              let selection = try? PropertyListDecoder().decode(FamilyActivitySelection.self, from: data) else { return }
+        familyActivitySelection = selection
+    }
+    #else
+    private func loadFamilyActivitySelection() {}
+    #endif
 
     // MARK: - App list
 

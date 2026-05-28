@@ -1,14 +1,15 @@
 import Foundation
 
-/// Toggle for local UI development vs. production builds with team provisioning.
+/// Feature flags for entitlement-gated capabilities.
 ///
-/// Before merging to `main` for your teammate:
-/// 1. Set `useProductionEntitlements` to `true`
-/// 2. Copy `Digicam.entitlements.production` → `Digicam.entitlements`
+/// - **Debug:** UI-only path (Personal Team can sign `Digicam.entitlements.dev`).
+/// - **Release:** real NFC + Family Controls (publisher team + `Digicam.entitlements`).
 enum AppCapabilities {
-    /// `false` = personal-team signing (no NFC / Family Controls entitlements).
-    /// `true` = full capabilities (requires org developer account + matching profile).
+    #if DEBUG
     static let useProductionEntitlements = false
+    #else
+    static let useProductionEntitlements = true
+    #endif
 
     static var usesNFC: Bool { useProductionEntitlements }
     static var usesFamilyControls: Bool { useProductionEntitlements }
