@@ -11,7 +11,13 @@ struct AlbumSearchView: View {
     @State private var searchChromeHeight: CGFloat = 0
 
     private var results: [DateAlbum] {
-        AlbumSearchUtility.filterAlbums(library.albums, query: searchText)
+        AlbumSearchUtility.filterAlbums(
+            library.albums,
+            query: searchText,
+            photoNameProvider: { asset in
+                library.photoDisplayName(for: asset)
+            }
+        )
     }
 
     private var trimmedSearchText: String {
@@ -45,7 +51,7 @@ struct AlbumSearchView: View {
         return ZStack(alignment: .top) {
             Group {
                 if trimmedSearchText.isEmpty {
-                    centeredHint("Search by date or album name")
+                    centeredHint("Search by date, album name, or file name")
                 } else if results.isEmpty {
                     centeredHint("No album found")
                 } else {

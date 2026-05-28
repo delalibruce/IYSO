@@ -17,6 +17,8 @@
 		BB0008AA00000000000008AA /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0008AA00000000000008AA /* GalleryView.swift */; };
 		BB0009AA00000000000009AA /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0009AA00000000000009AA /* AppRootView.swift */; };
 		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
+		BB0051AA00000000000051AA /* PhotoFileNameEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */; };
+		BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0052AA00000000000052AA /* BlockedAppIconView.swift */; };
 		BB0010AA00000000000010AA /* BottomToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0010AA00000000000010AA /* BottomToggle.swift */; };
 		BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0011AA00000000000011AA /* PhotoLibraryManager.swift */; };
 		BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0012AA00000000000012AA /* AlbumGridView.swift */; };
@@ -74,6 +76,8 @@
 		AA0008AA00000000000008AA /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
 		AA0009AA00000000000009AA /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
+		AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoFileNameEditView.swift; sourceTree = "<group>"; };
+		AA0052AA00000000000052AA /* BlockedAppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedAppIconView.swift; sourceTree = "<group>"; };
 		AA0010AA00000000000010AA /* BottomToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToggle.swift; sourceTree = "<group>"; };
 		AA0011AA00000000000011AA /* PhotoLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryManager.swift; sourceTree = "<group>"; };
 		AA0012AA00000000000012AA /* AlbumGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumGridView.swift; sourceTree = "<group>"; };
@@ -212,6 +216,7 @@
 				AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */,
 				AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */,
 				AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */,
+				AA0052AA00000000000052AA /* BlockedAppIconView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -246,6 +251,7 @@
 				AA0016AA00000000000016AA /* AlbumEditView.swift */,
 				AA0017AA00000000000017AA /* AlbumSearchUtility.swift */,
 				AA0018AA00000000000018AA /* AlbumSearchView.swift */,
+				AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */,
 			);
 			path = Gallery;
 			sourceTree = "<group>";
@@ -370,6 +376,7 @@
 				BB0008AA00000000000008AA /* GalleryView.swift in Sources */,
 				BB0009AA00000000000009AA /* AppRootView.swift in Sources */,
 				BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */,
+				BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */,
 				BB0010AA00000000000010AA /* BottomToggle.swift in Sources */,
 				BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */,
 				BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */,
@@ -380,6 +387,7 @@
 				BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */,
 				BB0017AA00000000000017AA /* AlbumSearchUtility.swift in Sources */,
 				BB0018AA00000000000018AA /* AlbumSearchView.swift in Sources */,
+				BB0051AA00000000000051AA /* PhotoFileNameEditView.swift in Sources */,
 				BB0019AA00000000000019AA /* PeepholeImageProcessor.swift in Sources */,
 				BB0020AA00000000000020AA /* PeepholeAlbumCover.swift in Sources */,
 				BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */,

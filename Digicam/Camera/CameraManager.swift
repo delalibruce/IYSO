@@ -12,9 +12,11 @@ class CameraManager: NSObject, ObservableObject {
     // MARK: - Private
 
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
+    private let filenameQueue = DispatchQueue(label: "camera.filename.queue")
     private let photoOutput = AVCapturePhotoOutput()
     private var activeCaptureProcessor: PhotoCaptureProcessor?
     private var isConfigured = false
+    private static let captureFileNameCountersKey = "digicam.captureFileNameCounters"
 
     // MARK: - Session lifecycle
 
@@ -225,6 +227,9 @@ class CameraManager: NSObject, ObservableObject {
             return
         }
         #endif
+        let captureDate = Date()
+        let fileName = nextCaptureFileName(for: captureDate)
+
         PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
             guard status == .authorized || status == .limited else {
                 print("[Digicam] Photo library access denied: \(status.rawValue)")
@@ -232,14 +237,27 @@ class CameraManager: NSObject, ObservableObject {
             }
             var placeholderID: String?
             PHPhotoLibrary.shared().performChanges({
-                let request = PHAssetCreationRequest.creationRequestForAsset(from: image)
+                guard let jpegData = image.jpegData(compressionQuality: 0.96) else {
+                    print("[Digicam] JPEG encoding failed")
+                    return
+                }
+                let request = PHAssetCreationRequest.forAsset()
+                request.creationDate = captureDate
+
+                let options = PHAssetResourceCreationOptions()
+                options.originalFilename = fileName
+                request.addResource(with: .photo, data: jpegData, options: options)
                 placeholderID = request.placeholderForCreatedAsset?.localIdentifier
             }, completionHandler: { success, error in
                 if let error {
                     print("[Digicam] Save error: \(error)")
                     return
                 }
-                print("[Digicam] Photo saved to library")
+                if !success {
+                    print("[Digicam] Save failed: unknown Photos error")
+                    return
+                }
+                print("[Digicam] Photo saved to library as \(fileName)")
                 if let id = placeholderID {
                     var saved = UserDefaults.standard.stringArray(forKey: PhotoLibraryManager.capturedIDsKey) ?? []
                     saved.append(id)
@@ -249,6 +267,28 @@ class CameraManager: NSObject, ObservableObject {
             })
         }
     }
+
+    private func nextCaptureFileName(for date: Date) -> String {
+        filenameQueue.sync {
+            let base = "IYSO_\(Self.hourMinuteFormatter.string(from: date))"
+            var counters = UserDefaults.standard.dictionary(forKey: Self.captureFileNameCountersKey) as? [String: Int] ?? [:]
+            let next = (counters[base] ?? 0) + 1
+            counters[base] = next
+            UserDefaults.standard.set(counters, forKey: Self.captureFileNameCountersKey)
+
+            if next == 1 {
+                return "\(base).JPG"
+            }
+            return "\(base)\(next - 1).JPG"
+        }
+    }
+
+    private static let hourMinuteFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "HHmm"
+        return formatter
+    }()
 }
 
 // MARK: - CMTime helpers

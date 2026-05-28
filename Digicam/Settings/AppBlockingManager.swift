@@ -85,6 +85,26 @@ final class AppBlockingManager: ObservableObject {
     private func loadSavedApps() {
         guard let data = UserDefaults.standard.data(forKey: udKey),
               let apps = try? JSONDecoder().decode([BlockedApp].self, from: data) else { return }
-        blockedApps = apps
+        blockedApps = mergedWithDefaultMetadata(savedApps: apps)
+    }
+
+    private func mergedWithDefaultMetadata(savedApps: [BlockedApp]) -> [BlockedApp] {
+        let savedByID = Dictionary(uniqueKeysWithValues: savedApps.map { ($0.id, $0) })
+
+        return BlockedApp.defaults.map { defaultApp in
+            guard let savedApp = savedByID[defaultApp.id] else {
+                return defaultApp
+            }
+
+            // Keep persisted toggle state, but always use current metadata from defaults.
+            return BlockedApp(
+                id: defaultApp.id,
+                name: defaultApp.name,
+                isEnabled: savedApp.isEnabled,
+                isDefault: defaultApp.isDefault,
+                iconURLString: defaultApp.iconURLString,
+                symbolName: defaultApp.symbolName
+            )
+        }
     }
 }

@@ -1042,16 +1042,17 @@ struct AlbumCircleCell: View {
 
 struct CircularPhotoCell: View {
     let asset: PHAsset
-    let library: PhotoLibraryManager
+    @ObservedObject var library: PhotoLibraryManager
     let diameter: CGFloat
     var isNewest: Bool = false
     /// Peephole glass ring/glow — off by default; enable for album detail photo thumbnails only.
     var showPeepholeEffect: Bool = false
+    var onLabelTap: (() -> Void)? = nil
 
     @State private var thumbnail: UIImage?
     private var innerDiameter: CGFloat { diameter - 12 }
     private var label: String {
-        PHAssetResource.assetResources(for: asset).first?.originalFilename ?? ""
+        library.photoDisplayName(for: asset)
     }
 
     var body: some View {
@@ -1086,14 +1087,26 @@ struct CircularPhotoCell: View {
             }
             .frame(width: diameter, height: diameter)
 
-            Text(label)
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(Color(white: 0xd4/255))
-                .tracking(-0.6)
-                .frame(width: diameter)
-                .multilineTextAlignment(.center)
+            if let onLabelTap {
+                Button(action: onLabelTap) {
+                    photoLabel
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Edit file name, \(label)")
+            } else {
+                photoLabel
+            }
         }
         .onAppear { loadThumbnail() }
+    }
+
+    private var photoLabel: some View {
+        Text(label)
+            .font(.system(size: 12, weight: .regular))
+            .foregroundColor(Color(white: 0xd4/255))
+            .tracking(-0.6)
+            .frame(width: diameter)
+            .multilineTextAlignment(.center)
     }
 
     @ViewBuilder

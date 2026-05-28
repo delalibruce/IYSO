@@ -1,4 +1,5 @@
 import Foundation
+import Photos
 
 enum DateSearchQuery: Equatable {
     case exactDay(month: Int, day: Int, year: Int?)
@@ -68,7 +69,11 @@ enum AlbumSearchUtility {
         return nil
     }
 
-    static func albumMatchesSearch(album: DateAlbum, query: String) -> Bool {
+    static func albumMatchesSearch(
+        album: DateAlbum,
+        query: String,
+        photoNameProvider: ((PHAsset) -> String)? = nil
+    ) -> Bool {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
 
@@ -80,13 +85,27 @@ enum AlbumSearchUtility {
             return true
         }
 
+        if matchesPhotoFileNames(album: album, query: trimmed, photoNameProvider: photoNameProvider) {
+            return true
+        }
+
         return matchesTextFallback(album: album, normalizedQuery: normalizeSearchString(trimmed))
     }
 
-    static func filterAlbums(_ albums: [DateAlbum], query: String) -> [DateAlbum] {
+    static func filterAlbums(
+        _ albums: [DateAlbum],
+        query: String,
+        photoNameProvider: ((PHAsset) -> String)? = nil
+    ) -> [DateAlbum] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }
-        return albums.filter { albumMatchesSearch(album: $0, query: trimmed) }
+        return albums.filter {
+            albumMatchesSearch(
+                album: $0,
+                query: trimmed,
+                photoNameProvider: photoNameProvider
+            )
+        }
     }
 
     // MARK: - Date matching
@@ -172,6 +191,36 @@ enum AlbumSearchUtility {
         }
 
         return false
+    }
+
+    private static func matchesPhotoFileNames(
+        album: DateAlbum,
+        query: String,
+        photoNameProvider: ((PHAsset) -> String)?
+    ) -> Bool {
+        let normalizedQuery = normalizeSearchString(query)
+        guard !normalizedQuery.isEmpty else { return false }
+        let queryTokens = normalizedQuery.split(separator: " ").map(String.init)
+
+        return album.assets.contains { asset in
+            let displayName = normalizeSearchString(photoNameProvider?(asset) ?? "")
+            let originalName = normalizeSearchString(
+                PHAssetResource.assetResources(for: asset).first?.originalFilename ?? ""
+            )
+
+            let candidates = [displayName, originalName].filter { !$0.isEmpty }
+            guard !candidates.isEmpty else { return false }
+
+            for candidate in candidates {
+                if candidate.contains(normalizedQuery) {
+                    return true
+                }
+                if queryTokens.count > 1 && queryTokens.allSatisfy({ candidate.contains($0) }) {
+                    return true
+                }
+            }
+            return false
+        }
     }
 
     // MARK: - Parsing helpers

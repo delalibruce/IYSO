@@ -32,6 +32,7 @@ struct AppBlockingSetupScreen: View {
             if AppCapabilities.usesFamilyControls {
                 await appBlocking.requestAuthorizationIfNeeded()
             }
+            await AppIconResolver.shared.prefetch(apps: appBlocking.blockedApps)
         }
     }
 
@@ -60,7 +61,7 @@ struct AppBlockingSetupScreen: View {
         VStack(spacing: 0) {
             ForEach(appBlocking.blockedApps) { app in
                 OnboardingAppRow(
-                    name: app.name,
+                    app: app,
                     isEnabled: app.isEnabled,
                     onToggle: { appBlocking.toggleApp(app) }
                 )
@@ -150,22 +151,15 @@ struct AppBlockingSetupScreen: View {
     }
 }
 private struct OnboardingAppRow: View {
-    let name: String
+    let app: BlockedApp
     let isEnabled: Bool
     let onToggle: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color(white: 0.15))
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Text(String(name.prefix(1)))
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(Color(white: 0.55))
-                )
+            BlockedAppIconView(app: app)
 
-            Text(name)
+            Text(app.name)
                 .font(.system(size: 16, weight: .regular))
                 .foregroundColor(.white)
 

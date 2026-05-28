@@ -2,6 +2,11 @@ import SwiftUI
 import Photos
 import UIKit
 
+private struct PhotoFileNameEditSheetItem: Identifiable {
+    let id: String
+    let asset: PHAsset
+}
+
 private enum PhotoDetailLayout {
     static let mainPhotoDiameter: CGFloat = 327
     /// Gap from header row to top of main photo circle.
@@ -24,12 +29,13 @@ private enum PhotoPullDownDismiss {
 struct PhotoDetailView: View {
     let assets: [PHAsset]
     let initialIndex: Int
-    let library: PhotoLibraryManager
+    @ObservedObject var library: PhotoLibraryManager
     let gridCellFrames: [String: CGRect]
     @Binding var concealedGridAssetID: String?
     let onDismiss: () -> Void
 
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var nfc: NFCManager
 
     @State private var currentIndex: Int
     @State private var fullResImage: UIImage?
@@ -42,6 +48,7 @@ struct PhotoDetailView: View {
     @State private var deletedAssetIDs: Set<String> = []
     @State private var shareSheetPayload: ShareSheetPayload?
     @State private var showDeleteConfirm = false
+    @State private var fileNameEditingItem: PhotoFileNameEditSheetItem?
     @State private var carouselSwipeExclusionFrame: CGRect?
     @State private var isCarouselDragging = false
 
@@ -55,7 +62,7 @@ struct PhotoDetailView: View {
     ) {
         self.assets = assets
         self.initialIndex = initialIndex
-        self.library = library
+        _library = ObservedObject(wrappedValue: library)
         self.gridCellFrames = gridCellFrames
         _concealedGridAssetID = concealedGridAssetID
         self.onDismiss = onDismiss
@@ -72,8 +79,7 @@ struct PhotoDetailView: View {
 
     private var photoName: String {
         guard let asset = currentAsset else { return "" }
-        let resources = PHAssetResource.assetResources(for: asset)
-        return resources.first?.originalFilename ?? ""
+        return library.photoDisplayName(for: asset)
     }
 
     private var pullDownProgress: CGFloat {
@@ -167,6 +173,9 @@ struct PhotoDetailView: View {
             .sheet(item: $shareSheetPayload) { payload in
                 ShareSheet(items: payload.items)
             }
+            .sheet(item: $fileNameEditingItem) { item in
+                PhotoFileNameEditView(asset: item.asset, library: library)
+            }
         }
     }
 
@@ -174,13 +183,24 @@ struct PhotoDetailView: View {
 
     private func header(topPadding: CGFloat) -> some View {
         ZStack {
-            Text(photoName)
-                .font(.system(size: 17.7, weight: .regular))
-                .foregroundColor(Color(white: 0xd4/255))
-                .tracking(-0.885)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-                .padding(.horizontal, 56)
+            Button {
+                guard let asset = currentAsset else { return }
+                fileNameEditingItem = PhotoFileNameEditSheetItem(
+                    id: asset.localIdentifier,
+                    asset: asset
+                )
+            } label: {
+                Text(photoName)
+                    .font(.system(size: 17.7, weight: .regular))
+                    .foregroundColor(Color(white: 0xd4/255))
+                    .tracking(-0.885)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    .padding(.horizontal, 56)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain)
+            .disabled(currentAsset == nil)
 
             HStack {
                 Button(action: { beginHeroDismiss() }) {
@@ -368,7 +388,10 @@ struct PhotoDetailView: View {
 
                 Spacer(minLength: 12)
 
-                BottomToggle(activeTab: $appState.activeTab)
+                BottomToggle(
+                    activeTab: $appState.activeTab,
+                    onCameraRequested: handleCameraRequestedFromDetail
+                )
 
                 Spacer(minLength: 12)
 
@@ -424,6 +447,17 @@ struct PhotoDetailView: View {
         }
         library.fullResImage(for: asset) { img in
             self.fullResImage = img
+        }
+    }
+
+    /// Mirrors root toggle behavior so camera entry from detail still respects NFC/lens gating.
+    private func handleCameraRequestedFromDetail() {
+        if appState.isIYSOMode || nfc.isLensConnected {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                appState.activeTab = .camera
+            }
+        } else {
+            appState.showAttachLensSheet = true
         }
     }
 }

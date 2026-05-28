@@ -97,14 +97,7 @@ private struct AppBlockingRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color(white: 0.18))
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Text(String(app.name.prefix(1)))
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(Color(white: 0.65))
-                )
+            BlockedAppIconView(app: app)
 
             Text(app.name)
                 .font(.system(size: 16, weight: .regular))
