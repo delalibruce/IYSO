@@ -24,10 +24,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NFCReaderUsageDescription</key>
-	<string>IYSO uses NFC to detect when your lens clip is attached.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>IYSO uses your camera to take photos through your lens.</string>
+	<key>NSFamilyControlsUsageDescription</key>
+	<string>IYSO uses Screen Time controls to shield distracting apps while you're in IYSO Mode.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>IYSO saves your captures to your photo library for your memory card.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

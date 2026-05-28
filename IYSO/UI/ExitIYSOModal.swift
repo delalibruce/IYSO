@@ -22,7 +22,7 @@ struct ExitIYSOModal: View {
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
-                Text("Your Memory Card will unlock, and the camera will lock until your lens is connected again.")
+                Text("Your Memory Card will unlock, and the camera will lock until you enter IYSO Mode again.")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color(white: 0.65))
                     .multilineTextAlignment(.center)

@@ -9,31 +9,25 @@ struct ExplainerConfig {
     let ctaLabel: String
     /// When set, shows the same mode pill as the camera / memory card headers.
     let modeBadge: AppMode?
-    /// Replaces the SF Symbol with the lens-attach instructional animation.
-    let showsLensAttachAnimation: Bool
     /// Replaces the SF Symbol with the IYSO shooting-mode instructional animation.
     let showsIYSOShootingModeAnimation: Bool
     /// Replaces the SF Symbol with the exit-IYSO → memory-card instructional animation.
     let showsExitIYSOAnimation: Bool
     /// When true, the mode badge dot is activated by the exit-IYSO animation tap.
     let drivesModeBadgeWithExitIYSOAnimation: Bool
-    /// Reuses lens animation to show remove + reattach flow.
-    let showsLensReattachAnimation: Bool
 }
 
 extension ExplainerConfig {
-    static let lens = ExplainerConfig(
+    static let enterIYSO = ExplainerConfig(
         headline: "Before you start shooting",
-        body: "You'll clip on your lens at the end of setup to enter IYSO Mode.",
-        illustrationSystemName: "camera.aperture",
+        body: "Switch to IYSO Mode when you're ready. Your chosen apps get shielded so you can stay in the moment.",
+        illustrationSystemName: "shield.lefthalf.filled",
         dotIndex: 1, dotTotal: 4,
         ctaLabel: "Next",
         modeBadge: .iyso,
-        showsLensAttachAnimation: true,
-        showsIYSOShootingModeAnimation: false,
+        showsIYSOShootingModeAnimation: true,
         showsExitIYSOAnimation: false,
-        drivesModeBadgeWithExitIYSOAnimation: false,
-        showsLensReattachAnimation: false
+        drivesModeBadgeWithExitIYSOAnimation: false
     )
     static let iysoMode = ExplainerConfig(
         headline: "IYSO Mode is for shooting",
@@ -42,11 +36,9 @@ extension ExplainerConfig {
         dotIndex: 2, dotTotal: 4,
         ctaLabel: "Next",
         modeBadge: nil,
-        showsLensAttachAnimation: false,
         showsIYSOShootingModeAnimation: true,
         showsExitIYSOAnimation: false,
-        drivesModeBadgeWithExitIYSOAnimation: false,
-        showsLensReattachAnimation: false
+        drivesModeBadgeWithExitIYSOAnimation: false
     )
     static let memoryMode = ExplainerConfig(
         headline: "Done shooting?",
@@ -55,24 +47,20 @@ extension ExplainerConfig {
         dotIndex: 3, dotTotal: 4,
         ctaLabel: "Next",
         modeBadge: .memory,
-        showsLensAttachAnimation: false,
         showsIYSOShootingModeAnimation: false,
         showsExitIYSOAnimation: true,
-        drivesModeBadgeWithExitIYSOAnimation: true,
-        showsLensReattachAnimation: false
+        drivesModeBadgeWithExitIYSOAnimation: true
     )
-    static let noPeeking = ExplainerConfig(
-        headline: "Reattach to shoot again",
-        body: "Remove your lens and reattach it to reconnect to IYSO Mode.",
-        illustrationSystemName: "lock.fill",
+    static let shootAgain = ExplainerConfig(
+        headline: "Ready to shoot again?",
+        body: "Tap the camera toggle to enter IYSO Mode. Your apps will be shielded again.",
+        illustrationSystemName: "camera.fill",
         dotIndex: 4, dotTotal: 4,
         ctaLabel: "Got it",
         modeBadge: nil,
-        showsLensAttachAnimation: false,
-        showsIYSOShootingModeAnimation: false,
+        showsIYSOShootingModeAnimation: true,
         showsExitIYSOAnimation: false,
-        drivesModeBadgeWithExitIYSOAnimation: false,
-        showsLensReattachAnimation: true
+        drivesModeBadgeWithExitIYSOAnimation: false
     )
 }
 
@@ -82,7 +70,7 @@ struct ExplainerFlowView: View {
 
     @State private var page = 0
 
-    private static let configs: [ExplainerConfig] = [.lens, .iysoMode, .memoryMode, .noPeeking]
+    private static let configs: [ExplainerConfig] = [.enterIYSO, .iysoMode, .memoryMode, .shootAgain]
 
     private var currentConfig: ExplainerConfig {
         Self.configs[page]
@@ -169,8 +157,7 @@ struct ExplainerScreen: View {
                         if let mode = config.modeBadge {
                             ModeBadge(
                                 mode: mode,
-                                isIndicatorActive: (config.showsLensAttachAnimation
-                                    || config.drivesModeBadgeWithExitIYSOAnimation)
+                                isIndicatorActive: config.drivesModeBadgeWithExitIYSOAnimation
                                     ? isModeIndicatorActive
                                     : true
                             )
@@ -208,11 +195,7 @@ struct ExplainerScreen: View {
                     .frame(width: illustrationSize, height: illustrationSize)
             }
 
-            if config.showsLensAttachAnimation {
-                LensAttachAnimationView(isConnected: $isModeIndicatorActive)
-            } else if config.showsLensReattachAnimation {
-                LensAttachAnimationView(loopStyle: .detachThenReattach, isConnected: $isModeIndicatorActive)
-            } else if config.showsIYSOShootingModeAnimation {
+            if config.showsIYSOShootingModeAnimation {
                 IYSOShootingModeAnimationView()
             } else if config.showsExitIYSOAnimation {
                 ExitIYSOModeAnimationView(isMemoryUnlocked: $isModeIndicatorActive)
@@ -223,15 +206,5 @@ struct ExplainerScreen: View {
             }
         }
         .frame(width: illustrationSize, height: illustrationSize)
-        .onChange(of: config.showsLensAttachAnimation) { showsAnimation in
-            if !showsAnimation {
-                isModeIndicatorActive = false
-            }
-        }
-        .onChange(of: config.showsLensReattachAnimation) { showsAnimation in
-            if !showsAnimation {
-                isModeIndicatorActive = false
-            }
-        }
     }
 }

@@ -41,7 +41,7 @@ private struct BottomToggleFullBleedBottomInset: ViewModifier {
 
 struct BottomToggle: View {
     @Binding var activeTab: AppTab
-    /// When set, replaces the default tab-switch on camera icon tap (used to gate behind NFC).
+    /// When set, replaces the default tab-switch on camera icon tap (used to gate entering IYSO Mode).
     var onCameraRequested: (() -> Void)? = nil
     /// When set, replaces the default tab-switch on gallery icon tap (used to show exit modal in IYSO Mode).
     var onGalleryRequested: (() -> Void)? = nil

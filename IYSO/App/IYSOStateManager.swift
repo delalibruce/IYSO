@@ -4,19 +4,17 @@ import Foundation
 final class IYSOStateManager: ObservableObject {
     static let shared = IYSOStateManager()
 
-    @Published var isIYSOActive: Bool = false
-
-    private let blocking = AppBlockingManager()
+    @Published private(set) var isIYSOActive: Bool = false
 
     private init() {}
 
     func enterIYSOMode() {
-        blocking.applyShields()
+        AppBlockingManager.shared.setShieldsActive(true)
         isIYSOActive = true
     }
 
     func exitIYSOMode() {
-        blocking.removeShields()
+        AppBlockingManager.shared.setShieldsActive(false)
         isIYSOActive = false
     }
 }

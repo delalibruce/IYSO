@@ -10,7 +10,8 @@ NFC unlock, IYSO mode, and Family Controls are in the `IYSO/` source tree. TestF
 |------|--------|
 | Xcode project | `IYSO.xcodeproj` |
 | Scheme | **IYSO** |
-| Bundle ID | `app.iyso` |
+| Bundle ID (Release / TestFlight) | `app.iyso` |
+| Bundle ID (Debug / local) | `app.iyso.dev` |
 | Display name | `IYSO*` |
 | Release entitlements | `IYSO/App/Digicam.entitlements` |
 | Debug entitlements (Personal Team) | `IYSO/App/Digicam.entitlements.dev` |
@@ -21,7 +22,7 @@ NFC unlock, IYSO mode, and Family Controls are in the `IYSO/` source tree. TestF
 1. `git pull origin main`
 2. Open **`IYSO.xcodeproj`**
 3. Scheme **IYSO**, configuration **Debug**
-4. Signing: your **Personal Team** (Debug has no fixed `DEVELOPMENT_TEAM`)
+4. Signing: your **Personal Team** on bundle ID **`app.iyso.dev`** (Debug; `app.iyso` is reserved for the publisher account)
 5. Run on a physical iPhone (`Cmd+R`)
 6. Use **Simulate lens connection** on NFC onboarding when needed
 

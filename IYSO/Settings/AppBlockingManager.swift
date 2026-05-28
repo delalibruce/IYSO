@@ -40,6 +40,7 @@ final class AppBlockingManager: ObservableObject {
             isAuthorized = true
             return
         }
+        refreshAuthorizationStatus()
         guard !isAuthorized else { return }
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
@@ -49,7 +50,7 @@ final class AppBlockingManager: ObservableObject {
         }
     }
 
-    private func refreshAuthorizationStatus() {
+    func refreshAuthorizationStatus() {
         guard AppCapabilities.usesFamilyControls else {
             isAuthorized = true
             return
@@ -58,6 +59,17 @@ final class AppBlockingManager: ObservableObject {
     }
 
     // MARK: - Shields
+
+    private(set) var shieldsShouldBeActive = false
+
+    func setShieldsActive(_ active: Bool) {
+        shieldsShouldBeActive = active
+        if active {
+            applyShields()
+        } else {
+            removeShields()
+        }
+    }
 
     func applyShields() {
         guard AppCapabilities.usesFamilyControls else { return }
@@ -100,7 +112,9 @@ final class AppBlockingManager: ObservableObject {
     func updateFamilyActivitySelection(_ selection: FamilyActivitySelection) {
         familyActivitySelection = selection
         saveFamilyActivitySelection()
-        applyShields()
+        if shieldsShouldBeActive {
+            applyShields()
+        }
     }
 
     var selectedItemCount: Int {

@@ -35,7 +35,6 @@ struct PhotoDetailView: View {
     let onDismiss: () -> Void
 
     @EnvironmentObject private var appState: AppState
-    @EnvironmentObject private var nfc: NFCManager
 
     @State private var currentIndex: Int
     @State private var fullResImage: UIImage?
@@ -450,14 +449,14 @@ struct PhotoDetailView: View {
         }
     }
 
-    /// Mirrors root toggle behavior so camera entry from detail still respects NFC/lens gating.
+    /// Mirrors root toggle behavior so camera entry from detail still respects IYSO Mode gating.
     private func handleCameraRequestedFromDetail() {
-        if appState.isIYSOMode || nfc.isLensConnected {
+        if appState.isIYSOMode {
             withAnimation(.easeInOut(duration: 0.2)) {
                 appState.activeTab = .camera
             }
         } else {
-            appState.showAttachLensSheet = true
+            appState.showEnterIYSOModeSheet = true
         }
     }
 }

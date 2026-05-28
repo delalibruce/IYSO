@@ -17,11 +17,11 @@ struct MemoryModeEntryScreen: View {
                         .foregroundColor(.white)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Your memory card is ready.")
+                        Text("You're ready to shoot.")
                             .font(.system(size: 18, weight: .regular))
                             .foregroundColor(Color(white: 0.75))
 
-                        Text("Connect your lens when you're ready to shoot.")
+                        Text("IYSO Mode will turn on with your apps shielded. Exit when you're done to view your memory card.")
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(Color(white: 0.45))
                     }
@@ -31,7 +31,7 @@ struct MemoryModeEntryScreen: View {
 
                 Spacer()
 
-                OnboardingContinueButton(title: "open my memory card", action: onComplete)
+                OnboardingContinueButton(title: "open my camera", action: onComplete)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 48)
             }

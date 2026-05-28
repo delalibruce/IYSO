@@ -29,21 +29,17 @@
 		BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */; };
 		BB0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */; };
 		BB0023AA00000000000023AA /* PhotoGridFrameKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0023AA00000000000023AA /* PhotoGridFrameKey.swift */; };
-		BB0024AA00000000000024AA /* NFCManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0024AA00000000000024AA /* NFCManager.swift */; };
 		BB0025AA00000000000025AA /* BlockedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0025AA00000000000025AA /* BlockedApp.swift */; };
 		BB0026AA00000000000026AA /* AppBlockingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0026AA00000000000026AA /* AppBlockingManager.swift */; };
 		BB0027AA00000000000027AA /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0027AA00000000000027AA /* SettingsView.swift */; };
 		BB0028AA00000000000028AA /* ModeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0028AA00000000000028AA /* ModeBadge.swift */; };
-		BB0029AA00000000000029AA /* LensDetectedBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0029AA00000000000029AA /* LensDetectedBanner.swift */; };
-		BB0030AA00000000000030AA /* AttachLensModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0030AA00000000000030AA /* AttachLensModal.swift */; };
+		BB0058AA00000000000058AA /* EnterIYSOModeModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0058AA00000000000058AA /* EnterIYSOModeModal.swift */; };
 		BB0031AA00000000000031AA /* ExitIYSOModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0031AA00000000000031AA /* ExitIYSOModal.swift */; };
 		BB0032AA00000000000032AA /* OnboardingProgressDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0032AA00000000000032AA /* OnboardingProgressDots.swift */; };
 		BB0033AA00000000000033AA /* NameEntryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0033AA00000000000033AA /* NameEntryScreen.swift */; };
 		BB0034AA00000000000034AA /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0034AA00000000000034AA /* WelcomeScreen.swift */; };
 		BB0035AA00000000000035AA /* ExplainerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0035AA00000000000035AA /* ExplainerScreen.swift */; };
 		BB0036AA00000000000036AA /* AppBlockingSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */; };
-		BB0037AA00000000000037AA /* NFCCalibrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0037AA00000000000037AA /* NFCCalibrationScreen.swift */; };
-		BB0038AA00000000000038AA /* LensDetectedScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0038AA00000000000038AA /* LensDetectedScreen.swift */; };
 		BB0039AA00000000000039AA /* MemoryModeEntryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */; };
 		BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0040AA00000000000040AA /* OnboardingCoordinator.swift */; };
 		BB0042AA00000000000042AA /* AppCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0042AA00000000000042AA /* AppCapabilities.swift */; };
@@ -55,16 +51,15 @@
 		BB0048AA00000000000048AA /* IYSOGlassSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0048AA00000000000048AA /* IYSOGlassSurface.swift */; };
 		BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0049AA00000000000049AA /* OnboardingContinueButton.swift */; };
 		BB004AAA0000000000004AAA /* OnboardingBackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004AAA0000000000004AAA /* OnboardingBackButton.swift */; };
-		BB004BAA0000000000004BAA /* LensAttachAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004BAA0000000000004BAA /* LensAttachAnimationView.swift */; };
 		BB004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */; };
 		BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */; };
 		BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */; };
 		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
 		BB0051AA00000000000051AA /* PhotoFileNameEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */; };
 		BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0052AA00000000000052AA /* BlockedAppIconView.swift */; };
-		BB0055AA00000000000055AA /* NFCLensManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0055AA00000000000055AA /* NFCLensManager.swift */; };
 		BB0056AA00000000000056AA /* IYSOStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0056AA00000000000056AA /* IYSOStateManager.swift */; };
 		BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */; };
+		BB0059AA00000000000059AA /* FamilyControlsSetupPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -91,21 +86,16 @@
 		AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeLensOverlay.swift; sourceTree = "<group>"; };
 		AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeAlbumCoverTestView.swift; sourceTree = "<group>"; };
 		AA0023AA00000000000023AA /* PhotoGridFrameKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGridFrameKey.swift; sourceTree = "<group>"; };
-		AA0024AA00000000000024AA /* NFCManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCManager.swift; sourceTree = "<group>"; };
 		AA0025AA00000000000025AA /* BlockedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedApp.swift; sourceTree = "<group>"; };
 		AA0026AA00000000000026AA /* AppBlockingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingManager.swift; sourceTree = "<group>"; };
 		AA0027AA00000000000027AA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA0028AA00000000000028AA /* ModeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeBadge.swift; sourceTree = "<group>"; };
-		AA0029AA00000000000029AA /* LensDetectedBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensDetectedBanner.swift; sourceTree = "<group>"; };
-		AA0030AA00000000000030AA /* AttachLensModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachLensModal.swift; sourceTree = "<group>"; };
 		AA0031AA00000000000031AA /* ExitIYSOModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModal.swift; sourceTree = "<group>"; };
 		AA0032AA00000000000032AA /* OnboardingProgressDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProgressDots.swift; sourceTree = "<group>"; };
 		AA0033AA00000000000033AA /* NameEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameEntryScreen.swift; sourceTree = "<group>"; };
 		AA0034AA00000000000034AA /* WelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeScreen.swift; sourceTree = "<group>"; };
 		AA0035AA00000000000035AA /* ExplainerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplainerScreen.swift; sourceTree = "<group>"; };
 		AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingSetupScreen.swift; sourceTree = "<group>"; };
-		AA0037AA00000000000037AA /* NFCCalibrationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCCalibrationScreen.swift; sourceTree = "<group>"; };
-		AA0038AA00000000000038AA /* LensDetectedScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensDetectedScreen.swift; sourceTree = "<group>"; };
 		AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryModeEntryScreen.swift; sourceTree = "<group>"; };
 		AA0040AA00000000000040AA /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
 		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
@@ -118,7 +108,6 @@
 		AA0048AA00000000000048AA /* IYSOGlassSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOGlassSurface.swift; sourceTree = "<group>"; };
 		AA0049AA00000000000049AA /* OnboardingContinueButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContinueButton.swift; sourceTree = "<group>"; };
 		AA004AAA0000000000004AAA /* OnboardingBackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBackButton.swift; sourceTree = "<group>"; };
-		AA004BAA0000000000004BAA /* LensAttachAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensAttachAnimationView.swift; sourceTree = "<group>"; };
 		AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOShootingModeAnimationView.swift; sourceTree = "<group>"; };
 		AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeButton.swift; sourceTree = "<group>"; };
 		AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeAnimationView.swift; sourceTree = "<group>"; };
@@ -127,9 +116,10 @@
 		AA0052AA00000000000052AA /* BlockedAppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedAppIconView.swift; sourceTree = "<group>"; };
 		AA0053AA00000000000053AA /* Digicam.entitlements.dev */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.dev; sourceTree = "<group>"; };
 		AA0054AA00000000000054AA /* Digicam.entitlements.production */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.production; sourceTree = "<group>"; };
-		AA0055AA00000000000055AA /* NFCLensManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCLensManager.swift; sourceTree = "<group>"; };
 		AA0056AA00000000000056AA /* IYSOStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOStateManager.swift; sourceTree = "<group>"; };
 		AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingSettingsView.swift; sourceTree = "<group>"; };
+		AA0058AA00000000000058AA /* EnterIYSOModeModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterIYSOModeModal.swift; sourceTree = "<group>"; };
+		AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyControlsSetupPanel.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* IYSO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IYSO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -160,7 +150,6 @@
 				CC0012AA00000000000012AA /* Debug */,
 				CC0005AA00000000000005AA /* UI */,
 				CC0007AA00000000000007AA /* Gallery */,
-				CC0008AA00000000000008AA /* NFC */,
 				CC0009AA00000000000009AA /* Settings */,
 				CC0010AA00000000000010AA /* Onboarding */,
 				CC0006AA00000000000006AA /* Resources */,
@@ -211,8 +200,7 @@
 				AA0048AA00000000000048AA /* IYSOGlassSurface.swift */,
 				AA0010AA00000000000010AA /* BottomToggle.swift */,
 				AA0028AA00000000000028AA /* ModeBadge.swift */,
-				AA0029AA00000000000029AA /* LensDetectedBanner.swift */,
-				AA0030AA00000000000030AA /* AttachLensModal.swift */,
+				AA0058AA00000000000058AA /* EnterIYSOModeModal.swift */,
 				AA0031AA00000000000031AA /* ExitIYSOModal.swift */,
 				AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */,
 				AA0019AA00000000000019AA /* PeepholeImageProcessor.swift */,
@@ -250,15 +238,6 @@
 			path = Gallery;
 			sourceTree = "<group>";
 		};
-		CC0008AA00000000000008AA /* NFC */ = {
-			isa = PBXGroup;
-			children = (
-				AA0024AA00000000000024AA /* NFCManager.swift */,
-				AA0055AA00000000000055AA /* NFCLensManager.swift */,
-			);
-			path = NFC;
-			sourceTree = "<group>";
-		};
 		CC0009AA00000000000009AA /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -266,6 +245,7 @@
 				AA0026AA00000000000026AA /* AppBlockingManager.swift */,
 				AA0027AA00000000000027AA /* SettingsView.swift */,
 				AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */,
+				AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -279,13 +259,10 @@
 				AA0033AA00000000000033AA /* NameEntryScreen.swift */,
 				AA0034AA00000000000034AA /* WelcomeScreen.swift */,
 				AA0035AA00000000000035AA /* ExplainerScreen.swift */,
-				AA004BAA0000000000004BAA /* LensAttachAnimationView.swift */,
 				AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */,
 				AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */,
 				AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */,
 				AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */,
-				AA0037AA00000000000037AA /* NFCCalibrationScreen.swift */,
-				AA0038AA00000000000038AA /* LensDetectedScreen.swift */,
 				AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */,
 				AA0040AA00000000000040AA /* OnboardingCoordinator.swift */,
 			);
@@ -405,26 +382,21 @@
 				BB0020AA00000000000020AA /* PeepholeAlbumCover.swift in Sources */,
 				BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */,
 				BB0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift in Sources */,
-				BB0024AA00000000000024AA /* NFCManager.swift in Sources */,
 				BB0025AA00000000000025AA /* BlockedApp.swift in Sources */,
 				BB0026AA00000000000026AA /* AppBlockingManager.swift in Sources */,
 				BB0027AA00000000000027AA /* SettingsView.swift in Sources */,
 				BB0028AA00000000000028AA /* ModeBadge.swift in Sources */,
-				BB0029AA00000000000029AA /* LensDetectedBanner.swift in Sources */,
-				BB0030AA00000000000030AA /* AttachLensModal.swift in Sources */,
+				BB0058AA00000000000058AA /* EnterIYSOModeModal.swift in Sources */,
 				BB0031AA00000000000031AA /* ExitIYSOModal.swift in Sources */,
 				BB0032AA00000000000032AA /* OnboardingProgressDots.swift in Sources */,
 				BB0033AA00000000000033AA /* NameEntryScreen.swift in Sources */,
 				BB0034AA00000000000034AA /* WelcomeScreen.swift in Sources */,
 				BB0035AA00000000000035AA /* ExplainerScreen.swift in Sources */,
-				BB004BAA0000000000004BAA /* LensAttachAnimationView.swift in Sources */,
 				BB004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift in Sources */,
 				BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */,
 				BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */,
 				BB0044AA00000000000044AA /* CapturePermissionSetupScreen.swift in Sources */,
 				BB0036AA00000000000036AA /* AppBlockingSetupScreen.swift in Sources */,
-				BB0037AA00000000000037AA /* NFCCalibrationScreen.swift in Sources */,
-				BB0038AA00000000000038AA /* LensDetectedScreen.swift in Sources */,
 				BB0039AA00000000000039AA /* MemoryModeEntryScreen.swift in Sources */,
 				BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */,
 				BB0043AA00000000000043AA /* IYSOLoadingScreen.swift in Sources */,
@@ -432,9 +404,9 @@
 				BB0048AA00000000000048AA /* IYSOGlassSurface.swift in Sources */,
 				BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */,
 				BB004AAA0000000000004AAA /* OnboardingBackButton.swift in Sources */,
-				BB0055AA00000000000055AA /* NFCLensManager.swift in Sources */,
 				BB0056AA00000000000056AA /* IYSOStateManager.swift in Sources */,
 				BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */,
+				BB0059AA00000000000059AA /* FamilyControlsSetupPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -562,7 +534,6 @@
 				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements.dev;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IYSO/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -571,7 +542,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.iyso;
+				PRODUCT_BUNDLE_IDENTIFIER = app.iyso.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

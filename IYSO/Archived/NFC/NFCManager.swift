@@ -52,7 +52,10 @@ final class NFCManager: NSObject, ObservableObject {
             pollingOption: [.iso14443, .iso15693, .iso18092],
             delegate: self,
             queue: nil
-        ) else { return }
+        ) else {
+            scanState = .unavailable
+            return
+        }
         session.alertMessage = "Hold your iPhone near the lens clip."
         tagSession = session
         session.begin()

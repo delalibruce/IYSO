@@ -4,11 +4,10 @@ final class AppState: ObservableObject {
     @Published var isAlbumSelecting = false
     @Published var isGallerySearchPresented = false
     @Published var isPhotoDetailPresented = false
-    @Published var activeTab: AppTab = .gallery
-    @Published var isIYSOMode: Bool = false
-    @Published var showAttachLensSheet: Bool = false
+    @Published var activeTab: AppTab = .camera
+    @Published var isIYSOMode: Bool = true
+    @Published var showEnterIYSOModeSheet: Bool = false
     @Published var showExitIYSOModal: Bool = false
-    @Published var showLensDetectedBanner: Bool = false
 }
 
 struct AppRootView: View {
@@ -20,8 +19,7 @@ struct AppRootView: View {
     @StateObject private var camera = CameraManager()
     @StateObject private var library = PhotoLibraryManager()
     @StateObject private var appState = AppState()
-    @StateObject private var nfc = NFCManager()
-    @StateObject private var appBlocking = AppBlockingManager()
+    @ObservedObject private var appBlocking = AppBlockingManager.shared
     @Environment(\.scenePhase) private var scenePhase
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -46,19 +44,12 @@ struct AppRootView: View {
 
             if !hasCompletedOnboarding {
                 OnboardingFlowView(
-                    nfc: nfc,
                     appBlocking: appBlocking,
                     isLaunchLoadingComplete: !isShowingLaunchLoading
-                ) { enteredIYSOMode in
+                ) {
                     hasCompletedOnboarding = true
                     library.requestAccessAndLoad()
-                    if enteredIYSOMode {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            appState.activeTab = .camera
-                            appState.isIYSOMode = true
-                        }
-                        appBlocking.applyShields()
-                    }
+                    openInDefaultCameraMode()
                 }
                 .transition(.opacity)
                 .zIndex(1000)
@@ -84,10 +75,10 @@ struct AppRootView: View {
             #endif
             if hasCompletedOnboarding {
                 library.requestAccessAndLoad()
+                openInDefaultCameraMode()
             } else {
                 library.refreshAuthorizationStatusAndLoadIfAuthorized()
             }
-            if hasCompletedOnboarding, AppCapabilities.usesNFC { nfc.scanOnLaunch() }
             presentLaunchLoading()
             syncCameraSession()
             hasAppeared = true
@@ -99,6 +90,9 @@ struct AppRootView: View {
                 if shouldShowLoadingAfterInactivity() {
                     presentLaunchLoading()
                 }
+                if hasCompletedOnboarding, appState.isIYSOMode {
+                    IYSOStateManager.shared.enterIYSOMode()
+                }
             case .inactive, .background:
                 lastBackgroundedAtTimestamp = Date().timeIntervalSince1970
             @unknown default:
@@ -107,10 +101,6 @@ struct AppRootView: View {
         }
         .onChange(of: appState.activeTab) { _ in
             syncCameraSession()
-        }
-        .onChange(of: nfc.scanState) { state in
-            guard state == .detected, hasCompletedOnboarding else { return }
-            handleLensDetected()
         }
         .onOpenURL { url in
             handleUniversalLink(url)
@@ -199,10 +189,13 @@ struct AppRootView: View {
             .allowsHitTesting(!hidesBottomToggle)
             .animation(.easeInOut(duration: 0.2), value: hidesBottomToggle)
 
-            if appState.showAttachLensSheet {
-                AttachLensModal()
-                    .transition(.opacity)
-                    .zIndex(200)
+            if appState.showEnterIYSOModeSheet {
+                EnterIYSOModeModal(
+                    onEnter: enterIYSOMode,
+                    onCancel: { appState.showEnterIYSOModeSheet = false }
+                )
+                .transition(.opacity)
+                .zIndex(200)
             }
 
             if appState.showExitIYSOModal {
@@ -215,22 +208,21 @@ struct AppRootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: appState.activeTab)
-        .animation(.easeInOut(duration: 0.22), value: appState.showAttachLensSheet)
+        .animation(.easeInOut(duration: 0.22), value: appState.showEnterIYSOModeSheet)
         .animation(.easeInOut(duration: 0.22), value: appState.showExitIYSOModal)
         .statusBarHidden(true)
         .persistentSystemOverlays(.hidden)
         .environmentObject(appState)
-        .environmentObject(nfc)
         .environmentObject(appBlocking)
     }
 
     // MARK: - Mode transitions
 
     private func handleCameraRequested() {
-        if appState.isIYSOMode || nfc.isLensConnected {
+        if appState.isIYSOMode {
             withAnimation(.easeInOut(duration: 0.2)) { appState.activeTab = .camera }
         } else {
-            appState.showAttachLensSheet = true
+            appState.showEnterIYSOModeSheet = true
         }
     }
 
@@ -242,28 +234,16 @@ struct AppRootView: View {
         }
     }
 
-    private func handleLensDetected() {
-        appState.showAttachLensSheet = false
+    private func enterIYSOMode() {
+        appState.showEnterIYSOModeSheet = false
         withAnimation(.easeInOut(duration: 0.2)) {
             appState.activeTab = .camera
             appState.isIYSOMode = true
         }
-        appBlocking.applyShields()
-        IYSOStateManager.shared.enterIYSOMode()
-        appState.showLensDetectedBanner = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            withAnimation(.easeInOut(duration: 0.4)) {
-                appState.showLensDetectedBanner = false
-            }
+        Task {
+            await appBlocking.requestAuthorizationIfNeeded()
+            IYSOStateManager.shared.enterIYSOMode()
         }
-    }
-
-    private func handleUniversalLink(_ url: URL) {
-        guard url.host == "iyso.app" || url.host == "www.iyso.app",
-              url.path == "/open" else { return }
-        // Mark onboarding complete so the app doesn't block the deep-link launch
-        hasCompletedOnboarding = true
-        handleLensDetected()
     }
 
     private func exitIYSOMode() {
@@ -272,8 +252,25 @@ struct AppRootView: View {
             appState.isIYSOMode = false
             appState.activeTab = .gallery
         }
-        nfc.disconnectLens()
-        appBlocking.removeShields()
         IYSOStateManager.shared.exitIYSOMode()
+    }
+
+    private func openInDefaultCameraMode() {
+        appState.showEnterIYSOModeSheet = false
+        appState.showExitIYSOModal = false
+        appState.activeTab = .camera
+        appState.isIYSOMode = true
+        Task {
+            await appBlocking.requestAuthorizationIfNeeded()
+            IYSOStateManager.shared.enterIYSOMode()
+        }
+        syncCameraSession()
+    }
+
+    private func handleUniversalLink(_ url: URL) {
+        guard url.host == "iyso.app" || url.host == "www.iyso.app",
+              url.path == "/open" else { return }
+        hasCompletedOnboarding = true
+        enterIYSOMode()
     }
 }

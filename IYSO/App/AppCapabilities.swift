@@ -1,16 +1,10 @@
 import Foundation
 
 /// Feature flags for entitlement-gated capabilities.
-///
-/// - **Debug:** UI-only path (Personal Team can sign `Digicam.entitlements.dev`).
-/// - **Release:** real NFC + Family Controls (publisher team + `Digicam.entitlements`).
 enum AppCapabilities {
-    #if DEBUG
-    static let useProductionEntitlements = false
-    #else
-    static let useProductionEntitlements = true
-    #endif
+    /// NFC lens detection is paused (code archived under `IYSO/Archived/NFC/`).
+    static var usesNFC: Bool { false }
 
-    static var usesNFC: Bool { useProductionEntitlements }
-    static var usesFamilyControls: Bool { useProductionEntitlements }
+    /// Screen Time / Family Controls shields (Release + TestFlight).
+    static var usesFamilyControls: Bool { true }
 }

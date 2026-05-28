@@ -6,16 +6,13 @@ enum OnboardingStep: Int, CaseIterable {
     case explainer
     case capturePermissionSetup
     case appBlockingSetup
-    case nfcCalibration
-    case lensDetected
     case memoryModeEntry
 }
 
 struct OnboardingFlowView: View {
-    @ObservedObject var nfc: NFCManager
     @ObservedObject var appBlocking: AppBlockingManager
     var isLaunchLoadingComplete: Bool = true
-    let onComplete: (_ enteredIYSOMode: Bool) -> Void
+    let onComplete: () -> Void
 
     @State private var step: OnboardingStep = .nameEntry
     @State private var name: String = ""
@@ -76,18 +73,8 @@ struct OnboardingFlowView: View {
                 onSkip: advanceFromBlockingSetup
             )
 
-        case .nfcCalibration:
-            NFCCalibrationScreen(
-                nfc: nfc,
-                onLensConnected: { advance(to: .lensDetected) },
-                onSkip: { advance(to: .memoryModeEntry) }
-            )
-
-        case .lensDetected:
-            LensDetectedScreen(name: name, onComplete: { completeWithIYSO() })
-
         case .memoryModeEntry:
-            MemoryModeEntryScreen(name: name, onComplete: { completeWithMemory() })
+            MemoryModeEntryScreen(name: name, onComplete: completeOnboarding)
         }
     }
 
@@ -105,23 +92,18 @@ struct OnboardingFlowView: View {
         step = previous
     }
 
+    private func advanceFromBlockingSetup() {
+        advance(to: .memoryModeEntry)
+    }
+
     private func advance(to target: OnboardingStep) {
         step = target
     }
 
-    private func advanceFromBlockingSetup() {
-        advance(to: .nfcCalibration)
-    }
-
     // MARK: - Completion
 
-    private func completeWithIYSO() {
+    private func completeOnboarding() {
         UserDefaults.standard.set(name, forKey: "userName")
-        onComplete(true)
-    }
-
-    private func completeWithMemory() {
-        UserDefaults.standard.set(name, forKey: "userName")
-        onComplete(false)
+        onComplete()
     }
 }

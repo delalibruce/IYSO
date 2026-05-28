@@ -29,12 +29,6 @@ struct CameraView: View {
                 }
 
                 cameraChrome(topPadding: topPadding)
-
-                if appState.showLensDetectedBanner {
-                    LensDetectedBanner()
-                        .position(x: geo.size.width / 2, y: lensBannerVerticalCenterY(in: geo))
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
             }
         }
         .ignoresSafeArea()
@@ -56,14 +50,7 @@ struct CameraView: View {
 
             Spacer()
         }
-        .animation(.easeInOut(duration: 0.22), value: appState.showLensDetectedBanner)
         .animation(.easeInOut(duration: 0.22), value: appState.isIYSOMode)
-    }
-
-    private func lensBannerVerticalCenterY(in geo: GeometryProxy) -> CGFloat {
-        let fisheyeBottomY = CameraLayout.previewTopInset + geo.size.width
-        let shutterTopY = geo.size.height - CameraLayout.shutterBottomInset - shutterButtonSize
-        return (fisheyeBottomY + shutterTopY) / 2
     }
 
     private var exitButton: some View {

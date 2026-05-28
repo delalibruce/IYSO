@@ -4,57 +4,50 @@ import FamilyControls
 #endif
 
 struct AppBlockingSettingsView: View {
+    @EnvironmentObject private var appBlocking: AppBlockingManager
     @Environment(\.dismiss) private var dismiss
-    #if canImport(FamilyControls)
-    @State private var selection = FamilyActivitySelection()
-    @State private var showPicker = false
-    #endif
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Block during camera mode")
-                .font(.headline)
+        ZStack {
+            PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
-            Text("These apps will be hidden while IYSO Mode is active.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 0) {
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
 
-            #if canImport(FamilyControls)
-            Button("Choose apps") {
-                showPicker = true
-            }
-            .buttonStyle(.borderedProminent)
+                    Text("App Shields")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
 
-            let count = selection.applicationTokens.count
-                + selection.categoryTokens.count
-                + selection.webDomainTokens.count
-            if count > 0 {
-                Text("\(count) apps selected")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            #else
-            Text("App blocking is not available in this build.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            #endif
+                    Color.clear.frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
 
-            Button("Done") { dismiss() }
-        }
-        .padding()
-        #if canImport(FamilyControls)
-        .sheet(isPresented: $showPicker) {
-            FamilyActivityPicker(selection: $selection)
-        }
-        .onAppear {
-            if let saved = AppBlockingManager.shared.loadBlockList() {
-                selection = saved
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text("Pick the apps and categories IYSO should shield while you're in camera mode. Changes apply the next time IYSO Mode turns on.")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(Color(white: 0.55))
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        FamilyControlsSetupPanel()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 40)
+                }
             }
         }
-        .onChange(of: selection) { newSelection in
-            AppBlockingManager.shared.saveBlockList(newSelection)
+        .task {
+            await appBlocking.requestAuthorizationIfNeeded()
         }
-        #endif
     }
 }

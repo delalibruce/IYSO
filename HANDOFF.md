@@ -10,7 +10,8 @@ Use this when **you** develop locally and **someone else** signs/archives for Te
 | Scheme (shared, Xcode Cloud) | **IYSO** |
 | Source folder | `IYSO/` |
 | App entry | `IYSO/App/DigicamApp.swift` |
-| Bundle ID | `app.iyso` |
+| Bundle ID (Release) | `app.iyso` |
+| Bundle ID (Debug, local dev) | `app.iyso.dev` |
 | App Store display name | `IYSO*` (`CFBundleDisplayName` in `IYSO/App/Info.plist`) |
 
 Filenames **DigicamApp.swift** and **Digicam.entitlements** are intentional (not renamed).
@@ -35,7 +36,7 @@ Filenames **DigicamApp.swift** and **Digicam.entitlements** are intentional (not
 
 `Digicam.entitlements.production` mirrors Release entitlements for reference only.
 
-**Release** build settings also set `DEVELOPMENT_TEAM = T73K2F5HAL` (publisher). **Debug** leaves team unset so you pick your Personal Team in Xcode.
+**Release** build settings also set `DEVELOPMENT_TEAM = T73K2F5HAL` (publisher). **Debug** uses `app.iyso.dev` and leaves team unset so you pick your Personal Team in Xcode (`app.iyso` is registered to the publisher).
 
 ## Xcode Cloud
 
