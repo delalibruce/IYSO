@@ -1,12 +1,5 @@
 import SwiftUI
 
-enum LensConnectionState {
-    case idle
-    case connecting
-    case connected
-    case failed
-}
-
 struct ExplainerConfig {
     let headline: String
     let body: String
@@ -30,11 +23,11 @@ struct ExplainerConfig {
 
 extension ExplainerConfig {
     static let lens = ExplainerConfig(
-        headline: "Clip on your lens",
-        body: "Camera mode starts when it connects.",
+        headline: "Before you start shooting",
+        body: "You'll clip on your lens at the end of setup to enter IYSO Mode.",
         illustrationSystemName: "camera.aperture",
         dotIndex: 1, dotTotal: 4,
-        ctaLabel: "Connect Lens",
+        ctaLabel: "Next",
         modeBadge: .iyso,
         showsLensAttachAnimation: true,
         showsIYSOShootingModeAnimation: false,
@@ -84,13 +77,10 @@ extension ExplainerConfig {
 }
 
 struct ExplainerFlowView: View {
-    let onComplete: (_ connectedLens: Bool) -> Void
+    let onComplete: () -> Void
     let onBack: () -> Void
 
     @State private var page = 0
-    @State private var lensConnectionState: LensConnectionState = .idle
-    @State private var lensConnectedForOnboarding = false
-    @State private var lensConnectionTask: Task<Void, Never>?
 
     private static let configs: [ExplainerConfig] = [.lens, .iysoMode, .memoryMode, .noPeeking]
 
@@ -112,10 +102,7 @@ struct ExplainerFlowView: View {
 
                 TabView(selection: $page) {
                     ForEach(Self.configs.indices, id: \.self) { index in
-                        ExplainerScreen(
-                            config: Self.configs[index],
-                            lensConnectionState: index == 0 ? lensConnectionState : .idle
-                        )
+                        ExplainerScreen(config: Self.configs[index])
                             .tag(index)
                     }
                 }
@@ -124,23 +111,14 @@ struct ExplainerFlowView: View {
                 VStack(spacing: 24) {
                     OnboardingProgressDots(total: currentConfig.dotTotal, current: page + 1)
 
-                    if page == 0 {
-                        firstPageControls
-                            .padding(.horizontal, 24)
-                    } else {
-                        OnboardingContinueButton(
-                            title: currentConfig.ctaLabel.lowercased(),
-                            action: advanceFromButton
-                        )
-                        .padding(.horizontal, 24)
-                    }
+                    OnboardingContinueButton(
+                        title: currentConfig.ctaLabel.lowercased(),
+                        action: advanceFromButton
+                    )
+                    .padding(.horizontal, 24)
                 }
                 .padding(.bottom, 48)
             }
-        }
-        .onDisappear {
-            lensConnectionTask?.cancel()
-            lensConnectionTask = nil
         }
     }
 
@@ -150,7 +128,7 @@ struct ExplainerFlowView: View {
                 page += 1
             }
         } else {
-            onComplete(lensConnectedForOnboarding)
+            onComplete()
         }
     }
 
@@ -163,69 +141,6 @@ struct ExplainerFlowView: View {
             onBack()
         }
     }
-
-    @ViewBuilder
-    private var firstPageControls: some View {
-        VStack(spacing: 16) {
-            OnboardingContinueButton(
-                title: primaryLensButtonTitle,
-                isEnabled: lensConnectionState != .connecting,
-                action: startLensConnection
-            )
-
-            Button(action: skipLensConnection) {
-                Text("I don't have my lens yet")
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(Color(white: 0.4))
-            }
-            .buttonStyle(.plain)
-            .disabled(lensConnectionState == .connecting)
-            .opacity(lensConnectionState == .connecting ? 0.6 : 1.0)
-        }
-    }
-
-    private var primaryLensButtonTitle: String {
-        switch lensConnectionState {
-        case .idle:
-            return "Connect Lens"
-        case .connecting:
-            return "Connecting..."
-        case .connected:
-            return "Lens connected"
-        case .failed:
-            return "Retry connection"
-        }
-    }
-
-    private func startLensConnection() {
-        guard lensConnectionState != .connecting else { return }
-        lensConnectionTask?.cancel()
-        lensConnectionState = .connecting
-
-        lensConnectionTask = Task {
-            // TODO: Replace simulated connection with a CoreNFC reader session.
-            // Keep this UI state machine and call `await onLensConnected()` when the real tag is detected.
-            try? await Task.sleep(for: .seconds(1.2))
-            guard !Task.isCancelled else { return }
-            await onLensConnected()
-        }
-    }
-
-    @MainActor
-    private func onLensConnected() async {
-        lensConnectionState = .connected
-        lensConnectedForOnboarding = true
-        try? await Task.sleep(for: .seconds(1.7))
-        guard !Task.isCancelled else { return }
-        advanceFromButton()
-    }
-
-    private func skipLensConnection() {
-        lensConnectionTask?.cancel()
-        lensConnectionState = .idle
-        lensConnectedForOnboarding = false
-        advanceFromButton()
-    }
 }
 
 private enum ExplainerTextLayout {
@@ -234,7 +149,6 @@ private enum ExplainerTextLayout {
 
 struct ExplainerScreen: View {
     let config: ExplainerConfig
-    var lensConnectionState: LensConnectionState = .idle
 
     @State private var isModeIndicatorActive = false
 
@@ -295,9 +209,7 @@ struct ExplainerScreen: View {
             }
 
             if config.showsLensAttachAnimation {
-                lensConnectionBackgroundOverlay
                 LensAttachAnimationView(isConnected: $isModeIndicatorActive)
-                lensConnectionForegroundOverlay
             } else if config.showsLensReattachAnimation {
                 LensAttachAnimationView(loopStyle: .detachThenReattach, isConnected: $isModeIndicatorActive)
             } else if config.showsIYSOShootingModeAnimation {
@@ -320,44 +232,6 @@ struct ExplainerScreen: View {
             if !showsAnimation {
                 isModeIndicatorActive = false
             }
-        }
-    }
-
-    @ViewBuilder
-    private var lensConnectionBackgroundOverlay: some View {
-        switch lensConnectionState {
-        case .connected:
-            Circle()
-                .stroke(Color(red: 0, green: 0.85, blue: 0.4).opacity(0.38), lineWidth: 2)
-                .frame(width: 146, height: 146)
-                .transition(.opacity.combined(with: .scale))
-        case .failed:
-            Circle()
-                .stroke(Color.red.opacity(0.33), lineWidth: 2)
-                .frame(width: 146, height: 146)
-        default:
-            EmptyView()
-        }
-    }
-
-    @ViewBuilder
-    private var lensConnectionForegroundOverlay: some View {
-        switch lensConnectionState {
-        case .idle:
-            EmptyView()
-        case .connecting:
-            ProgressView()
-                .tint(Color(red: 0.18, green: 0.55, blue: 1.0))
-                .scaleEffect(1.05)
-        case .connected:
-            Image(systemName: "checkmark")
-                .font(.system(size: 30, weight: .semibold))
-                .foregroundColor(Color(red: 0, green: 0.85, blue: 0.4))
-            .transition(.opacity.combined(with: .scale))
-        case .failed:
-            Image(systemName: "xmark")
-                .font(.system(size: 28, weight: .medium))
-                .foregroundColor(.red)
         }
     }
 }

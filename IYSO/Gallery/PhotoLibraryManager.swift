@@ -61,6 +61,7 @@ class PhotoLibraryManager: ObservableObject {
     static let albumTitlesKey        = "digicam.albumTitles"
     static let albumCoversKey        = "digicam.albumCovers"
     static let seenAlbumsKey         = "digicam.seenAlbums"
+    static let photoFileNamesKey     = "digicam.photoFileNames"
     static let albumSystemVersionKey = "digicam.albumSystemVersion"
 
     private var photoSavedObserver: NSObjectProtocol?
@@ -89,6 +90,24 @@ class PhotoLibraryManager: ObservableObject {
     }
 
     // MARK: - Access
+
+    /// Sync in-memory authorization state without triggering the system prompt.
+    func refreshAuthorizationStatusAndLoadIfAuthorized() {
+        #if DEBUG
+        if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
+            authorizationStatus = .denied
+            albums = []
+            return
+        }
+        #endif
+        let current = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        authorizationStatus = current
+        if current == .authorized || current == .limited {
+            loadAlbums()
+        } else {
+            albums = []
+        }
+    }
 
     func requestAccessAndLoad() {
         #if DEBUG
@@ -284,11 +303,33 @@ class PhotoLibraryManager: ObservableObject {
         loadAlbums()
     }
 
+    func photoDisplayName(for asset: PHAsset) -> String {
+        let overrides = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
+        if let custom = overrides[asset.localIdentifier], !custom.isEmpty {
+            return custom
+        }
+        return PHAssetResource.assetResources(for: asset).first?.originalFilename ?? ""
+    }
+
+    func updatePhotoFileName(assetLocalID: String, fileName: String) {
+        let trimmed = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var names = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
+        names[assetLocalID] = trimmed
+        UserDefaults.standard.set(names, forKey: Self.photoFileNamesKey)
+        objectWillChange.send()
+    }
+
     // Removes photo from app index only — does not touch the Photos library.
     func deleteAsset(_ asset: PHAsset, completion: @escaping (Bool) -> Void = { _ in }) {
         var saved = UserDefaults.standard.stringArray(forKey: Self.capturedIDsKey) ?? []
         saved.removeAll { $0 == asset.localIdentifier }
         UserDefaults.standard.set(saved, forKey: Self.capturedIDsKey)
+
+        var fileNames = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
+        fileNames.removeValue(forKey: asset.localIdentifier)
+        UserDefaults.standard.set(fileNames, forKey: Self.photoFileNamesKey)
+
         loadAlbums()
         completion(true)
     }
@@ -319,6 +360,12 @@ class PhotoLibraryManager: ObservableObject {
         var seen = Set(UserDefaults.standard.stringArray(forKey: Self.seenAlbumsKey) ?? [])
         seen.remove(albumID)
         UserDefaults.standard.set(Array(seen), forKey: Self.seenAlbumsKey)
+
+        // Remove file-name overrides for photos no longer referenced by the app index.
+        var fileNames = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
+        let activeIDs = Set(UserDefaults.standard.stringArray(forKey: Self.capturedIDsKey) ?? [])
+        fileNames = fileNames.filter { activeIDs.contains($0.key) }
+        UserDefaults.standard.set(fileNames, forKey: Self.photoFileNamesKey)
     }
 
     // MARK: - Image loading

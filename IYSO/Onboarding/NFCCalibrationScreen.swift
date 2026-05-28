@@ -17,11 +17,11 @@ struct NFCCalibrationScreen: View {
 
                 VStack(spacing: 44) {
                     VStack(spacing: 12) {
-                        Text("One last thing.")
+                        Text("Connect your lens clip.")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.white)
 
-                        Text("Attach your lens clip near the top of your iPhone to connect it.")
+                        Text("Hold your clip's NFC tag near the top of your iPhone. You'll enter IYSO Mode as soon as it's detected.")
                             .font(.system(size: 17, weight: .regular))
                             .foregroundColor(Color(white: 0.55))
                             .multilineTextAlignment(.center)
@@ -151,7 +151,7 @@ struct NFCCalibrationScreen: View {
             }
 
             Button(action: onSkip) {
-                Text("I don't have my lens yet")
+                Text("skip for now")
                     .font(.system(size: 15, weight: .regular))
                     .foregroundColor(Color(white: 0.4))
             }

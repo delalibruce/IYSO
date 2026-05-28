@@ -15,7 +15,7 @@ final class NFCManager: NSObject, ObservableObject {
     private let pairedTagKey = "com.delali.digicam.nfcPairedUID"
 
     #if !targetEnvironment(simulator)
-    private var ndefSession: NFCNDEFReaderSession?
+    private var tagSession: NFCTagReaderSession?
     #endif
 
     var isNFCAvailable: Bool {
@@ -23,7 +23,7 @@ final class NFCManager: NSObject, ObservableObject {
         #if targetEnvironment(simulator)
         return false
         #else
-        return NFCNDEFReaderSession.readingAvailable
+        return NFCTagReaderSession.readingAvailable
         #endif
     }
 
@@ -44,17 +44,17 @@ final class NFCManager: NSObject, ObservableObject {
         #if targetEnvironment(simulator)
         scanState = .scanning
         #else
-        guard NFCNDEFReaderSession.readingAvailable else {
+        guard NFCTagReaderSession.readingAvailable else {
             scanState = .unavailable
             return
         }
-        let session = NFCNDEFReaderSession(
+        let session = NFCTagReaderSession(
+            pollingOption: [.iso14443, .iso15693, .iso18092],
             delegate: self,
-            queue: .main,
-            invalidateAfterFirstRead: true
+            queue: nil
         )
         session.alertMessage = "Hold your iPhone near the lens clip."
-        ndefSession = session
+        tagSession = session
         session.begin()
         scanState = .scanning
         #endif
@@ -67,8 +67,8 @@ final class NFCManager: NSObject, ObservableObject {
 
     func cancelScanning() {
         #if !targetEnvironment(simulator)
-        ndefSession?.invalidate()
-        ndefSession = nil
+        tagSession?.invalidate()
+        tagSession = nil
         #endif
         scanState = .idle
     }
@@ -137,22 +137,58 @@ final class NFCManager: NSObject, ObservableObject {
 }
 
 #if !targetEnvironment(simulator)
-extension NFCManager: NFCNDEFReaderSessionDelegate {
-    func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
+extension NFCManager: NFCTagReaderSessionDelegate {
+    func readerSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
         DispatchQueue.main.async {
             if self.scanState == .scanning { self.scanState = .idle }
-            self.ndefSession = nil
+            self.tagSession = nil
         }
     }
 
-    func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
-        let uid = messages.first?.records.first.map { record in
-            record.payload.map { String(format: "%02hhx", $0) }.joined()
-        } ?? "NDEF_\(Date().timeIntervalSince1970)"
+    func tagReaderSessionDidBecomeActive(_ session: NFCTagReaderSession) {}
 
-        DispatchQueue.main.async {
-            self.handleTagDetected(uid: uid)
+    func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {
+        guard let tag = tags.first else {
+            session.invalidate(errorMessage: "No NFC tag detected.")
+            return
         }
+
+        session.connect(to: tag) { [weak self] error in
+            guard let self else { return }
+
+            if error != nil {
+                session.invalidate(errorMessage: "Failed to connect. Try again.")
+                DispatchQueue.main.async {
+                    self.scanState = .idle
+                }
+                return
+            }
+
+            let uid = self.tagIdentifierHex(for: tag)
+            session.alertMessage = "Lens detected."
+            session.invalidate()
+
+            DispatchQueue.main.async {
+                self.handleTagDetected(uid: uid)
+            }
+        }
+    }
+
+    private func tagIdentifierHex(for tag: NFCTag) -> String {
+        let bytes: Data
+        switch tag {
+        case .miFare(let miFareTag):
+            bytes = miFareTag.identifier
+        case .iso7816(let iso7816Tag):
+            bytes = iso7816Tag.identifier
+        case .feliCa(let feliCaTag):
+            bytes = feliCaTag.currentIDm
+        case .iso15693(let iso15693Tag):
+            bytes = iso15693Tag.identifier
+        @unknown default:
+            bytes = Data("UNKNOWN_TAG".utf8)
+        }
+        return bytes.map { String(format: "%02x", $0) }.joined()
     }
 }
 #endif

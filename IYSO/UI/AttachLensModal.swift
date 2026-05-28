@@ -45,6 +45,19 @@ struct AttachLensModal: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
             .buttonStyle(.plain)
+
+            #if DEBUG
+            Button(action: bypassForDevelopment) {
+                Text("Developer Bypass")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color(red: 0.18, green: 0.55, blue: 1.0).opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            #endif
         }
         .padding(.horizontal, 20)
         .padding(.top, 32)
@@ -100,4 +113,11 @@ struct AttachLensModal: View {
             nfc.cancelScanning()
         }
     }
+
+    #if DEBUG
+    private func bypassForDevelopment() {
+        nfc.simulateDetect()
+        dismiss()
+    }
+    #endif
 }

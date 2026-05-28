@@ -60,6 +60,8 @@
 		BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */; };
 		BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */; };
 		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
+		BB0051AA00000000000051AA /* PhotoFileNameEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */; };
+		BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0052AA00000000000052AA /* BlockedAppIconView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -118,6 +120,8 @@
 		AA004DAA0000000000004DAA /* ExitIYSOModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeButton.swift; sourceTree = "<group>"; };
 		AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeAnimationView.swift; sourceTree = "<group>"; };
 		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
+		AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoFileNameEditView.swift; sourceTree = "<group>"; };
+		AA0052AA00000000000052AA /* BlockedAppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedAppIconView.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* IYSO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IYSO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -204,6 +208,7 @@
 				AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */,
 				AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */,
 				AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */,
+				AA0052AA00000000000052AA /* BlockedAppIconView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -229,6 +234,7 @@
 				AA0016AA00000000000016AA /* AlbumEditView.swift */,
 				AA0017AA00000000000017AA /* AlbumSearchUtility.swift */,
 				AA0018AA00000000000018AA /* AlbumSearchView.swift */,
+				AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */,
 			);
 			path = Gallery;
 			sourceTree = "<group>";
@@ -370,6 +376,7 @@
 				BB0008AA00000000000008AA /* GalleryView.swift in Sources */,
 				BB0009AA00000000000009AA /* AppRootView.swift in Sources */,
 				BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */,
+				BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */,
 				BB0010AA00000000000010AA /* BottomToggle.swift in Sources */,
 				BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */,
 				BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */,
@@ -380,6 +387,7 @@
 				BB0016AA00000000000016AA /* AlbumEditView.swift in Sources */,
 				BB0017AA00000000000017AA /* AlbumSearchUtility.swift in Sources */,
 				BB0018AA00000000000018AA /* AlbumSearchView.swift in Sources */,
+				BB0051AA00000000000051AA /* PhotoFileNameEditView.swift in Sources */,
 				BB0019AA00000000000019AA /* PeepholeImageProcessor.swift in Sources */,
 				BB0020AA00000000000020AA /* PeepholeAlbumCover.swift in Sources */,
 				BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */,
@@ -535,7 +543,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements;
+				CODE_SIGN_ENTITLEMENTS = IYSO/App/Digicam.entitlements.dev;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = T73K2F5HAL;
@@ -549,6 +557,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.iyso;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -574,6 +583,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.iyso;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;

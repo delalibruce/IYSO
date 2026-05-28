@@ -2,12 +2,17 @@ import SwiftUI
 import Photos
 import UIKit
 
+private struct PhotoFileNameEditSheetItem: Identifiable {
+    let id: String
+    let asset: PHAsset
+}
+
 // Level 2 — all photos in album as a 3-column grid, most recent first.
 struct AlbumDetailView: View {
     let assets: [PHAsset]
     let albumTitle: String
     let albumID: String
-    let library: PhotoLibraryManager
+    @ObservedObject var library: PhotoLibraryManager
 
     @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) private var dismiss
@@ -16,8 +21,8 @@ struct AlbumDetailView: View {
     @State private var deletedAssetIDs: Set<String> = []
 
     // Photo to share (triggers sheet)
-    @State private var sharingImages: [UIImage] = []
-    @State private var isShareSheetPresented = false
+    @State private var shareSheetPayload: ShareSheetPayload?
+    @State private var fileNameEditingItem: PhotoFileNameEditSheetItem?
 
     // Confirmation for delete
     @State private var assetPendingDelete: PHAsset? = nil
@@ -90,8 +95,11 @@ struct AlbumDetailView: View {
             ) {
                 deleteSelectedPhotos()
             }
-            .sheet(isPresented: $isShareSheetPresented) {
-                ShareSheet(items: sharingImages)
+            .sheet(item: $shareSheetPayload) { payload in
+                ShareSheet(items: payload.items)
+            }
+            .sheet(item: $fileNameEditingItem) { item in
+                PhotoFileNameEditView(asset: item.asset, library: library)
             }
         }
     }
@@ -173,6 +181,14 @@ struct AlbumDetailView: View {
     private func gridCell(for asset: PHAsset, at index: Int) -> some View {
         let cell = photoCell(asset: asset)
             .contextMenu {
+                Button {
+                    fileNameEditingItem = PhotoFileNameEditSheetItem(
+                        id: asset.localIdentifier,
+                        asset: asset
+                    )
+                } label: {
+                    Label("Edit File Name", systemImage: "pencil")
+                }
                 Button { sharePhoto(asset) } label: {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
@@ -215,7 +231,14 @@ struct AlbumDetailView: View {
                 asset: asset,
                 library: library,
                 diameter: 118,
-                showPeepholeEffect: true
+                showPeepholeEffect: true,
+                onLabelTap: {
+                    guard !isSelecting else { return }
+                    fileNameEditingItem = PhotoFileNameEditSheetItem(
+                        id: asset.localIdentifier,
+                        asset: asset
+                    )
+                }
             )
             if isSelecting, isSelected {
                 ZStack {
@@ -353,8 +376,7 @@ struct AlbumDetailView: View {
     private func sharePhoto(_ asset: PHAsset) {
         library.fullResImage(for: asset) { image in
             guard let image else { return }
-            sharingImages = [image]
-            isShareSheetPresented = true
+            shareSheetPayload = ShareSheetPayload(items: [image])
         }
     }
 
@@ -371,8 +393,7 @@ struct AlbumDetailView: View {
         }
         group.notify(queue: .main) {
             guard !images.isEmpty else { return }
-            sharingImages = images
-            isShareSheetPresented = true
+            shareSheetPayload = ShareSheetPayload(items: images)
         }
     }
 }

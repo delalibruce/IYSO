@@ -31,7 +31,7 @@ struct WelcomeScreen: View {
 
                 Spacer()
 
-                OnboardingContinueButton(title: "show me IYSO.", action: onContinue)
+                OnboardingContinueButton(title: "go to IYSO instructions", action: onContinue)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 48)
             }

@@ -1,8 +1,14 @@
 import SwiftUI
+#if canImport(FamilyControls)
+import FamilyControls
+#endif
 
 struct SettingsView: View {
     @EnvironmentObject private var appBlocking: AppBlockingManager
     @Environment(\.dismiss) private var dismiss
+    #if canImport(FamilyControls)
+    @State private var showFamilyActivityPicker = false
+    #endif
 
     var body: some View {
         ZStack {
@@ -14,6 +20,7 @@ struct SettingsView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         sectionHeader
+                        additionalControls
                         appList
                     }
                     .padding(.bottom, 40)
@@ -66,6 +73,31 @@ struct SettingsView: View {
 
     // MARK: - App toggles
 
+    private var additionalControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            #if canImport(FamilyControls)
+            Button(action: { showFamilyActivityPicker = true }) {
+                HStack {
+                    Text("Choose apps/categories")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                    Spacer()
+                    Text("\(appBlocking.selectedItemCount) selected")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(Color(white: 0.5))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(Color(white: 1, opacity: 0.05))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            #endif
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 12)
+    }
+
     private var appList: some View {
         VStack(spacing: 0) {
             ForEach(appBlocking.blockedApps) { app in
@@ -88,6 +120,15 @@ struct SettingsView: View {
                 .fill(Color(white: 1, opacity: 0.05))
         )
         .padding(.horizontal, 20)
+        #if canImport(FamilyControls)
+        .familyActivityPicker(
+            isPresented: $showFamilyActivityPicker,
+            selection: Binding(
+                get: { appBlocking.familyActivitySelection },
+                set: { appBlocking.updateFamilyActivitySelection($0) }
+            )
+        )
+        #endif
     }
 }
 
@@ -97,14 +138,7 @@ private struct AppBlockingRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color(white: 0.18))
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Text(String(app.name.prefix(1)))
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(Color(white: 0.65))
-                )
+            BlockedAppIconView(app: app)
 
             Text(app.name)
                 .font(.system(size: 16, weight: .regular))

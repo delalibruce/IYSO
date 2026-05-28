@@ -264,6 +264,8 @@ private struct CapturePermissionRow: View {
             showsLoading: isLoading,
             action: onEnable
         )
+        .frame(width: 132)
+        .fixedSize(horizontal: true, vertical: false)
     }
 
     private var enabledBadge: some View {
