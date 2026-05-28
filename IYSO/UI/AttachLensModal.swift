@@ -97,12 +97,16 @@ struct AttachLensModal: View {
                 pulseOpacity = 1.0
             }
             if AppCapabilities.usesNFC {
-                nfc.startScanning()
-            }
-        }
-        .onDisappear {
-            if AppCapabilities.usesNFC {
-                nfc.cancelScanning()
+                NFCLensManager.shared.onSuccess = {
+                    appState.showAttachLensSheet = false
+                    IYSOStateManager.shared.enterIYSOMode()
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        appState.isIYSOMode = true
+                        appState.activeTab = .camera
+                    }
+                }
+                NFCLensManager.shared.onFailure = { _ in }
+                NFCLensManager.shared.startScan(purpose: .validate)
             }
         }
     }

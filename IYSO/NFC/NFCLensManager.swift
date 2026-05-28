@@ -12,9 +12,6 @@ final class NFCLensManager: NSObject, ObservableObject {
     var onSuccess: (() -> Void)?
     var onFailure: ((String) -> Void)?
 
-    private let registeredTagKey = "registeredNFCTagID"
-    private var currentPurpose: NFCScanPurpose = .register
-
     #if !targetEnvironment(simulator)
     private var ndefSession: NFCNDEFReaderSession?
     #endif
@@ -22,7 +19,6 @@ final class NFCLensManager: NSObject, ObservableObject {
     private override init() { super.init() }
 
     func startScan(purpose: NFCScanPurpose) {
-        currentPurpose = purpose
         guard AppCapabilities.usesNFC else {
             // In debug / simulator, treat as immediate success for UI testing.
             DispatchQueue.main.async { self.onSuccess?() }
@@ -54,23 +50,15 @@ extension NFCLensManager: NFCNDEFReaderSessionDelegate {
     }
 
     func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
-        let payload = messages.first?.records.first?.payload ?? Data()
-        let hex = payload.map { String(format: "%02x", $0) }.joined()
-
-        DispatchQueue.main.async {
-            switch self.currentPurpose {
-            case .register:
-                UserDefaults.standard.set(hex, forKey: self.registeredTagKey)
-                self.onSuccess?()
-            case .validate:
-                let saved = UserDefaults.standard.string(forKey: self.registeredTagKey)
-                if hex == saved {
-                    self.onSuccess?()
-                } else {
-                    self.onFailure?("This lens clip doesn't match the registered one.")
-                }
+        guard let record = messages.first?.records.first,
+              let url = record.wellKnownTypeURIPayload(),
+              url.host?.hasSuffix("iyso.app") == true else {
+            DispatchQueue.main.async {
+                self.onFailure?("This doesn't look like an IYSO lens clip.")
             }
+            return
         }
+        DispatchQueue.main.async { self.onSuccess?() }
     }
 }
 #endif

@@ -40,7 +40,11 @@ struct LensDetectedScreen: View {
 
                 OnboardingContinueButton(
                     title: "open my camera",
-                    action: onComplete
+                    action: {
+                        NFCLensManager.shared.onSuccess = { onComplete() }
+                        NFCLensManager.shared.onFailure = { _ in onComplete() }
+                        NFCLensManager.shared.startScan(purpose: .register)
+                    }
                 )
                 .padding(.horizontal, 24)
                 .padding(.bottom, 48)

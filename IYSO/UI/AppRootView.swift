@@ -115,6 +115,9 @@ struct AppRootView: View {
         .onOpenURL { url in
             handleUniversalLink(url)
         }
+        .task {
+            await appBlocking.requestAuthorizationIfNeeded()
+        }
     }
 
     // MARK: - Camera session
@@ -246,6 +249,7 @@ struct AppRootView: View {
             appState.isIYSOMode = true
         }
         appBlocking.applyShields()
+        IYSOStateManager.shared.enterIYSOMode()
         appState.showLensDetectedBanner = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             withAnimation(.easeInOut(duration: 0.4)) {
@@ -270,5 +274,6 @@ struct AppRootView: View {
         }
         nfc.disconnectLens()
         appBlocking.removeShields()
+        IYSOStateManager.shared.exitIYSOMode()
     }
 }

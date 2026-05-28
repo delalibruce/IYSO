@@ -6,6 +6,7 @@ import FamilyControls
 struct SettingsView: View {
     @EnvironmentObject private var appBlocking: AppBlockingManager
     @Environment(\.dismiss) private var dismiss
+    @State private var showBlockingSettings = false
     #if canImport(FamilyControls)
     @State private var showFamilyActivityPicker = false
     #endif
@@ -22,6 +23,7 @@ struct SettingsView: View {
                         sectionHeader
                         additionalControls
                         appList
+                        blockingSettingsSheet
                     }
                     .padding(.bottom, 40)
                 }
@@ -129,6 +131,32 @@ struct SettingsView: View {
             )
         )
         #endif
+    }
+}
+
+extension SettingsView {
+    var blockingSettingsSheet: some View {
+        Button(action: { showBlockingSettings = true }) {
+            HStack {
+                Text("Manage app blocking")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(Color(white: 0.75))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(white: 0.35))
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Color(white: 1, opacity: 0.05))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .sheet(isPresented: $showBlockingSettings) {
+            AppBlockingSettingsView()
+        }
     }
 }
 

@@ -10,7 +10,7 @@ import ManagedSettings
 @MainActor
 final class AppBlockingManager: ObservableObject {
     static let shared = AppBlockingManager()
-    @Published var blockedApps: [BlockedApp] = BlockedApp.defaults
+    @Published var blockedApps: [BlockedApp] = []
     @Published var isAuthorized: Bool = false
     #if canImport(FamilyControls)
     @Published var familyActivitySelection = FamilyActivitySelection()
@@ -23,6 +23,7 @@ final class AppBlockingManager: ObservableObject {
     private let familySelectionUDKey = "com.delali.digicam.familyActivitySelection"
 
     init() {
+        blockedApps = BlockedApp.installedDefaults
         loadSavedApps()
         if AppCapabilities.usesFamilyControls {
             loadFamilyActivitySelection()
@@ -148,7 +149,7 @@ final class AppBlockingManager: ObservableObject {
     private func mergedWithDefaultMetadata(savedApps: [BlockedApp]) -> [BlockedApp] {
         let savedByID = Dictionary(uniqueKeysWithValues: savedApps.map { ($0.id, $0) })
 
-        return BlockedApp.defaults.map { defaultApp in
+        return BlockedApp.installedDefaults.map { defaultApp in
             guard let savedApp = savedByID[defaultApp.id] else {
                 return defaultApp
             }
