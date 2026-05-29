@@ -10,15 +10,21 @@ import ManagedSettings
 @MainActor
 final class AppBlockingManager: ObservableObject {
     static let shared = AppBlockingManager()
+
+    /// Shared with shield extensions via App Group.
+    static let appGroupID = "group.app.iyso"
+    static let openCameraRequestKey = "com.delali.digicam.openCameraOnActivate"
+
     @Published var blockedApps: [BlockedApp] = []
     @Published var isAuthorized: Bool = false
-    #if canImport(FamilyControls)
-    @Published var familyActivitySelection = FamilyActivitySelection()
-    #endif
+    @Published private(set) var shieldsShouldBeActive = false
+    @Published private(set) var lastShieldError: String?
 
     #if canImport(FamilyControls)
+    @Published var familyActivitySelection = FamilyActivitySelection()
     private let store = ManagedSettingsStore()
     #endif
+
     private let udKey = "com.delali.digicam.blockedApps"
     private let familySelectionUDKey = "com.delali.digicam.familyActivitySelection"
 
@@ -33,6 +39,14 @@ final class AppBlockingManager: ObservableObject {
         }
     }
 
+    var hasBlockList: Bool {
+        #if canImport(FamilyControls)
+        return selectedItemCount > 0
+        #else
+        return false
+        #endif
+    }
+
     // MARK: - Authorization
 
     func requestAuthorizationIfNeeded() async {
@@ -44,9 +58,10 @@ final class AppBlockingManager: ObservableObject {
         guard !isAuthorized else { return }
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
-            isAuthorized = true
+            refreshAuthorizationStatus()
         } catch {
             isAuthorized = false
+            lastShieldError = error.localizedDescription
         }
     }
 
@@ -55,12 +70,12 @@ final class AppBlockingManager: ObservableObject {
             isAuthorized = true
             return
         }
+        #if canImport(FamilyControls)
         isAuthorized = AuthorizationCenter.shared.authorizationStatus == .approved
+        #endif
     }
 
     // MARK: - Shields
-
-    private(set) var shieldsShouldBeActive = false
 
     func setShieldsActive(_ active: Bool) {
         shieldsShouldBeActive = active
@@ -71,9 +86,35 @@ final class AppBlockingManager: ObservableObject {
         }
     }
 
+    /// Call when entering IYSO mode — waits for Screen Time authorization, then applies shields.
+    func activateShieldsForIYSOMode() async {
+        await requestAuthorizationIfNeeded()
+        refreshAuthorizationStatus()
+        guard isAuthorized else {
+            lastShieldError = "Screen Time access is required to block apps."
+            return
+        }
+        setShieldsActive(true)
+    }
+
+    /// Re-assert shields when the app backgrounds so blocking persists on the home screen.
+    func reinforceShieldsIfNeeded() {
+        guard shieldsShouldBeActive else { return }
+        applyShields()
+    }
+
     func applyShields() {
         guard AppCapabilities.usesFamilyControls else { return }
-        guard isAuthorized else { return }
+        refreshAuthorizationStatus()
+        guard isAuthorized else {
+            lastShieldError = "Screen Time access is required to block apps."
+            return
+        }
+        guard hasBlockList else {
+            lastShieldError = "Choose at least one app to block."
+            return
+        }
+
         #if canImport(FamilyControls)
         store.shield.applications = familyActivitySelection.applicationTokens.isEmpty
             ? nil
@@ -84,14 +125,26 @@ final class AppBlockingManager: ObservableObject {
         store.shield.applicationCategories = familyActivitySelection.categoryTokens.isEmpty
             ? nil
             : .specific(familyActivitySelection.categoryTokens)
+        lastShieldError = nil
         #endif
     }
 
     func removeShields() {
         guard AppCapabilities.usesFamilyControls else { return }
         #if canImport(FamilyControls)
-        store.clearAllSettings()
+        store.shield.applications = nil
+        store.shield.webDomains = nil
+        store.shield.applicationCategories = nil
         #endif
+    }
+
+    func consumeOpenCameraRequest() -> Bool {
+        guard let defaults = UserDefaults(suiteName: Self.appGroupID) else { return false }
+        let requested = defaults.bool(forKey: Self.openCameraRequestKey)
+        if requested {
+            defaults.removeObject(forKey: Self.openCameraRequestKey)
+        }
+        return requested
     }
 
     // MARK: - FamilyActivitySelection
@@ -137,7 +190,7 @@ final class AppBlockingManager: ObservableObject {
     private func loadFamilyActivitySelection() {}
     #endif
 
-    // MARK: - App list
+    // MARK: - App list (UI only — blocking uses FamilyActivityPicker tokens)
 
     func toggleApp(_ app: BlockedApp) {
         guard let idx = blockedApps.firstIndex(where: { $0.id == app.id }) else { return }
@@ -168,7 +221,6 @@ final class AppBlockingManager: ObservableObject {
                 return defaultApp
             }
 
-            // Keep persisted toggle state, but always use current metadata from defaults.
             return BlockedApp(
                 id: defaultApp.id,
                 name: defaultApp.name,

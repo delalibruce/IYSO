@@ -1,6 +1,7 @@
 import SwiftUI
 #if canImport(FamilyControls)
 import FamilyControls
+import ManagedSettings
 #endif
 
 struct AppBlockingSetupScreen: View {
@@ -18,7 +19,8 @@ struct AppBlockingSetupScreen: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         headerText
-                        defaultAppsSection
+                        pickerSection
+                        blockedAppsSection
                         if showAddMore {
                             addMoreSection
                         } else {
@@ -47,7 +49,7 @@ struct AppBlockingSetupScreen: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
-            Text("These apps are put away while IYSO mode is on. Change them any time in settings.")
+            Text("Choose apps with Screen Time below — those are greyed out and blocked while you shoot. Suggested apps are shortcuts; blocking only applies to apps you pick.")
                 .font(.system(size: 15, weight: .regular))
                 .foregroundColor(Color(white: 0.55))
                 .fixedSize(horizontal: false, vertical: true)
@@ -58,28 +60,94 @@ struct AppBlockingSetupScreen: View {
         .padding(.bottom, 28)
     }
 
-    // MARK: - Default apps
+    private var pickerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Apps to block in IYSO mode")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Color(white: 0.55))
+                .padding(.horizontal, 24)
 
-    private var defaultAppsSection: some View {
-        VStack(spacing: 0) {
-            ForEach(appBlocking.blockedApps) { app in
-                OnboardingAppRow(
-                    app: app,
-                    isEnabled: app.isEnabled,
-                    onToggle: { appBlocking.toggleApp(app) }
-                )
-                if app.id != appBlocking.blockedApps.last?.id {
-                    Divider()
-                        .background(Color(white: 1, opacity: 0.08))
-                        .padding(.leading, 24)
+            FamilyControlsSetupPanel(showsAuthorizationStatus: true, compact: true)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+        }
+    }
+
+    // MARK: - Blocked apps list
+
+    private var blockedAppsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Suggested distractions")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Color(white: 0.55))
+                .padding(.horizontal, 24)
+
+            VStack(spacing: 0) {
+                ForEach(appBlocking.blockedApps) { app in
+                    OnboardingAppRow(
+                        app: app,
+                        isEnabled: app.isEnabled,
+                        onToggle: { appBlocking.toggleApp(app) }
+                    )
+                    if app.id != appBlocking.blockedApps.last?.id || hasFamilySelectedItems {
+                        listDivider
+                    }
                 }
+
+                #if canImport(FamilyControls)
+                if AppCapabilities.usesFamilyControls {
+                    familySelectedRows
+                }
+                #endif
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(white: 1, opacity: 0.05))
+            )
+            .padding(.horizontal, 20)
+        }
+    }
+
+    #if canImport(FamilyControls)
+    private var hasFamilySelectedItems: Bool {
+        !appBlocking.familyActivitySelection.applicationTokens.isEmpty
+            || !appBlocking.familyActivitySelection.categoryTokens.isEmpty
+            || !appBlocking.familyActivitySelection.webDomainTokens.isEmpty
+    }
+
+    @ViewBuilder
+    private var familySelectedRows: some View {
+        let apps = Array(appBlocking.familyActivitySelection.applicationTokens)
+        let categories = Array(appBlocking.familyActivitySelection.categoryTokens)
+        let domains = Array(appBlocking.familyActivitySelection.webDomainTokens)
+
+        ForEach(apps, id: \.self) { token in
+            OnboardingFamilyActivityRow(token: token)
+            if token != apps.last || !categories.isEmpty || !domains.isEmpty {
+                listDivider
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(white: 1, opacity: 0.05))
-        )
-        .padding(.horizontal, 20)
+
+        ForEach(categories, id: \.self) { token in
+            OnboardingFamilyActivityRow(categoryToken: token)
+            if token != categories.last || !domains.isEmpty {
+                listDivider
+            }
+        }
+
+        ForEach(domains, id: \.self) { token in
+            OnboardingFamilyActivityRow(webDomainToken: token)
+            if token != domains.last {
+                listDivider
+            }
+        }
+    }
+    #endif
+
+    private var listDivider: some View {
+        Divider()
+            .background(Color(white: 1, opacity: 0.08))
+            .padding(.leading, 24)
     }
 
     // MARK: - Add more toggle
@@ -87,7 +155,7 @@ struct AppBlockingSetupScreen: View {
     private var addMoreToggleRow: some View {
         Button(action: { withAnimation(.easeInOut(duration: 0.2)) { showAddMore = true } }) {
             HStack {
-                Text("Set up Screen Time shields")
+                Text("Are there any more apps you want to block?")
                     .font(.system(size: 15, weight: .regular))
                     .foregroundColor(Color(white: 0.55))
                 Spacer()
@@ -106,7 +174,7 @@ struct AppBlockingSetupScreen: View {
     private var addMoreSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Screen Time shields")
+                Text("Choose apps to block")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(Color(white: 0.55))
                 Spacer()
@@ -175,4 +243,73 @@ private struct OnboardingAppRow: View {
         .contentShape(Rectangle())
     }
 }
+
+#if canImport(FamilyControls)
+private struct OnboardingFamilyActivityRow: View {
+    enum TokenKind {
+        case application(ApplicationToken)
+        case category(ActivityCategoryToken)
+        case webDomain(WebDomainToken)
+    }
+
+    private let kind: TokenKind
+
+    init(token: ApplicationToken) {
+        kind = .application(token)
+    }
+
+    init(categoryToken: ActivityCategoryToken) {
+        kind = .category(categoryToken)
+    }
+
+    init(webDomainToken: WebDomainToken) {
+        kind = .webDomain(webDomainToken)
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            iconLabel
+                .labelStyle(.iconOnly)
+                .frame(width: 36, height: 36)
+
+            titleLabel
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.white)
+                .lineLimit(1)
+
+            Spacer()
+
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 20))
+                .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private var iconLabel: some View {
+        switch kind {
+        case .application(let token):
+            Label(token)
+        case .category(let token):
+            Label(token)
+        case .webDomain(let token):
+            Label(token)
+        }
+    }
+
+    @ViewBuilder
+    private var titleLabel: some View {
+        switch kind {
+        case .application(let token):
+            Label(token)
+        case .category(let token):
+            Label(token)
+        case .webDomain(let token):
+            Label(token)
+        }
+    }
+}
+#endif
 

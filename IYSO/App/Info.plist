@@ -28,6 +28,19 @@
 	<string>IYSO uses your camera to take photos through your lens.</string>
 	<key>NSFamilyControlsUsageDescription</key>
 	<string>IYSO uses Screen Time controls to shield distracting apps while you're in IYSO Mode.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>IYSO sends a quick tap-to-return notification when you choose to go back to the camera from a blocked app.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>app.iyso</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>iyso</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>IYSO saves your captures to your photo library for your memory card.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

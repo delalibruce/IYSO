@@ -9,8 +9,10 @@ final class IYSOStateManager: ObservableObject {
     private init() {}
 
     func enterIYSOMode() {
-        AppBlockingManager.shared.setShieldsActive(true)
         isIYSOActive = true
+        Task {
+            await AppBlockingManager.shared.activateShieldsForIYSOMode()
+        }
     }
 
     func exitIYSOMode() {

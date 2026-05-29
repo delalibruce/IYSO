@@ -15,52 +15,70 @@ struct ExplainerConfig {
     let showsExitIYSOAnimation: Bool
     /// When true, the mode badge dot is activated by the exit-IYSO animation tap.
     let drivesModeBadgeWithExitIYSOAnimation: Bool
+    /// When false, only headline and body are shown (no illustration area).
+    let showsIllustration: Bool
 }
 
 extension ExplainerConfig {
-    static let enterIYSO = ExplainerConfig(
-        headline: "Before you start shooting",
-        body: "Switch to IYSO Mode when you're ready. Your chosen apps get shielded so you can stay in the moment.",
-        illustrationSystemName: "shield.lefthalf.filled",
-        dotIndex: 1, dotTotal: 4,
+    static let howItWorks = ExplainerConfig(
+        headline: "here's how it work",
+        body: "at iyso, we believe that moments deserve to be captured without distraction.",
+        illustrationSystemName: "camera.aperture",
+        dotIndex: 1, dotTotal: 5,
+        ctaLabel: "Next",
+        modeBadge: nil,
+        showsIYSOShootingModeAnimation: false,
+        showsExitIYSOAnimation: false,
+        drivesModeBadgeWithExitIYSOAnimation: false,
+        showsIllustration: false
+    )
+    static let pairing = ExplainerConfig(
+        headline: "",
+        body: "pairing both the app and the lens, iyso turns your phone into a single use analog camera and shuts the rest of the world away so you can focus on capturing memories",
+        illustrationSystemName: "camera.aperture",
+        dotIndex: 2, dotTotal: 5,
+        ctaLabel: "Next",
+        modeBadge: nil,
+        showsIYSOShootingModeAnimation: false,
+        showsExitIYSOAnimation: false,
+        drivesModeBadgeWithExitIYSOAnimation: false,
+        showsIllustration: false
+    )
+    static let twoModes = ExplainerConfig(
+        headline: "iyso has two modes",
+        body: "",
+        illustrationSystemName: "square.grid.2x2",
+        dotIndex: 3, dotTotal: 5,
+        ctaLabel: "Next",
+        modeBadge: nil,
+        showsIYSOShootingModeAnimation: false,
+        showsExitIYSOAnimation: false,
+        drivesModeBadgeWithExitIYSOAnimation: false,
+        showsIllustration: false
+    )
+    static let iysoMode = ExplainerConfig(
+        headline: "1. IYSO mode",
+        body: "When you're in IYSO mode, apps you've selected as distractions are blocked so you can stay in the moment. It's just you, the camera, and the messy shot",
+        illustrationSystemName: "camera.fill",
+        dotIndex: 4, dotTotal: 5,
         ctaLabel: "Next",
         modeBadge: .iyso,
         showsIYSOShootingModeAnimation: true,
         showsExitIYSOAnimation: false,
-        drivesModeBadgeWithExitIYSOAnimation: false
-    )
-    static let iysoMode = ExplainerConfig(
-        headline: "IYSO Mode is for shooting",
-        body: "Notifications off. Outside apps locked. Just you and the shot.",
-        illustrationSystemName: "camera.fill",
-        dotIndex: 2, dotTotal: 4,
-        ctaLabel: "Next",
-        modeBadge: nil,
-        showsIYSOShootingModeAnimation: true,
-        showsExitIYSOAnimation: false,
-        drivesModeBadgeWithExitIYSOAnimation: false
+        drivesModeBadgeWithExitIYSOAnimation: false,
+        showsIllustration: true
     )
     static let memoryMode = ExplainerConfig(
-        headline: "Done shooting?",
-        body: "Tap “Exit IYSO Mode” to unlock your memory card to view photos.",
+        headline: "2) Memory Mode",
+        body: "when you're done capturing memories, tap \"Exit IYSO Mode\" to unlock your memory card and view your photos",
         illustrationSystemName: "photo.stack.fill",
-        dotIndex: 3, dotTotal: 4,
-        ctaLabel: "Next",
+        dotIndex: 5, dotTotal: 5,
+        ctaLabel: "let's get set up.",
         modeBadge: .memory,
         showsIYSOShootingModeAnimation: false,
         showsExitIYSOAnimation: true,
-        drivesModeBadgeWithExitIYSOAnimation: true
-    )
-    static let shootAgain = ExplainerConfig(
-        headline: "Ready to shoot again?",
-        body: "Tap the camera toggle to enter IYSO Mode. Your apps will be shielded again.",
-        illustrationSystemName: "camera.fill",
-        dotIndex: 4, dotTotal: 4,
-        ctaLabel: "Got it",
-        modeBadge: nil,
-        showsIYSOShootingModeAnimation: true,
-        showsExitIYSOAnimation: false,
-        drivesModeBadgeWithExitIYSOAnimation: false
+        drivesModeBadgeWithExitIYSOAnimation: true,
+        showsIllustration: true
     )
 }
 
@@ -70,7 +88,7 @@ struct ExplainerFlowView: View {
 
     @State private var page = 0
 
-    private static let configs: [ExplainerConfig] = [.enterIYSO, .iysoMode, .memoryMode, .shootAgain]
+    private static let configs: [ExplainerConfig] = [.howItWorks, .pairing, .twoModes, .iysoMode, .memoryMode]
 
     private var currentConfig: ExplainerConfig {
         Self.configs[page]
@@ -141,16 +159,17 @@ struct ExplainerScreen: View {
     @State private var isModeIndicatorActive = false
 
     var body: some View {
-        // The 3rd instructional page (memory mode) needs the text slightly closer to the illustration.
-        // This keeps the headline/body stack balanced with the larger exit-IYSO animation.
-        let illustrationToTextSpacing: CGFloat = (config.dotIndex == 3) ? 40 : 48
-        let contentVerticalOffset: CGFloat = (config.dotIndex == 3) ? -12 : 0
+        // Memory mode needs the text slightly closer to the larger exit-IYSO animation.
+        let illustrationToTextSpacing: CGFloat = config.showsExitIYSOAnimation ? 40 : 48
+        let contentVerticalOffset: CGFloat = config.showsExitIYSOAnimation ? -12 : 0
 
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: illustrationToTextSpacing) {
-                illustration
+            VStack(spacing: config.showsIllustration ? illustrationToTextSpacing : 0) {
+                if config.showsIllustration {
+                    illustration
+                }
 
                 VStack(alignment: .leading, spacing: ExplainerTextLayout.headlineToBodySpacing) {
                     VStack(alignment: .leading, spacing: RootTabHeaderLayout.modeLabelToTitleSpacing) {
@@ -163,17 +182,21 @@ struct ExplainerScreen: View {
                             )
                         }
 
-                        Text(config.headline)
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if !config.headline.isEmpty {
+                            Text(config.headline)
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
 
-                    Text(config.body)
-                        .font(.system(size: 17, weight: .regular))
-                        .foregroundColor(Color(white: 0.55))
-                        .lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if !config.body.isEmpty {
+                        Text(config.body)
+                            .font(.system(size: config.headline.isEmpty ? 28 : 17, weight: config.headline.isEmpty ? .bold : .regular))
+                            .foregroundColor(config.headline.isEmpty ? .white : Color(white: 0.55))
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 30)

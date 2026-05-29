@@ -29,11 +29,11 @@ struct EnterIYSOModeModal: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
                 VStack(spacing: 10) {
-                    Text("Enter IYSO Mode")
+                    Text("Ready to enter IYSO mode?")
                         .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.white)
 
-                    Text("Shield your apps and stay focused on taking pictures in the moment.")
+                    Text("Block your apps and stay focused on taking pictures in the moment.")
                         .font(.system(size: 15, weight: .regular))
                         .foregroundColor(Color(white: 0.6))
                         .multilineTextAlignment(.center)
@@ -45,8 +45,15 @@ struct EnterIYSOModeModal: View {
                 FamilyControlsSetupPanel(compact: true)
                     .padding(.horizontal, 4)
 
+                if appBlocking.selectedItemCount == 0 {
+                    Text("Choose at least one app to block before starting.")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(Color(red: 1, green: 0.45, blue: 0.45))
+                        .multilineTextAlignment(.center)
+                }
+
                 Button(action: onEnter) {
-                    Text("Turn on shield & shoot")
+                    Text("Start shooting")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -57,7 +64,7 @@ struct EnterIYSOModeModal: View {
                 .buttonStyle(.plain)
 
                 Button(action: onCancel) {
-                    Text("Not now")
+                    Text("Take me back to memory card")
                         .font(.system(size: 17, weight: .regular))
                         .foregroundColor(Color(white: 0.75))
                         .frame(maxWidth: .infinity)

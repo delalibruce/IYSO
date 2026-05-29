@@ -31,13 +31,7 @@ class CameraManager: NSObject, ObservableObject {
         case .authorized:
             sessionQueue.async { self.configureIfNeededAndStart() }
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { granted in
-                guard granted else {
-                    print("[Digicam] Camera permission denied")
-                    return
-                }
-                self.sessionQueue.async { self.configureIfNeededAndStart() }
-            }
+            print("[Digicam] Camera permission not yet granted — request during onboarding")
         default:
             print("[Digicam] Camera access not available")
         }

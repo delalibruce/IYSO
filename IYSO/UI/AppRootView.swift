@@ -91,11 +91,17 @@ struct AppRootView: View {
                 if shouldShowLoadingAfterInactivity() {
                     presentLaunchLoading()
                 }
-                if hasCompletedOnboarding, appState.isIYSOMode {
-                    IYSOStateManager.shared.enterIYSOMode()
+                if hasCompletedOnboarding {
+                    handleReturnToCameraIfNeeded()
+                    if appState.isIYSOMode {
+                        IYSOStateManager.shared.enterIYSOMode()
+                    }
                 }
             case .inactive, .background:
                 lastBackgroundedAtTimestamp = Date().timeIntervalSince1970
+                if hasCompletedOnboarding, appState.isIYSOMode {
+                    appBlocking.reinforceShieldsIfNeeded()
+                }
             @unknown default:
                 break
             }
@@ -104,16 +110,22 @@ struct AppRootView: View {
             syncCameraSession()
         }
         .onOpenURL { url in
+            if handleIYSOURL(url) { return }
             handleUniversalLink(url)
         }
         .task {
             await appBlocking.requestAuthorizationIfNeeded()
+            IYSOReturnNotificationCenter.requestPermissionIfNeeded()
         }
     }
 
     // MARK: - Camera session
 
     private func syncCameraSession() {
+        guard hasCompletedOnboarding else {
+            camera.stopSession()
+            return
+        }
         if appState.activeTab == .camera {
             camera.startSession()
         } else {
@@ -241,10 +253,7 @@ struct AppRootView: View {
             appState.activeTab = .camera
             appState.isIYSOMode = true
         }
-        Task {
-            await appBlocking.requestAuthorizationIfNeeded()
-            IYSOStateManager.shared.enterIYSOMode()
-        }
+        IYSOStateManager.shared.enterIYSOMode()
     }
 
     private func exitIYSOMode() {
@@ -261,11 +270,28 @@ struct AppRootView: View {
         appState.showExitIYSOModal = false
         appState.activeTab = .camera
         appState.isIYSOMode = true
-        Task {
-            await appBlocking.requestAuthorizationIfNeeded()
+        IYSOStateManager.shared.enterIYSOMode()
+        syncCameraSession()
+    }
+
+    private func handleReturnToCameraIfNeeded() {
+        guard appBlocking.consumeOpenCameraRequest() else { return }
+        if !appState.isIYSOMode {
+            enterIYSOMode()
+        } else {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                appState.activeTab = .camera
+            }
             IYSOStateManager.shared.enterIYSOMode()
         }
-        syncCameraSession()
+    }
+
+    @discardableResult
+    private func handleIYSOURL(_ url: URL) -> Bool {
+        guard url.scheme?.lowercased() == "iyso" else { return false }
+        guard hasCompletedOnboarding else { return true }
+        enterIYSOMode()
+        return true
     }
 
     private func handleUniversalLink(_ url: URL) {

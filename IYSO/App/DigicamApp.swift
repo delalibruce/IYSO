@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 #if DEBUG
 private let showPeepholeTestScreen = false
@@ -6,8 +7,11 @@ private let showPeepholeTestScreen = false
 
 @main
 struct DigicamApp: App {
+    @UIApplicationDelegateAdaptor(IYSOAppDelegate.self) private var appDelegate
+
     init() {
         IYSOFont.registerFonts()
+        IYSOReturnNotificationCenter.requestPermissionIfNeeded()
     }
 
     var body: some Scene {

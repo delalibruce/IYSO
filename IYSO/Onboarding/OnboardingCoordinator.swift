@@ -74,7 +74,7 @@ struct OnboardingFlowView: View {
             )
 
         case .memoryModeEntry:
-            MemoryModeEntryScreen(name: name, onComplete: completeOnboarding)
+            MemoryModeEntryScreen(onComplete: completeOnboarding)
         }
     }
 

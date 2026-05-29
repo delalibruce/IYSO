@@ -22,6 +22,15 @@ struct FamilyControlsSetupPanel: View {
             #if canImport(FamilyControls)
             if AppCapabilities.usesFamilyControls {
                 chooseAppsButton
+                if let error = appBlocking.lastShieldError, appBlocking.shieldsShouldBeActive {
+                    Text(error)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(Color(red: 1, green: 0.45, blue: 0.45))
+                } else if appBlocking.selectedItemCount == 0 {
+                    Text("Pick at least one app — blocking only works for apps selected here.")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(Color(white: 0.45))
+                }
             } else {
                 Text("Family Controls are unavailable in this build.")
                     .font(.system(size: 13, weight: .regular))
@@ -81,7 +90,7 @@ struct FamilyControlsSetupPanel: View {
     private var chooseAppsButton: some View {
         Button(action: { showFamilyActivityPicker = true }) {
             HStack {
-                Text("Choose apps to shield")
+                Text("Choose apps to block")
                     .font(.system(size: compact ? 14 : 15, weight: .semibold))
                     .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
                 Spacer()

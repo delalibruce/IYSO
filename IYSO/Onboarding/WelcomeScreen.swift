@@ -12,26 +12,20 @@ struct WelcomeScreen: View {
                 Spacer()
 
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Hey \(name).")
+                    Text("\(name.lowercased()),")
                         .font(.system(size: 42, weight: .bold))
                         .foregroundColor(.white)
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Welcome to IYSO.")
-                            .font(.system(size: 20, weight: .regular))
-                            .foregroundColor(Color(white: 0.85))
-
-                        Text("Your phone. Your camera. Your moments.")
-                            .font(.system(size: 20, weight: .regular))
-                            .foregroundColor(Color(white: 0.55))
-                    }
+                    Text("Welcome to IYSO.")
+                        .font(.system(size: 20, weight: .regular))
+                        .foregroundColor(Color(white: 0.85))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 30)
 
                 Spacer()
 
-                OnboardingContinueButton(title: "go to IYSO instructions", action: onContinue)
+                OnboardingContinueButton(title: "let's get started.", action: onContinue)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 48)
             }
