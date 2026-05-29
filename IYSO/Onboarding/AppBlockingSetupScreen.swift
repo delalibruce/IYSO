@@ -9,7 +9,6 @@ struct AppBlockingSetupScreen: View {
     let onContinue: () -> Void
     let onSkip: () -> Void
 
-    @State private var showAddMore = false
     #if canImport(FamilyControls)
     @State private var showFamilyActivityPicker = false
     #endif
@@ -25,11 +24,6 @@ struct AppBlockingSetupScreen: View {
                         blockedAppsSection
                         chooseAppsButton
                             .padding(.top, 16)
-                        if showAddMore {
-                            addMoreSection
-                        } else {
-                            addMoreToggleRow
-                        }
                     }
                     .padding(.bottom, 120)
                 }
@@ -108,7 +102,7 @@ struct AppBlockingSetupScreen: View {
             if AppCapabilities.usesFamilyControls {
                 Button(action: { showFamilyActivityPicker = true }) {
                     HStack {
-                        Text("Choose apps to block")
+                        Text("Choose more apps to block")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
                         Spacer()
@@ -198,49 +192,6 @@ struct AppBlockingSetupScreen: View {
         Divider()
             .background(Color(white: 1, opacity: 0.08))
             .padding(.leading, 24)
-    }
-
-    // MARK: - Add more toggle
-
-    private var addMoreToggleRow: some View {
-        Button(action: { withAnimation(.easeInOut(duration: 0.2)) { showAddMore = true } }) {
-            HStack {
-                Text("Are there any more apps you want to block?")
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(Color(white: 0.55))
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(white: 0.35))
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Add more section
-
-    private var addMoreSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Are there any more apps you want to block?")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color(white: 0.55))
-                Spacer()
-                Button(action: { withAnimation { showAddMore = false } }) {
-                    Image(systemName: "chevron.up")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(white: 0.35))
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 8)
-
-            chooseAppsButton
-                .padding(.bottom, 8)
-        }
     }
 
     // MARK: - Bottom
