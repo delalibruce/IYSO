@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct EnterIYSOModeModal: View {
-    @EnvironmentObject private var appBlocking: AppBlockingManager
     let onEnter: () -> Void
     let onCancel: () -> Void
 
@@ -20,9 +19,6 @@ struct EnterIYSOModeModal: View {
             }
             .ignoresSafeArea(edges: .bottom)
         }
-        .task {
-            await appBlocking.requestAuthorizationIfNeeded()
-        }
     }
 
     private var sheet: some View {
@@ -33,7 +29,7 @@ struct EnterIYSOModeModal: View {
                         .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.white)
 
-                    Text("Block your apps and stay focused on taking pictures in the moment.")
+                    Text("Stay focused on taking pictures in the moment.")
                         .font(.system(size: 15, weight: .regular))
                         .foregroundColor(Color(white: 0.6))
                         .multilineTextAlignment(.center)
@@ -41,16 +37,6 @@ struct EnterIYSOModeModal: View {
                 }
 
                 shieldAnimation
-
-                FamilyControlsSetupPanel(compact: true)
-                    .padding(.horizontal, 4)
-
-                if appBlocking.selectedItemCount == 0 {
-                    Text("Choose at least one app to block before starting.")
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundColor(Color(red: 1, green: 0.45, blue: 0.45))
-                        .multilineTextAlignment(.center)
-                }
 
                 Button(action: onEnter) {
                     Text("Start shooting")
@@ -102,7 +88,7 @@ struct EnterIYSOModeModal: View {
                 .frame(width: 108, height: 108)
                 .scaleEffect(pulseScale)
 
-            Image(systemName: "shield.lefthalf.filled")
+            Image(systemName: "camera.fill")
                 .font(.system(size: 36, weight: .light))
                 .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
         }

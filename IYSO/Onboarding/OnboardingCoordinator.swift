@@ -5,12 +5,10 @@ enum OnboardingStep: Int, CaseIterable {
     case welcome
     case explainer
     case capturePermissionSetup
-    case appBlockingSetup
     case memoryModeEntry
 }
 
 struct OnboardingFlowView: View {
-    @ObservedObject var appBlocking: AppBlockingManager
     var isLaunchLoadingComplete: Bool = true
     let onComplete: () -> Void
 
@@ -66,13 +64,6 @@ struct OnboardingFlowView: View {
         case .capturePermissionSetup:
             CapturePermissionSetupScreen(onContinue: advance)
 
-        case .appBlockingSetup:
-            AppBlockingSetupScreen(
-                appBlocking: appBlocking,
-                onContinue: advanceFromBlockingSetup,
-                onSkip: advanceFromBlockingSetup
-            )
-
         case .memoryModeEntry:
             MemoryModeEntryScreen(onComplete: completeOnboarding)
         }
@@ -90,14 +81,6 @@ struct OnboardingFlowView: View {
         guard let current = OnboardingStep(rawValue: step.rawValue),
               let previous = OnboardingStep(rawValue: current.rawValue - 1) else { return }
         step = previous
-    }
-
-    private func advanceFromBlockingSetup() {
-        advance(to: .memoryModeEntry)
-    }
-
-    private func advance(to target: OnboardingStep) {
-        step = target
     }
 
     // MARK: - Completion
