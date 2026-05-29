@@ -70,6 +70,38 @@
 		EE0006AA00000000000006AA /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = KK0001AA00000000000001AA /* ManagedSettings.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		KK0003AA00000000000003AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = HH0001AA00000000000001AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD0005AA00000000000005AA;
+			remoteInfo = IYSOShieldConfiguration;
+		};
+		KK0004AA00000000000004AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = HH0001AA00000000000001AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD0006AA00000000000006AA;
+			remoteInfo = IYSOShieldAction;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		II0001AA00000000000001AA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BB0063AA00000000000063AA /* IYSOShieldConfiguration.appex in Embed Foundation Extensions */,
+				BB0064AA00000000000064AA /* IYSOShieldAction.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		AA0001AA00000000000001AA /* DigicamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigicamApp.swift; sourceTree = "<group>"; };
 		AA0002AA00000000000002AA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -132,9 +164,9 @@
 		AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
 		AA0062AA00000000000062AA /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
 		AA0063AA00000000000063AA /* IYSOShieldConfiguration.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IYSOShieldConfiguration.entitlements; sourceTree = "<group>"; };
-		AA0064AA00000000000064AA /* ShieldConfiguration-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0064AA00000000000064AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0065AA00000000000065AA /* IYSOShieldAction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IYSOShieldAction.entitlements; sourceTree = "<group>"; };
-		AA0066AA00000000000066AA /* ShieldAction-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0066AA00000000000066AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* IYSO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IYSO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD0003AA00000000000003AA /* IYSOShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IYSOShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD0004AA00000000000004AA /* IYSOShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IYSOShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -169,44 +201,22 @@
 		};
 /* End PBXFrameworksBuildPhase section */
 
-/* Begin PBXContainerItemProxy section */
-		KK0003AA00000000000003AA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = HH0001AA00000000000001AA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = DD0005AA00000000000005AA;
-			remoteInfo = IYSOShieldConfiguration;
-		};
-		KK0004AA00000000000004AA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = HH0001AA00000000000001AA /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = DD0006AA00000000000006AA;
-			remoteInfo = IYSOShieldAction;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		II0001AA00000000000001AA /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				BB0063AA00000000000063AA /* IYSOShieldConfiguration.appex in Embed Foundation Extensions */,
-				BB0064AA00000000000064AA /* IYSOShieldAction.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXGroup section */
+		AF701EEA2FC937BF000C1C17 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				KK0002AA00000000000002AA /* ManagedSettingsUI.framework */,
+				KK0001AA00000000000001AA /* ManagedSettings.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		CC0000AA00000000000000AA = {
 			isa = PBXGroup;
 			children = (
 				CC0001AA00000000000001AA /* IYSO */,
 				CC0002AA00000000000002AA /* Products */,
+				AF701EEA2FC937BF000C1C17 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -234,35 +244,6 @@
 				DD0004AA00000000000004AA /* IYSOShieldAction.appex */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		CC0013AA00000000000013AA /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				CC0014AA00000000000014AA /* IYSOShieldConfiguration */,
-				CC0015AA00000000000015AA /* IYSOShieldAction */,
-			);
-			path = Extensions;
-			sourceTree = "<group>";
-		};
-		CC0014AA00000000000014AA /* IYSOShieldConfiguration */ = {
-			isa = PBXGroup;
-			children = (
-				AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */,
-				AA0063AA00000000000063AA /* IYSOShieldConfiguration.entitlements */,
-				AA0064AA00000000000064AA /* ShieldConfiguration-Info.plist */,
-			);
-			path = IYSOShieldConfiguration;
-			sourceTree = "<group>";
-		};
-		CC0015AA00000000000015AA /* IYSOShieldAction */ = {
-			isa = PBXGroup;
-			children = (
-				AA0062AA00000000000062AA /* ShieldActionExtension.swift */,
-				AA0065AA00000000000065AA /* IYSOShieldAction.entitlements */,
-				AA0066AA00000000000066AA /* ShieldAction-Info.plist */,
-			);
-			path = IYSOShieldAction;
 			sourceTree = "<group>";
 		};
 		CC0003AA00000000000003AA /* App */ = {
@@ -387,6 +368,35 @@
 			path = Debug;
 			sourceTree = "<group>";
 		};
+		CC0013AA00000000000013AA /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				CC0014AA00000000000014AA /* IYSOShieldConfiguration */,
+				CC0015AA00000000000015AA /* IYSOShieldAction */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		CC0014AA00000000000014AA /* IYSOShieldConfiguration */ = {
+			isa = PBXGroup;
+			children = (
+				AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */,
+				AA0063AA00000000000063AA /* IYSOShieldConfiguration.entitlements */,
+				AA0064AA00000000000064AA /* Info.plist */,
+			);
+			path = IYSOShieldConfiguration;
+			sourceTree = "<group>";
+		};
+		CC0015AA00000000000015AA /* IYSOShieldAction */ = {
+			isa = PBXGroup;
+			children = (
+				AA0062AA00000000000062AA /* ShieldActionExtension.swift */,
+				AA0065AA00000000000065AA /* IYSOShieldAction.entitlements */,
+				AA0066AA00000000000066AA /* Info.plist */,
+			);
+			path = IYSOShieldAction;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -443,19 +453,6 @@
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
-
-/* Begin PBXTargetDependency section */
-		KK0005AA00000000000005AA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = DD0005AA00000000000005AA /* IYSOShieldConfiguration */;
-			targetProxy = KK0003AA00000000000003AA /* PBXContainerItemProxy */;
-		};
-		KK0006AA00000000000006AA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = DD0006AA00000000000006AA /* IYSOShieldAction */;
-			targetProxy = KK0004AA00000000000004AA /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		HH0001AA00000000000001AA /* Project object */ = {
@@ -585,6 +582,19 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		KK0005AA00000000000005AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD0005AA00000000000005AA /* IYSOShieldConfiguration */;
+			targetProxy = KK0003AA00000000000003AA /* PBXContainerItemProxy */;
+		};
+		KK0006AA00000000000006AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD0006AA00000000000006AA /* IYSOShieldAction */;
+			targetProxy = KK0004AA00000000000004AA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		FF0001AA00000000000001AA /* Debug */ = {
@@ -756,6 +766,7 @@
 				CODE_SIGN_ENTITLEMENTS = IYSO/Extensions/IYSOShieldConfiguration/IYSOShieldConfiguration.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IYSO/Extensions/IYSOShieldConfiguration/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -805,6 +816,7 @@
 				CODE_SIGN_ENTITLEMENTS = IYSO/Extensions/IYSOShieldAction/IYSOShieldAction.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IYSO/Extensions/IYSOShieldAction/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
