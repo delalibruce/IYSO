@@ -10,6 +10,9 @@ struct AppBlockingSetupScreen: View {
     let onSkip: () -> Void
 
     @State private var showAddMore = false
+    #if canImport(FamilyControls)
+    @State private var showFamilyActivityPicker = false
+    #endif
 
     var body: some View {
         ZStack {
@@ -19,8 +22,9 @@ struct AppBlockingSetupScreen: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         headerText
-                        pickerSection
                         blockedAppsSection
+                        chooseAppsButton
+                            .padding(.top, 16)
                         if showAddMore {
                             addMoreSection
                         } else {
@@ -39,80 +43,126 @@ struct AppBlockingSetupScreen: View {
             }
             await AppIconResolver.shared.prefetch(apps: appBlocking.blockedApps)
         }
+        #if canImport(FamilyControls)
+        .familyActivityPicker(
+            isPresented: $showFamilyActivityPicker,
+            selection: Binding(
+                get: { appBlocking.familyActivitySelection },
+                set: { appBlocking.updateFamilyActivitySelection($0) }
+            )
+        )
+        #endif
     }
 
     // MARK: - Header
 
     private var headerText: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Put the distractions away")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.white)
-
-            Text("Choose apps with Screen Time below — those are greyed out and blocked while you shoot. Suggested apps are shortcuts; blocking only applies to apps you pick.")
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(Color(white: 0.55))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 24)
-        .padding(.top, 60)
-        .padding(.bottom, 28)
-    }
-
-    private var pickerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Apps to block in IYSO mode")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Color(white: 0.55))
-                .padding(.horizontal, 24)
-
-            FamilyControlsSetupPanel(showsAuthorizationStatus: true, compact: true)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
-        }
+        Text("choose apps you want to block while you shoot.")
+            .font(.system(size: 24, weight: .bold))
+            .foregroundColor(.white)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.top, 60)
+            .padding(.bottom, 28)
     }
 
     // MARK: - Blocked apps list
 
     private var blockedAppsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Suggested distractions")
+            Text("Current blocked apps")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(Color(white: 0.55))
                 .padding(.horizontal, 24)
 
-            VStack(spacing: 0) {
-                ForEach(appBlocking.blockedApps) { app in
-                    OnboardingAppRow(
-                        app: app,
-                        isEnabled: app.isEnabled,
-                        onToggle: { appBlocking.toggleApp(app) }
-                    )
-                    if app.id != appBlocking.blockedApps.last?.id || hasFamilySelectedItems {
-                        listDivider
+            if hasBlockedItems {
+                VStack(spacing: 0) {
+                    #if canImport(FamilyControls)
+                    if AppCapabilities.usesFamilyControls, appBlocking.selectedItemCount > 0 {
+                        familySelectedRows
+                    } else {
+                        defaultBlockedAppRows
                     }
+                    #else
+                    defaultBlockedAppRows
+                    #endif
                 }
-
-                #if canImport(FamilyControls)
-                if AppCapabilities.usesFamilyControls {
-                    familySelectedRows
-                }
-                #endif
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(white: 1, opacity: 0.05))
+                )
+                .padding(.horizontal, 20)
+            } else {
+                Text("No apps blocked yet.")
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(Color(white: 0.45))
+                    .padding(.horizontal, 24)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(white: 1, opacity: 0.05))
-            )
-            .padding(.horizontal, 20)
         }
     }
 
+    private var chooseAppsButton: some View {
+        #if canImport(FamilyControls)
+        Group {
+            if AppCapabilities.usesFamilyControls {
+                Button(action: { showFamilyActivityPicker = true }) {
+                    HStack {
+                        Text("Choose apps to block")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
+                        Spacer()
+                        Text(selectionSummary)
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(Color(white: 0.5))
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color(white: 1, opacity: 0.05))
+                    )
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
+            }
+        }
+        #else
+        EmptyView()
+        #endif
+    }
+
+    private var enabledDefaultApps: [BlockedApp] {
+        appBlocking.blockedApps.filter(\.isEnabled)
+    }
+
+    private var hasBlockedItems: Bool {
+        #if canImport(FamilyControls)
+        if AppCapabilities.usesFamilyControls, appBlocking.selectedItemCount > 0 {
+            return true
+        }
+        #endif
+        return !enabledDefaultApps.isEmpty
+    }
+
     #if canImport(FamilyControls)
-    private var hasFamilySelectedItems: Bool {
-        !appBlocking.familyActivitySelection.applicationTokens.isEmpty
-            || !appBlocking.familyActivitySelection.categoryTokens.isEmpty
-            || !appBlocking.familyActivitySelection.webDomainTokens.isEmpty
+    private var selectionSummary: String {
+        let screenTimeCount = appBlocking.selectedItemCount
+        if screenTimeCount > 0 {
+            return "\(screenTimeCount) selected"
+        }
+        let defaultCount = enabledDefaultApps.count
+        return defaultCount == 0 ? "None selected" : "\(defaultCount) selected"
+    }
+
+    @ViewBuilder
+    private var defaultBlockedAppRows: some View {
+        ForEach(enabledDefaultApps) { app in
+            OnboardingDefaultBlockedAppRow(app: app)
+            if app.id != enabledDefaultApps.last?.id {
+                listDivider
+            }
+        }
     }
 
     @ViewBuilder
@@ -172,9 +222,9 @@ struct AppBlockingSetupScreen: View {
     // MARK: - Add more section
 
     private var addMoreSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Choose apps to block")
+                Text("Are there any more apps you want to block?")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(Color(white: 0.55))
                 Spacer()
@@ -188,8 +238,7 @@ struct AppBlockingSetupScreen: View {
             .padding(.horizontal, 24)
             .padding(.top, 8)
 
-            FamilyControlsSetupPanel(compact: true)
-                .padding(.horizontal, 20)
+            chooseAppsButton
                 .padding(.bottom, 8)
         }
     }
@@ -219,10 +268,9 @@ struct AppBlockingSetupScreen: View {
         )
     }
 }
-private struct OnboardingAppRow: View {
+
+private struct OnboardingDefaultBlockedAppRow: View {
     let app: BlockedApp
-    let isEnabled: Bool
-    let onToggle: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
@@ -234,13 +282,12 @@ private struct OnboardingAppRow: View {
 
             Spacer()
 
-            Toggle("", isOn: Binding(get: { isEnabled }, set: { _ in onToggle() }))
-                .labelsHidden()
-                .tint(Color(red: 0.18, green: 0.55, blue: 1.0))
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 20))
+                .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .contentShape(Rectangle())
     }
 }
 
@@ -312,4 +359,3 @@ private struct OnboardingFamilyActivityRow: View {
     }
 }
 #endif
-

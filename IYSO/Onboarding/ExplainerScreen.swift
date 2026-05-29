@@ -9,6 +9,8 @@ struct ExplainerConfig {
     let ctaLabel: String
     /// When set, shows the same mode pill as the camera / memory card headers.
     let modeBadge: AppMode?
+    /// Replaces the SF Symbol with the lens-attach instructional animation.
+    let showsLensAttachAnimation: Bool
     /// Replaces the SF Symbol with the IYSO shooting-mode instructional animation.
     let showsIYSOShootingModeAnimation: Bool
     /// Replaces the SF Symbol with the exit-IYSO → memory-card instructional animation.
@@ -21,36 +23,26 @@ struct ExplainerConfig {
 
 extension ExplainerConfig {
     static let howItWorks = ExplainerConfig(
-        headline: "here's how it work",
-        body: "at iyso, we believe that moments deserve to be captured without distraction.",
+        headline: "Attach your lens to get started.",
+        body: "",
         illustrationSystemName: "camera.aperture",
-        dotIndex: 1, dotTotal: 5,
+        dotIndex: 1, dotTotal: 4,
         ctaLabel: "Next",
         modeBadge: nil,
+        showsLensAttachAnimation: true,
         showsIYSOShootingModeAnimation: false,
         showsExitIYSOAnimation: false,
         drivesModeBadgeWithExitIYSOAnimation: false,
-        showsIllustration: false
-    )
-    static let pairing = ExplainerConfig(
-        headline: "",
-        body: "pairing both the app and the lens, iyso turns your phone into a single use analog camera and shuts the rest of the world away so you can focus on capturing memories",
-        illustrationSystemName: "camera.aperture",
-        dotIndex: 2, dotTotal: 5,
-        ctaLabel: "Next",
-        modeBadge: nil,
-        showsIYSOShootingModeAnimation: false,
-        showsExitIYSOAnimation: false,
-        drivesModeBadgeWithExitIYSOAnimation: false,
-        showsIllustration: false
+        showsIllustration: true
     )
     static let twoModes = ExplainerConfig(
-        headline: "iyso has two modes",
+        headline: "IYSO has two modes.",
         body: "",
         illustrationSystemName: "square.grid.2x2",
-        dotIndex: 3, dotTotal: 5,
+        dotIndex: 2, dotTotal: 4,
         ctaLabel: "Next",
         modeBadge: nil,
+        showsLensAttachAnimation: false,
         showsIYSOShootingModeAnimation: false,
         showsExitIYSOAnimation: false,
         drivesModeBadgeWithExitIYSOAnimation: false,
@@ -58,23 +50,25 @@ extension ExplainerConfig {
     )
     static let iysoMode = ExplainerConfig(
         headline: "1. IYSO mode",
-        body: "When you're in IYSO mode, apps you've selected as distractions are blocked so you can stay in the moment. It's just you, the camera, and the messy shot",
+        body: "when you're in IYSO mode, apps you've selected as distractions are blocked so you can stay in the moment. It's just you, the camera, and the messy shot.",
         illustrationSystemName: "camera.fill",
-        dotIndex: 4, dotTotal: 5,
+        dotIndex: 3, dotTotal: 4,
         ctaLabel: "Next",
         modeBadge: .iyso,
+        showsLensAttachAnimation: false,
         showsIYSOShootingModeAnimation: true,
         showsExitIYSOAnimation: false,
         drivesModeBadgeWithExitIYSOAnimation: false,
         showsIllustration: true
     )
     static let memoryMode = ExplainerConfig(
-        headline: "2) Memory Mode",
-        body: "when you're done capturing memories, tap \"Exit IYSO Mode\" to unlock your memory card and view your photos",
+        headline: "2. Memory Mode",
+        body: "when you're done capturing memories, tap \"Exit IYSO Mode\" to unlock your memory card and view your photos.",
         illustrationSystemName: "photo.stack.fill",
-        dotIndex: 5, dotTotal: 5,
-        ctaLabel: "let's get set up.",
+        dotIndex: 4, dotTotal: 4,
+        ctaLabel: "let's finish setting up.",
         modeBadge: .memory,
+        showsLensAttachAnimation: false,
         showsIYSOShootingModeAnimation: false,
         showsExitIYSOAnimation: true,
         drivesModeBadgeWithExitIYSOAnimation: true,
@@ -88,7 +82,7 @@ struct ExplainerFlowView: View {
 
     @State private var page = 0
 
-    private static let configs: [ExplainerConfig] = [.howItWorks, .pairing, .twoModes, .iysoMode, .memoryMode]
+    private static let configs: [ExplainerConfig] = [.howItWorks, .twoModes, .iysoMode, .memoryMode]
 
     private var currentConfig: ExplainerConfig {
         Self.configs[page]
@@ -176,7 +170,8 @@ struct ExplainerScreen: View {
                         if let mode = config.modeBadge {
                             ModeBadge(
                                 mode: mode,
-                                isIndicatorActive: config.drivesModeBadgeWithExitIYSOAnimation
+                                isIndicatorActive: (config.showsLensAttachAnimation
+                                    || config.drivesModeBadgeWithExitIYSOAnimation)
                                     ? isModeIndicatorActive
                                     : true
                             )
@@ -218,7 +213,9 @@ struct ExplainerScreen: View {
                     .frame(width: illustrationSize, height: illustrationSize)
             }
 
-            if config.showsIYSOShootingModeAnimation {
+            if config.showsLensAttachAnimation {
+                LensAttachAnimationView(isConnected: $isModeIndicatorActive)
+            } else if config.showsIYSOShootingModeAnimation {
                 IYSOShootingModeAnimationView()
             } else if config.showsExitIYSOAnimation {
                 ExitIYSOModeAnimationView(isMemoryUnlocked: $isModeIndicatorActive)
@@ -229,5 +226,10 @@ struct ExplainerScreen: View {
             }
         }
         .frame(width: illustrationSize, height: illustrationSize)
+        .onChange(of: config.showsLensAttachAnimation) { showsAnimation in
+            if !showsAnimation {
+                isModeIndicatorActive = false
+            }
+        }
     }
 }

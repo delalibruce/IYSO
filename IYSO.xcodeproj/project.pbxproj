@@ -65,6 +65,7 @@
 		BB0062AA00000000000062AA /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0062AA00000000000062AA /* ShieldActionExtension.swift */; };
 		BB0063AA00000000000063AA /* IYSOShieldConfiguration.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DD0003AA00000000000003AA /* IYSOShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB0064AA00000000000064AA /* IYSOShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DD0004AA00000000000004AA /* IYSOShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BB0067AA00000000000067AA /* LensAttachAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0067AA00000000000067AA /* LensAttachAnimationView.swift */; };
 		EE0004AA00000000000004AA /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = KK0002AA00000000000002AA /* ManagedSettingsUI.framework */; };
 		EE0005AA00000000000005AA /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = KK0001AA00000000000001AA /* ManagedSettings.framework */; };
 		EE0006AA00000000000006AA /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = KK0001AA00000000000001AA /* ManagedSettings.framework */; };
@@ -167,6 +168,7 @@
 		AA0064AA00000000000064AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0065AA00000000000065AA /* IYSOShieldAction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IYSOShieldAction.entitlements; sourceTree = "<group>"; };
 		AA0066AA00000000000066AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0067AA00000000000067AA /* LensAttachAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensAttachAnimationView.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* IYSO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IYSO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD0003AA00000000000003AA /* IYSOShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IYSOShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD0004AA00000000000004AA /* IYSOShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IYSOShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -342,6 +344,7 @@
 				AA0034AA00000000000034AA /* WelcomeScreen.swift */,
 				AA0035AA00000000000035AA /* ExplainerScreen.swift */,
 				AA004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift */,
+				AA0067AA00000000000067AA /* LensAttachAnimationView.swift */,
 				AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */,
 				AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */,
 				AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */,
@@ -547,6 +550,7 @@
 				BB0034AA00000000000034AA /* WelcomeScreen.swift in Sources */,
 				BB0035AA00000000000035AA /* ExplainerScreen.swift in Sources */,
 				BB004CAA0000000000004CAA /* IYSOShootingModeAnimationView.swift in Sources */,
+				BB0067AA00000000000067AA /* LensAttachAnimationView.swift in Sources */,
 				BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */,
 				BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */,
 				BB0044AA00000000000044AA /* CapturePermissionSetupScreen.swift in Sources */,

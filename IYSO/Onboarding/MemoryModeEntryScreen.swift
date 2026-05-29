@@ -15,7 +15,7 @@ struct MemoryModeEntryScreen: View {
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
 
-                    Text("You're ready to shoot.")
+                    Text("you're ready to shoot")
                         .font(.system(size: 18, weight: .regular))
                         .foregroundColor(Color(white: 0.75))
                 }
