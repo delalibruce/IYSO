@@ -51,6 +51,7 @@ struct AppRootView: View {
                     library.requestAccessAndLoad()
                     openInDefaultCameraMode()
                 }
+                .environmentObject(appBlocking)
                 .transition(.opacity)
                 .zIndex(1000)
             }
