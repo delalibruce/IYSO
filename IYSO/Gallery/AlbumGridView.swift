@@ -259,8 +259,10 @@ private struct AlbumEditorSheetItem: Identifiable {
 
 struct GalleryRootView: View {
     @ObservedObject var library: PhotoLibraryManager
+    @EnvironmentObject private var appBlocking: AppBlockingManager
 
     @State private var navigationPath: [GalleryNav] = []
+    @State private var isSettingsPresented = false
 
     private static let albumDragThreshold: CGFloat = 25
 
@@ -372,6 +374,10 @@ struct GalleryRootView: View {
         .sheet(item: $shareSheetPayload) { payload in
             ShareSheet(items: payload.items)
         }
+        .sheet(isPresented: $isSettingsPresented) {
+            SettingsView()
+                .environmentObject(appBlocking)
+        }
     }
 
     // MARK: - Album grid
@@ -412,13 +418,23 @@ struct GalleryRootView: View {
                     topPadding: topPadding,
                     mode: .memory,
                     trailing: {
-                        Button(action: { navigationPath.append(.search) }) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 20, weight: .regular))
-                                .foregroundColor(.white)
-                                .frame(width: 36, height: 36)
+                        HStack(spacing: 4) {
+                            Button(action: { isSettingsPresented = true }) {
+                                Image(systemName: "shield.lefthalf.filled")
+                                    .font(.system(size: 18, weight: .regular))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                            }
+                            .accessibilityLabel("Focus Lock settings")
+
+                            Button(action: { navigationPath.append(.search) }) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 20, weight: .regular))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                            }
+                            .accessibilityLabel("Search")
                         }
-                        .accessibilityLabel("Search")
                     }
                 )
             }

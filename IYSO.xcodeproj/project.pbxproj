@@ -29,12 +29,16 @@
 		BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */; };
 		BB0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */; };
 		BB0023AA00000000000023AA /* PhotoGridFrameKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0023AA00000000000023AA /* PhotoGridFrameKey.swift */; };
+		BB0025AA00000000000025AA /* BlockedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0025AA00000000000025AA /* BlockedApp.swift */; };
+		BB0026AA00000000000026AA /* AppBlockingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0026AA00000000000026AA /* AppBlockingManager.swift */; };
+		BB0027AA00000000000027AA /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0027AA00000000000027AA /* SettingsView.swift */; };
 		BB0028AA00000000000028AA /* ModeBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0028AA00000000000028AA /* ModeBadge.swift */; };
 		BB0031AA00000000000031AA /* ExitIYSOModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0031AA00000000000031AA /* ExitIYSOModal.swift */; };
 		BB0032AA00000000000032AA /* OnboardingProgressDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0032AA00000000000032AA /* OnboardingProgressDots.swift */; };
 		BB0033AA00000000000033AA /* NameEntryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0033AA00000000000033AA /* NameEntryScreen.swift */; };
 		BB0034AA00000000000034AA /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0034AA00000000000034AA /* WelcomeScreen.swift */; };
 		BB0035AA00000000000035AA /* ExplainerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0035AA00000000000035AA /* ExplainerScreen.swift */; };
+		BB0036AA00000000000036AA /* AppBlockingSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */; };
 		BB0039AA00000000000039AA /* MemoryModeEntryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */; };
 		BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0040AA00000000000040AA /* OnboardingCoordinator.swift */; };
 		BB0042AA00000000000042AA /* AppCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0042AA00000000000042AA /* AppCapabilities.swift */; };
@@ -51,10 +55,53 @@
 		BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */; };
 		BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0050AA00000000000050AA /* DebugOverrides.swift */; };
 		BB0051AA00000000000051AA /* PhotoFileNameEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */; };
+		BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0052AA00000000000052AA /* BlockedAppIconView.swift */; };
 		BB0056AA00000000000056AA /* IYSOStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0056AA00000000000056AA /* IYSOStateManager.swift */; };
+		BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */; };
 		BB0058AA00000000000058AA /* EnterIYSOModeModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0058AA00000000000058AA /* EnterIYSOModeModal.swift */; };
+		BB0059AA00000000000059AA /* FamilyControlsSetupPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */; };
+		BB0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift */; };
+		BB0061AA00000000000061AA /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */; };
+		BB0062AA00000000000062AA /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0062AA00000000000062AA /* ShieldActionExtension.swift */; };
+		BB0063AA00000000000063AA /* IYSOShieldConfiguration.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DD0003AA00000000000003AA /* IYSOShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BB0064AA00000000000064AA /* IYSOShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DD0004AA00000000000004AA /* IYSOShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB0067AA00000000000067AA /* LensAttachAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0067AA00000000000067AA /* LensAttachAnimationView.swift */; };
+		EE0004AA00000000000004AA /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = KK0002AA00000000000002AA /* ManagedSettingsUI.framework */; };
+		EE0005AA00000000000005AA /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = KK0001AA00000000000001AA /* ManagedSettings.framework */; };
+		EE0006AA00000000000006AA /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = KK0001AA00000000000001AA /* ManagedSettings.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		KK0003AA00000000000003AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = HH0001AA00000000000001AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD0005AA00000000000005AA;
+			remoteInfo = IYSOShieldConfiguration;
+		};
+		KK0004AA00000000000004AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = HH0001AA00000000000001AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD0006AA00000000000006AA;
+			remoteInfo = IYSOShieldAction;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		II0001AA00000000000001AA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BB0063AA00000000000063AA /* IYSOShieldConfiguration.appex in Embed Foundation Extensions */,
+				BB0064AA00000000000064AA /* IYSOShieldAction.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		AA0001AA00000000000001AA /* DigicamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigicamApp.swift; sourceTree = "<group>"; };
@@ -80,12 +127,16 @@
 		AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeLensOverlay.swift; sourceTree = "<group>"; };
 		AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeepholeAlbumCoverTestView.swift; sourceTree = "<group>"; };
 		AA0023AA00000000000023AA /* PhotoGridFrameKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGridFrameKey.swift; sourceTree = "<group>"; };
+		AA0025AA00000000000025AA /* BlockedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedApp.swift; sourceTree = "<group>"; };
+		AA0026AA00000000000026AA /* AppBlockingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingManager.swift; sourceTree = "<group>"; };
+		AA0027AA00000000000027AA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA0028AA00000000000028AA /* ModeBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeBadge.swift; sourceTree = "<group>"; };
 		AA0031AA00000000000031AA /* ExitIYSOModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModal.swift; sourceTree = "<group>"; };
 		AA0032AA00000000000032AA /* OnboardingProgressDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProgressDots.swift; sourceTree = "<group>"; };
 		AA0033AA00000000000033AA /* NameEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameEntryScreen.swift; sourceTree = "<group>"; };
 		AA0034AA00000000000034AA /* WelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeScreen.swift; sourceTree = "<group>"; };
 		AA0035AA00000000000035AA /* ExplainerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplainerScreen.swift; sourceTree = "<group>"; };
+		AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingSetupScreen.swift; sourceTree = "<group>"; };
 		AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryModeEntryScreen.swift; sourceTree = "<group>"; };
 		AA0040AA00000000000040AA /* OnboardingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinator.swift; sourceTree = "<group>"; };
 		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
@@ -103,12 +154,26 @@
 		AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitIYSOModeAnimationView.swift; sourceTree = "<group>"; };
 		AA0050AA00000000000050AA /* DebugOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverrides.swift; sourceTree = "<group>"; };
 		AA0051AA00000000000051AA /* PhotoFileNameEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoFileNameEditView.swift; sourceTree = "<group>"; };
+		AA0052AA00000000000052AA /* BlockedAppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedAppIconView.swift; sourceTree = "<group>"; };
 		AA0053AA00000000000053AA /* Digicam.entitlements.dev */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.dev; sourceTree = "<group>"; };
 		AA0054AA00000000000054AA /* Digicam.entitlements.production */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements.production; sourceTree = "<group>"; };
 		AA0056AA00000000000056AA /* IYSOStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOStateManager.swift; sourceTree = "<group>"; };
+		AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingSettingsView.swift; sourceTree = "<group>"; };
 		AA0058AA00000000000058AA /* EnterIYSOModeModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterIYSOModeModal.swift; sourceTree = "<group>"; };
+		AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyControlsSetupPanel.swift; sourceTree = "<group>"; };
+		AA0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOReturnNotificationCenter.swift; sourceTree = "<group>"; };
+		AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
+		AA0062AA00000000000062AA /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
+		AA0063AA00000000000063AA /* IYSOShieldConfiguration.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IYSOShieldConfiguration.entitlements; sourceTree = "<group>"; };
+		AA0064AA00000000000064AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA0065AA00000000000065AA /* IYSOShieldAction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IYSOShieldAction.entitlements; sourceTree = "<group>"; };
+		AA0066AA00000000000066AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA0067AA00000000000067AA /* LensAttachAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LensAttachAnimationView.swift; sourceTree = "<group>"; };
 		DD0002AA00000000000002AA /* IYSO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IYSO.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD0003AA00000000000003AA /* IYSOShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IYSOShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD0004AA00000000000004AA /* IYSOShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IYSOShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		KK0001AA00000000000001AA /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
+		KK0002AA00000000000002AA /* ManagedSettingsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettingsUI.framework; path = System/Library/Frameworks/ManagedSettingsUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,14 +184,41 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE0007AA00000000000007AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE0004AA00000000000004AA /* ManagedSettingsUI.framework in Frameworks */,
+				EE0005AA00000000000005AA /* ManagedSettings.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE0008AA00000000000008AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE0006AA00000000000006AA /* ManagedSettings.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AF701EEA2FC937BF000C1C17 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				KK0002AA00000000000002AA /* ManagedSettingsUI.framework */,
+				KK0001AA00000000000001AA /* ManagedSettings.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		CC0000AA00000000000000AA = {
 			isa = PBXGroup;
 			children = (
 				CC0001AA00000000000001AA /* IYSO */,
 				CC0002AA00000000000002AA /* Products */,
+				AF701EEA2FC937BF000C1C17 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -136,8 +228,10 @@
 				CC0003AA00000000000003AA /* App */,
 				CC0004AA00000000000004AA /* Camera */,
 				CC0012AA00000000000012AA /* Debug */,
+				CC0013AA00000000000013AA /* Extensions */,
 				CC0005AA00000000000005AA /* UI */,
 				CC0007AA00000000000007AA /* Gallery */,
+				CC0009AA00000000000009AA /* Settings */,
 				CC0010AA00000000000010AA /* Onboarding */,
 				CC0006AA00000000000006AA /* Resources */,
 			);
@@ -148,6 +242,8 @@
 			isa = PBXGroup;
 			children = (
 				DD0002AA00000000000002AA /* IYSO.app */,
+				DD0003AA00000000000003AA /* IYSOShieldConfiguration.appex */,
+				DD0004AA00000000000004AA /* IYSOShieldAction.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -158,6 +254,7 @@
 				AA0001AA00000000000001AA /* DigicamApp.swift */,
 				AA0042AA00000000000042AA /* AppCapabilities.swift */,
 				AA0056AA00000000000056AA /* IYSOStateManager.swift */,
+				AA0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift */,
 				AA0006AA00000000000006AA /* Info.plist */,
 				AA0041AA00000000000041AA /* Digicam.entitlements */,
 				AA0053AA00000000000053AA /* Digicam.entitlements.dev */,
@@ -194,6 +291,7 @@
 				AA0020AA00000000000020AA /* PeepholeAlbumCover.swift */,
 				AA0021AA00000000000021AA /* PeepholeLensOverlay.swift */,
 				AA0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift */,
+				AA0052AA00000000000052AA /* BlockedAppIconView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -224,6 +322,18 @@
 			path = Gallery;
 			sourceTree = "<group>";
 		};
+		CC0009AA00000000000009AA /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				AA0025AA00000000000025AA /* BlockedApp.swift */,
+				AA0026AA00000000000026AA /* AppBlockingManager.swift */,
+				AA0027AA00000000000027AA /* SettingsView.swift */,
+				AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */,
+				AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		CC0010AA00000000000010AA /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
@@ -237,6 +347,7 @@
 				AA0067AA00000000000067AA /* LensAttachAnimationView.swift */,
 				AA004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift */,
 				AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */,
+				AA0036AA00000000000036AA /* AppBlockingSetupScreen.swift */,
 				AA0039AA00000000000039AA /* MemoryModeEntryScreen.swift */,
 				AA0040AA00000000000040AA /* OnboardingCoordinator.swift */,
 			);
@@ -260,6 +371,35 @@
 			path = Debug;
 			sourceTree = "<group>";
 		};
+		CC0013AA00000000000013AA /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				CC0014AA00000000000014AA /* IYSOShieldConfiguration */,
+				CC0015AA00000000000015AA /* IYSOShieldAction */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		CC0014AA00000000000014AA /* IYSOShieldConfiguration */ = {
+			isa = PBXGroup;
+			children = (
+				AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */,
+				AA0063AA00000000000063AA /* IYSOShieldConfiguration.entitlements */,
+				AA0064AA00000000000064AA /* Info.plist */,
+			);
+			path = IYSOShieldConfiguration;
+			sourceTree = "<group>";
+		};
+		CC0015AA00000000000015AA /* IYSOShieldAction */ = {
+			isa = PBXGroup;
+			children = (
+				AA0062AA00000000000062AA /* ShieldActionExtension.swift */,
+				AA0065AA00000000000065AA /* IYSOShieldAction.entitlements */,
+				AA0066AA00000000000066AA /* Info.plist */,
+			);
+			path = IYSOShieldAction;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -270,15 +410,50 @@
 				EE0001AA00000000000001AA /* Sources */,
 				EE0002AA00000000000002AA /* Resources */,
 				EE0003AA00000000000003AA /* Frameworks */,
+				II0001AA00000000000001AA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				KK0005AA00000000000005AA /* PBXTargetDependency */,
+				KK0006AA00000000000006AA /* PBXTargetDependency */,
 			);
 			name = IYSO;
 			productName = IYSO;
 			productReference = DD0002AA00000000000002AA /* IYSO.app */;
 			productType = "com.apple.product-type.application";
+		};
+		DD0005AA00000000000005AA /* IYSOShieldConfiguration */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = GG0003AA00000000000003AA /* Build configuration list for PBXNativeTarget "IYSOShieldConfiguration" */;
+			buildPhases = (
+				EE0009AA00000000000009AA /* Sources */,
+				EE0007AA00000000000007AA /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IYSOShieldConfiguration;
+			productName = IYSOShieldConfiguration;
+			productReference = DD0003AA00000000000003AA /* IYSOShieldConfiguration.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		DD0006AA00000000000006AA /* IYSOShieldAction */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = GG0004AA00000000000004AA /* Build configuration list for PBXNativeTarget "IYSOShieldAction" */;
+			buildPhases = (
+				EE0010AA00000000000010AA /* Sources */,
+				EE0008AA00000000000008AA /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IYSOShieldAction;
+			productName = IYSOShieldAction;
+			productReference = DD0004AA00000000000004AA /* IYSOShieldAction.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -291,6 +466,12 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					DD0001AA00000000000001AA = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					DD0005AA00000000000005AA = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					DD0006AA00000000000006AA = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
@@ -309,6 +490,8 @@
 			projectRoot = "";
 			targets = (
 				DD0001AA00000000000001AA /* IYSO */,
+				DD0005AA00000000000005AA /* IYSOShieldConfiguration */,
+				DD0006AA00000000000006AA /* IYSOShieldAction */,
 			);
 		};
 /* End PBXProject section */
@@ -340,6 +523,7 @@
 				BB0008AA00000000000008AA /* GalleryView.swift in Sources */,
 				BB0009AA00000000000009AA /* AppRootView.swift in Sources */,
 				BB0050AA00000000000050AA /* DebugOverrides.swift in Sources */,
+				BB0052AA00000000000052AA /* BlockedAppIconView.swift in Sources */,
 				BB0010AA00000000000010AA /* BottomToggle.swift in Sources */,
 				BB0011AA00000000000011AA /* PhotoLibraryManager.swift in Sources */,
 				BB0012AA00000000000012AA /* AlbumGridView.swift in Sources */,
@@ -355,6 +539,9 @@
 				BB0020AA00000000000020AA /* PeepholeAlbumCover.swift in Sources */,
 				BB0021AA00000000000021AA /* PeepholeLensOverlay.swift in Sources */,
 				BB0022AA00000000000022AA /* PeepholeAlbumCoverTestView.swift in Sources */,
+				BB0025AA00000000000025AA /* BlockedApp.swift in Sources */,
+				BB0026AA00000000000026AA /* AppBlockingManager.swift in Sources */,
+				BB0027AA00000000000027AA /* SettingsView.swift in Sources */,
 				BB0028AA00000000000028AA /* ModeBadge.swift in Sources */,
 				BB0058AA00000000000058AA /* EnterIYSOModeModal.swift in Sources */,
 				BB0031AA00000000000031AA /* ExitIYSOModal.swift in Sources */,
@@ -367,6 +554,7 @@
 				BB004DAA0000000000004DAA /* ExitIYSOModeButton.swift in Sources */,
 				BB004EAA0000000000004EAA /* ExitIYSOModeAnimationView.swift in Sources */,
 				BB0044AA00000000000044AA /* CapturePermissionSetupScreen.swift in Sources */,
+				BB0036AA00000000000036AA /* AppBlockingSetupScreen.swift in Sources */,
 				BB0039AA00000000000039AA /* MemoryModeEntryScreen.swift in Sources */,
 				BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */,
 				BB0043AA00000000000043AA /* IYSOLoadingScreen.swift in Sources */,
@@ -375,10 +563,42 @@
 				BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */,
 				BB004AAA0000000000004AAA /* OnboardingBackButton.swift in Sources */,
 				BB0056AA00000000000056AA /* IYSOStateManager.swift in Sources */,
+				BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */,
+				BB0059AA00000000000059AA /* FamilyControlsSetupPanel.swift in Sources */,
+				BB0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE0009AA00000000000009AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB0061AA00000000000061AA /* ShieldConfigurationExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE0010AA00000000000010AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB0062AA00000000000062AA /* ShieldActionExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		KK0005AA00000000000005AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD0005AA00000000000005AA /* IYSOShieldConfiguration */;
+			targetProxy = KK0003AA00000000000003AA /* PBXContainerItemProxy */;
+		};
+		KK0006AA00000000000006AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD0006AA00000000000006AA /* IYSOShieldAction */;
+			targetProxy = KK0004AA00000000000004AA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		FF0001AA00000000000001AA /* Debug */ = {
@@ -544,6 +764,106 @@
 			};
 			name = Release;
 		};
+		FF0005AA00000000000005AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IYSO/Extensions/IYSOShieldConfiguration/IYSOShieldConfiguration.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IYSO/Extensions/IYSOShieldConfiguration/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.iyso.dev.shieldconfiguration;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		FF0006AA00000000000006AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IYSO/Extensions/IYSOShieldConfiguration/IYSOShieldConfiguration.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IYSO/Extensions/IYSOShieldConfiguration/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.iyso.shieldconfiguration;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		FF0007AA00000000000007AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IYSO/Extensions/IYSOShieldAction/IYSOShieldAction.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IYSO/Extensions/IYSOShieldAction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.iyso.dev.shieldaction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		FF0008AA00000000000008AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IYSO/Extensions/IYSOShieldAction/IYSOShieldAction.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = T73K2F5HAL;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = IYSO/Extensions/IYSOShieldAction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.iyso.shieldaction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -561,6 +881,24 @@
 			buildConfigurations = (
 				FF0003AA00000000000003AA /* Debug */,
 				FF0004AA00000000000004AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		GG0003AA00000000000003AA /* Build configuration list for PBXNativeTarget "IYSOShieldConfiguration" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF0005AA00000000000005AA /* Debug */,
+				FF0006AA00000000000006AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		GG0004AA00000000000004AA /* Build configuration list for PBXNativeTarget "IYSOShieldAction" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF0007AA00000000000007AA /* Debug */,
+				FF0008AA00000000000008AA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

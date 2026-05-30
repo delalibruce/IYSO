@@ -19,6 +19,7 @@ struct AppRootView: View {
     @StateObject private var camera = CameraManager()
     @StateObject private var library = PhotoLibraryManager()
     @StateObject private var appState = AppState()
+    @ObservedObject private var appBlocking = AppBlockingManager.shared
     @Environment(\.scenePhase) private var scenePhase
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -43,12 +44,14 @@ struct AppRootView: View {
 
             if !hasCompletedOnboarding {
                 OnboardingFlowView(
+                    appBlocking: appBlocking,
                     isLaunchLoadingComplete: !isShowingLaunchLoading
                 ) {
                     hasCompletedOnboarding = true
                     library.requestAccessAndLoad()
                     openInDefaultCameraMode()
                 }
+                .environmentObject(appBlocking)
                 .transition(.opacity)
                 .zIndex(1000)
             }
@@ -88,11 +91,17 @@ struct AppRootView: View {
                 if shouldShowLoadingAfterInactivity() {
                     presentLaunchLoading()
                 }
-                if hasCompletedOnboarding, appState.isIYSOMode {
-                    IYSOStateManager.shared.enterIYSOMode()
+                if hasCompletedOnboarding {
+                    handleReturnToCameraIfNeeded()
+                    if appState.isIYSOMode {
+                        IYSOStateManager.shared.enterIYSOMode()
+                    }
                 }
             case .inactive, .background:
                 lastBackgroundedAtTimestamp = Date().timeIntervalSince1970
+                if hasCompletedOnboarding, appState.isIYSOMode {
+                    appBlocking.reinforceShieldsIfNeeded()
+                }
             @unknown default:
                 break
             }
@@ -103,6 +112,10 @@ struct AppRootView: View {
         .onOpenURL { url in
             if handleIYSOURL(url) { return }
             handleUniversalLink(url)
+        }
+        .task {
+            await appBlocking.requestAuthorizationIfNeeded()
+            IYSOReturnNotificationCenter.requestPermissionIfNeeded()
         }
     }
 
@@ -213,6 +226,7 @@ struct AppRootView: View {
         .statusBarHidden(true)
         .persistentSystemOverlays(.hidden)
         .environmentObject(appState)
+        .environmentObject(appBlocking)
     }
 
     // MARK: - Mode transitions
@@ -258,6 +272,18 @@ struct AppRootView: View {
         appState.isIYSOMode = true
         IYSOStateManager.shared.enterIYSOMode()
         syncCameraSession()
+    }
+
+    private func handleReturnToCameraIfNeeded() {
+        guard appBlocking.consumeOpenCameraRequest() else { return }
+        if !appState.isIYSOMode {
+            enterIYSOMode()
+        } else {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                appState.activeTab = .camera
+            }
+            IYSOStateManager.shared.enterIYSOMode()
+        }
     }
 
     @discardableResult
