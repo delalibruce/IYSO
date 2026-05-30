@@ -35,7 +35,7 @@ struct OnboardingContinueButton: View {
     }
 
     private var horizontalPadding: CGFloat {
-        layout == .compact ? 12 : 0
+        layout == .compact ? 8 : 0
     }
 
     var body: some View {
@@ -66,6 +66,8 @@ struct OnboardingContinueButton: View {
             Text(title)
                 .font(IYSOFont.inter(size: labelFontSize))
                 .foregroundColor(labelIsActive ? IYSOGlassPalette.labelActive : IYSOGlassPalette.labelInactive)
+                .lineLimit(layout == .compact ? 1 : nil)
+                .minimumScaleFactor(layout == .compact ? 0.75 : 1)
         }
     }
 

@@ -122,7 +122,7 @@ struct CapturePermissionSetupScreen: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
-        .padding(.top, 44)
+        .padding(.top, 28)
         .padding(.bottom, 20)
     }
 
@@ -306,8 +306,9 @@ private struct CapturePermissionRow: View {
     private static let cardPadding: CGFloat = 16
     private static let iconSize: CGFloat = 44
     private static let iconToTextSpacing: CGFloat = 12
-    /// Shared width for enable, enabled, and denied controls across all cards.
-    private static let actionControlWidth: CGFloat = 158
+    /// Shared size for enable, enabled, and denied controls across all cards.
+    private static let actionControlWidth: CGFloat = 108
+    private static let actionControlHeight: CGFloat = 36
 
     let title: String
     let subtitle: String
@@ -332,7 +333,7 @@ private struct CapturePermissionRow: View {
                 Text(title)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(1)
 
                 Text(subtitle)
                     .font(.system(size: 14, weight: .regular))
@@ -343,7 +344,11 @@ private struct CapturePermissionRow: View {
             .layoutPriority(1)
 
             actionControl
-                .frame(width: Self.actionControlWidth, alignment: .trailing)
+                .frame(
+                    width: Self.actionControlWidth,
+                    height: Self.actionControlHeight,
+                    alignment: .center
+                )
         }
         .padding(Self.cardPadding)
         .background(
@@ -371,7 +376,7 @@ private struct CapturePermissionRow: View {
             showsLoading: isLoading,
             action: onEnable
         )
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var enabledBadge: some View {
@@ -382,8 +387,7 @@ private struct CapturePermissionRow: View {
                 .font(.system(size: 13, weight: .semibold))
         }
         .foregroundColor(Color(red: 0.45, green: 0.85, blue: 0.55))
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color(red: 0.2, green: 0.45, blue: 0.28, opacity: 0.35))
@@ -397,6 +401,6 @@ private struct CapturePermissionRow: View {
             layout: .compact,
             action: onEnable
         )
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

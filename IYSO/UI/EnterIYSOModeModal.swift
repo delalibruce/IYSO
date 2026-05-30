@@ -42,7 +42,7 @@ struct EnterIYSOModeModal: View {
 
                 shieldAnimation
 
-                BlockedAppsSelectionPanel()
+                BlockedAppsSelectionPanel(showsCurrentBlockedApps: false)
                     .padding(.horizontal, 4)
 
                 if appBlocking.selectedItemCount == 0 {

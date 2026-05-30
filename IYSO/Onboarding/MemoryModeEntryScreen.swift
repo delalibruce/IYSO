@@ -5,11 +5,6 @@ struct MemoryModeEntryScreen: View {
 
     private let iysoModeFontSize: CGFloat = 58
     private let iysoModeLetterSpacingPercent: CGFloat = 8
-    private let iysoModeGrowDuration: TimeInterval = 5.2
-    private let iysoModeScaleAtStart: CGFloat = 0.58
-
-    @State private var iysoModeScale: CGFloat = 0.58
-    @State private var iysoModeOpacity: Double = 0.72
 
     var body: some View {
         ZStack {
@@ -25,7 +20,6 @@ struct MemoryModeEntryScreen: View {
                     .padding(.bottom, 48)
             }
         }
-        .onAppear(perform: startIYsoModeReveal)
     }
 
     private var copyBlock: some View {
@@ -44,8 +38,6 @@ struct MemoryModeEntryScreen: View {
                     )
                 )
                 .foregroundStyle(Color(white: 0.92))
-                .scaleEffect(iysoModeScale)
-                .opacity(iysoModeOpacity)
                 .fixedSize()
                 .multilineTextAlignment(.center)
 
@@ -56,15 +48,5 @@ struct MemoryModeEntryScreen: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 30)
-    }
-
-    private func startIYsoModeReveal() {
-        iysoModeScale = iysoModeScaleAtStart
-        iysoModeOpacity = 0.72
-
-        withAnimation(.easeOut(duration: iysoModeGrowDuration)) {
-            iysoModeScale = 1
-            iysoModeOpacity = 1
-        }
     }
 }

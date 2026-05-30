@@ -6,6 +6,9 @@ import ManagedSettings
 
 /// Shared blocked-apps picker UI (onboarding, settings, IYSO mode modal).
 struct BlockedAppsSelectionPanel: View {
+    /// When false, hides the "Current blocked apps" header and selection list (e.g. enter-IYSO modal).
+    var showsCurrentBlockedApps: Bool = true
+
     @EnvironmentObject private var appBlocking: AppBlockingManager
 
     #if canImport(FamilyControls)
@@ -15,24 +18,28 @@ struct BlockedAppsSelectionPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if hasScreenTimeSelections {
-                Text("Current blocked apps")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color(white: 0.55))
-                    .padding(.horizontal, 24)
+                if showsCurrentBlockedApps {
+                    Text("Current blocked apps")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Color(white: 0.55))
+                        .padding(.horizontal, 24)
 
-                VStack(spacing: 0) {
-                    #if canImport(FamilyControls)
-                    familySelectedRows
-                    #endif
+                    VStack(spacing: 0) {
+                        #if canImport(FamilyControls)
+                        familySelectedRows
+                        #endif
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color(white: 1, opacity: 0.05))
+                    )
+                    .padding(.horizontal, 20)
+
+                    chooseMoreAppsButton
+                        .padding(.top, 4)
+                } else {
+                    chooseMoreAppsButton
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(white: 1, opacity: 0.05))
-                )
-                .padding(.horizontal, 20)
-
-                chooseMoreAppsButton
-                    .padding(.top, 4)
             } else {
                 emptyState
             }
