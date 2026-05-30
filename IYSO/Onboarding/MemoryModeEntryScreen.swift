@@ -29,7 +29,7 @@ struct MemoryModeEntryScreen: View {
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
 
-            Text("IYSO Mode")
+            Text("IYSO")
                 .font(IYSOFont.bootzy(size: iysoModeFontSize))
                 .tracking(
                     IYSOFont.tracking(

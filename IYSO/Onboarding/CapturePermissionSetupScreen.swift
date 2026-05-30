@@ -163,7 +163,7 @@ struct CapturePermissionSetupScreen: View {
             if AppCapabilities.usesFamilyControls {
                 CapturePermissionRow(
                     title: "Screen Time",
-                    subtitle: "enable screen time access",
+                    subtitle: "enable screen time access.",
                     systemImage: "hourglass",
                     access: screenTimeAccess,
                     isLoading: isRequestingScreenTime,

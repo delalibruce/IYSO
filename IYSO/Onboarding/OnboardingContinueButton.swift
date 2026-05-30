@@ -28,7 +28,10 @@ struct OnboardingContinueButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            action()
+        }) {
             ZStack {
                 glassBackground
                     .allowsHitTesting(false)
