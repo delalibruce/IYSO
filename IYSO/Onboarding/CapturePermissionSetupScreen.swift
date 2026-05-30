@@ -371,11 +371,12 @@ private struct CapturePermissionRow: View {
 
     private var enableButton: some View {
         OnboardingContinueButton(
-            title: enableLabel.lowercased(),
+            title: "enable",
             layout: .compact,
             showsLoading: isLoading,
             action: onEnable
         )
+        .accessibilityLabel(enableLabel)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

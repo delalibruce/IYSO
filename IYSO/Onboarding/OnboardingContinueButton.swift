@@ -27,17 +27,6 @@ struct OnboardingContinueButton: View {
         }
     }
 
-    private var labelFontSize: CGFloat {
-        switch layout {
-        case .fullWidth: 18
-        case .compact: 13
-        }
-    }
-
-    private var horizontalPadding: CGFloat {
-        layout == .compact ? 8 : 0
-    }
-
     var body: some View {
         Button(action: action) {
             ZStack {
@@ -46,9 +35,8 @@ struct OnboardingContinueButton: View {
 
                 label
             }
-            .frame(maxWidth: layout == .fullWidth ? .infinity : nil)
+            .frame(maxWidth: .infinity)
             .frame(height: height)
-            .padding(.horizontal, horizontalPadding)
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
@@ -64,10 +52,18 @@ struct OnboardingContinueButton: View {
                 .frame(width: 20, height: 20)
         } else {
             Text(title)
-                .font(IYSOFont.inter(size: labelFontSize))
+                .font(labelFont)
                 .foregroundColor(labelIsActive ? IYSOGlassPalette.labelActive : IYSOGlassPalette.labelInactive)
-                .lineLimit(layout == .compact ? 1 : nil)
-                .minimumScaleFactor(layout == .compact ? 0.75 : 1)
+                .lineLimit(1)
+        }
+    }
+
+    private var labelFont: Font {
+        switch layout {
+        case .fullWidth:
+            return IYSOFont.inter(size: 18)
+        case .compact:
+            return .system(size: 13, weight: .semibold)
         }
     }
 
@@ -82,7 +78,7 @@ struct OnboardingContinueButton: View {
                 shape: RoundedRectangle(cornerRadius: 10, style: .continuous),
                 isEmphasized: glassIsEmphasized
             )
-            .frame(height: height)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
