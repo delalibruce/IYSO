@@ -115,7 +115,7 @@ struct CapturePermissionSetupScreen: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
-            Text("IYSO needs access to your camera, photos, notifications, and Block Apps to create your memory card and keep you focused while shooting.")
+            Text("IYSO needs access to your camera, photos, notifications, and Screen Time to create your memory card and keep you focused while shooting.")
                 .font(.system(size: 15, weight: .regular))
                 .foregroundColor(Color(white: 0.55))
                 .fixedSize(horizontal: false, vertical: true)
@@ -162,12 +162,12 @@ struct CapturePermissionSetupScreen: View {
 
             if AppCapabilities.usesFamilyControls {
                 CapturePermissionRow(
-                    title: "Block Apps",
-                    subtitle: "block distractions to focus while you shoot.",
+                    title: "Screen Time",
+                    subtitle: "enable screen time access",
                     systemImage: "hourglass",
                     access: screenTimeAccess,
                     isLoading: isRequestingScreenTime,
-                    enableLabel: "Enable Block Apps",
+                    enableLabel: "Enable Screen Time",
                     onEnable: requestScreenTimeAccess
                 )
             }
