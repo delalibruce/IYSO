@@ -43,6 +43,7 @@
 		BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0040AA00000000000040AA /* OnboardingCoordinator.swift */; };
 		BB0042AA00000000000042AA /* AppCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0042AA00000000000042AA /* AppCapabilities.swift */; };
 		BB0043AA00000000000043AA /* IYSOLoadingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */; };
+		BB0069AA00000000000069AA /* IYSOLaunchBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0069AA00000000000069AA /* IYSOLaunchBackground.swift */; };
 		BB0044AA00000000000044AA /* CapturePermissionSetupScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */; };
 		BB0045AA00000000000045AA /* IYSOFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0045AA00000000000045AA /* IYSOFont.swift */; };
 		BB0046AA00000000000046AA /* BootzyTM.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA0046AA00000000000046AA /* BootzyTM.ttf */; };
@@ -60,6 +61,7 @@
 		BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */; };
 		BB0058AA00000000000058AA /* EnterIYSOModeModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0058AA00000000000058AA /* EnterIYSOModeModal.swift */; };
 		BB0059AA00000000000059AA /* FamilyControlsSetupPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */; };
+		BB0068AA00000000000068AA /* BlockedAppsSelectionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0068AA00000000000068AA /* BlockedAppsSelectionPanel.swift */; };
 		BB0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift */; };
 		BB0061AA00000000000061AA /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */; };
 		BB0062AA00000000000062AA /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0062AA00000000000062AA /* ShieldActionExtension.swift */; };
@@ -142,6 +144,7 @@
 		AA0041AA00000000000041AA /* Digicam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Digicam.entitlements; sourceTree = "<group>"; };
 		AA0042AA00000000000042AA /* AppCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCapabilities.swift; sourceTree = "<group>"; };
 		AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOLoadingScreen.swift; sourceTree = "<group>"; };
+		AA0069AA00000000000069AA /* IYSOLaunchBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOLaunchBackground.swift; sourceTree = "<group>"; };
 		AA0044AA00000000000044AA /* CapturePermissionSetupScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePermissionSetupScreen.swift; sourceTree = "<group>"; };
 		AA0045AA00000000000045AA /* IYSOFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOFont.swift; sourceTree = "<group>"; };
 		AA0046AA00000000000046AA /* BootzyTM.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = BootzyTM.ttf; sourceTree = "<group>"; };
@@ -161,6 +164,7 @@
 		AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingSettingsView.swift; sourceTree = "<group>"; };
 		AA0058AA00000000000058AA /* EnterIYSOModeModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterIYSOModeModal.swift; sourceTree = "<group>"; };
 		AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyControlsSetupPanel.swift; sourceTree = "<group>"; };
+		AA0068AA00000000000068AA /* BlockedAppsSelectionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedAppsSelectionPanel.swift; sourceTree = "<group>"; };
 		AA0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IYSOReturnNotificationCenter.swift; sourceTree = "<group>"; };
 		AA0061AA00000000000061AA /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
 		AA0062AA00000000000062AA /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
@@ -280,6 +284,7 @@
 				AA0008AA00000000000008AA /* GalleryView.swift */,
 				AA0009AA00000000000009AA /* AppRootView.swift */,
 				AA0043AA00000000000043AA /* IYSOLoadingScreen.swift */,
+				AA0069AA00000000000069AA /* IYSOLaunchBackground.swift */,
 				AA0045AA00000000000045AA /* IYSOFont.swift */,
 				AA0048AA00000000000048AA /* IYSOGlassSurface.swift */,
 				AA0010AA00000000000010AA /* BottomToggle.swift */,
@@ -330,6 +335,7 @@
 				AA0027AA00000000000027AA /* SettingsView.swift */,
 				AA0057AA00000000000057AA /* AppBlockingSettingsView.swift */,
 				AA0059AA00000000000059AA /* FamilyControlsSetupPanel.swift */,
+				AA0068AA00000000000068AA /* BlockedAppsSelectionPanel.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -558,6 +564,7 @@
 				BB0039AA00000000000039AA /* MemoryModeEntryScreen.swift in Sources */,
 				BB0040AA00000000000040AA /* OnboardingCoordinator.swift in Sources */,
 				BB0043AA00000000000043AA /* IYSOLoadingScreen.swift in Sources */,
+				BB0069AA00000000000069AA /* IYSOLaunchBackground.swift in Sources */,
 				BB0045AA00000000000045AA /* IYSOFont.swift in Sources */,
 				BB0048AA00000000000048AA /* IYSOGlassSurface.swift in Sources */,
 				BB0049AA00000000000049AA /* OnboardingContinueButton.swift in Sources */,
@@ -565,6 +572,7 @@
 				BB0056AA00000000000056AA /* IYSOStateManager.swift in Sources */,
 				BB0057AA00000000000057AA /* AppBlockingSettingsView.swift in Sources */,
 				BB0059AA00000000000059AA /* FamilyControlsSetupPanel.swift in Sources */,
+				BB0068AA00000000000068AA /* BlockedAppsSelectionPanel.swift in Sources */,
 				BB0060AA00000000000060AA /* IYSOReturnNotificationCenter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -1,17 +1,9 @@
 import SwiftUI
-#if canImport(FamilyControls)
-import FamilyControls
-import ManagedSettings
-#endif
 
 struct AppBlockingSetupScreen: View {
     @ObservedObject var appBlocking: AppBlockingManager
     let onContinue: () -> Void
     let onSkip: () -> Void
-
-    #if canImport(FamilyControls)
-    @State private var showFamilyActivityPicker = false
-    #endif
 
     var body: some View {
         ZStack {
@@ -21,11 +13,8 @@ struct AppBlockingSetupScreen: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         headerText
-                        blockedAppsSection
-                        if hasScreenTimeSelections {
-                            chooseAppsButton
-                                .padding(.top, 16)
-                        }
+                        BlockedAppsSelectionPanel()
+                            .environmentObject(appBlocking)
                     }
                     .padding(.bottom, 120)
                 }
@@ -33,155 +22,19 @@ struct AppBlockingSetupScreen: View {
                 bottomButtons
             }
         }
-        #if canImport(FamilyControls)
-        .familyActivityPicker(
-            isPresented: $showFamilyActivityPicker,
-            selection: Binding(
-                get: { appBlocking.familyActivitySelection },
-                set: { appBlocking.updateFamilyActivitySelection($0) }
-            )
-        )
-        #endif
     }
 
     // MARK: - Header
 
     private var headerText: some View {
-        Text("choose apps you want to block while you shoot.")
+        Text("Choose apps you want to block while you shoot.")
             .font(.system(size: 24, weight: .bold))
             .foregroundColor(.white)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
-            .padding(.top, 60)
+            .padding(.top, 44)
             .padding(.bottom, 28)
-    }
-
-    // MARK: - Blocked apps list
-
-    private var blockedAppsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Current blocked apps")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Color(white: 0.55))
-                .padding(.horizontal, 24)
-
-            if hasScreenTimeSelections {
-                VStack(spacing: 0) {
-                    #if canImport(FamilyControls)
-                    familySelectedRows
-                    #endif
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(white: 1, opacity: 0.05))
-                )
-                .padding(.horizontal, 20)
-            } else {
-                emptyState
-            }
-        }
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Text("No apps blocked yet.")
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(Color(white: 0.45))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            #if canImport(FamilyControls)
-            if AppCapabilities.usesFamilyControls {
-                Button(action: { showFamilyActivityPicker = true }) {
-                    Text("Choose apps to block")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color(white: 1, opacity: 0.05))
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-            #endif
-        }
-        .padding(.horizontal, 20)
-    }
-
-    private var chooseAppsButton: some View {
-        #if canImport(FamilyControls)
-        Group {
-            if AppCapabilities.usesFamilyControls {
-                Button(action: { showFamilyActivityPicker = true }) {
-                    HStack {
-                        Text("Choose more apps to block")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
-                        Spacer()
-                        Text("\(appBlocking.selectedItemCount) selected")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(Color(white: 0.5))
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color(white: 1, opacity: 0.05))
-                    )
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 20)
-            }
-        }
-        #else
-        EmptyView()
-        #endif
-    }
-
-    private var hasScreenTimeSelections: Bool {
-        #if canImport(FamilyControls)
-        return AppCapabilities.usesFamilyControls && appBlocking.selectedItemCount > 0
-        #else
-        return false
-        #endif
-    }
-
-    #if canImport(FamilyControls)
-    @ViewBuilder
-    private var familySelectedRows: some View {
-        let apps = Array(appBlocking.familyActivitySelection.applicationTokens)
-        let categories = Array(appBlocking.familyActivitySelection.categoryTokens)
-        let domains = Array(appBlocking.familyActivitySelection.webDomainTokens)
-
-        ForEach(apps, id: \.self) { token in
-            OnboardingFamilyActivityRow(token: token)
-            if token != apps.last || !categories.isEmpty || !domains.isEmpty {
-                listDivider
-            }
-        }
-
-        ForEach(categories, id: \.self) { token in
-            OnboardingFamilyActivityRow(categoryToken: token)
-            if token != categories.last || !domains.isEmpty {
-                listDivider
-            }
-        }
-
-        ForEach(domains, id: \.self) { token in
-            OnboardingFamilyActivityRow(webDomainToken: token)
-            if token != domains.last {
-                listDivider
-            }
-        }
-    }
-    #endif
-
-    private var listDivider: some View {
-        Divider()
-            .background(Color(white: 1, opacity: 0.08))
-            .padding(.leading, 24)
     }
 
     // MARK: - Bottom
@@ -209,72 +62,3 @@ struct AppBlockingSetupScreen: View {
         )
     }
 }
-
-#if canImport(FamilyControls)
-private struct OnboardingFamilyActivityRow: View {
-    enum TokenKind {
-        case application(ApplicationToken)
-        case category(ActivityCategoryToken)
-        case webDomain(WebDomainToken)
-    }
-
-    private let kind: TokenKind
-
-    init(token: ApplicationToken) {
-        kind = .application(token)
-    }
-
-    init(categoryToken: ActivityCategoryToken) {
-        kind = .category(categoryToken)
-    }
-
-    init(webDomainToken: WebDomainToken) {
-        kind = .webDomain(webDomainToken)
-    }
-
-    var body: some View {
-        HStack(spacing: 14) {
-            iconLabel
-                .labelStyle(.iconOnly)
-                .frame(width: 36, height: 36)
-
-            titleLabel
-                .font(.system(size: 16, weight: .regular))
-                .foregroundColor(.white)
-                .lineLimit(1)
-
-            Spacer()
-
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 20))
-                .foregroundColor(Color(red: 0.18, green: 0.55, blue: 1.0))
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-    }
-
-    @ViewBuilder
-    private var iconLabel: some View {
-        switch kind {
-        case .application(let token):
-            Label(token)
-        case .category(let token):
-            Label(token)
-        case .webDomain(let token):
-            Label(token)
-        }
-    }
-
-    @ViewBuilder
-    private var titleLabel: some View {
-        switch kind {
-        case .application(let token):
-            Label(token)
-        case .category(let token):
-            Label(token)
-        case .webDomain(let token):
-            Label(token)
-        }
-    }
-}
-#endif

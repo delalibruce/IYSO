@@ -3,31 +3,68 @@ import SwiftUI
 struct MemoryModeEntryScreen: View {
     let onComplete: () -> Void
 
+    private let iysoModeFontSize: CGFloat = 58
+    private let iysoModeLetterSpacingPercent: CGFloat = 8
+    private let iysoModeGrowDuration: TimeInterval = 5.2
+    private let iysoModeScaleAtStart: CGFloat = 0.58
+
+    @State private var iysoModeScale: CGFloat = 0.58
+    @State private var iysoModeOpacity: Double = 0.72
+
     var body: some View {
         ZStack {
-            PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
+            IYSOLaunchBackground(orbCenterYOffset: -40)
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Spacer()
+                copyBlock
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("It's time to enter IYSO mode")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-
-                    Text("you're ready to shoot")
-                        .font(.system(size: 18, weight: .regular))
-                        .foregroundColor(Color(white: 0.75))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 30)
-
-                Spacer()
-
-                OnboardingContinueButton(title: "open my camera", action: onComplete)
+                OnboardingContinueButton(title: "let's begin", action: onComplete)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 48)
             }
+        }
+        .onAppear(perform: startIYsoModeReveal)
+    }
+
+    private var copyBlock: some View {
+        VStack(spacing: 20) {
+            Text("It's time to enter")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+
+            Text("IYSO Mode")
+                .font(IYSOFont.bootzy(size: iysoModeFontSize))
+                .tracking(
+                    IYSOFont.tracking(
+                        percentOfFontSize: iysoModeLetterSpacingPercent,
+                        fontSize: iysoModeFontSize
+                    )
+                )
+                .foregroundStyle(Color(white: 0.92))
+                .scaleEffect(iysoModeScale)
+                .opacity(iysoModeOpacity)
+                .fixedSize()
+                .multilineTextAlignment(.center)
+
+            Text("you're ready to shoot.")
+                .font(.system(size: 18, weight: .regular))
+                .foregroundColor(Color(white: 0.75))
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 30)
+    }
+
+    private func startIYsoModeReveal() {
+        iysoModeScale = iysoModeScaleAtStart
+        iysoModeOpacity = 0.72
+
+        withAnimation(.easeOut(duration: iysoModeGrowDuration)) {
+            iysoModeScale = 1
+            iysoModeOpacity = 1
         }
     }
 }

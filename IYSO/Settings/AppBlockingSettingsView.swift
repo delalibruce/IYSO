@@ -1,7 +1,4 @@
 import SwiftUI
-#if canImport(FamilyControls)
-import FamilyControls
-#endif
 
 struct AppBlockingSettingsView: View {
     @EnvironmentObject private var appBlocking: AppBlockingManager
@@ -9,7 +6,7 @@ struct AppBlockingSettingsView: View {
 
     var body: some View {
         ZStack {
-            PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
+            Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 HStack {
@@ -32,16 +29,10 @@ struct AppBlockingSettingsView: View {
                 .padding(.top, 8)
 
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 20) {
-                        Text("Pick the apps and categories IYSO should shield while you're in camera mode. Changes apply the next time IYSO Mode turns on.")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundColor(Color(white: 0.55))
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        FamilyControlsSetupPanel()
+                    VStack(alignment: .leading, spacing: 0) {
+                        headerText
+                        BlockedAppsSelectionPanel()
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
                     .padding(.bottom, 40)
                 }
             }
@@ -49,5 +40,16 @@ struct AppBlockingSettingsView: View {
         .task {
             await appBlocking.requestAuthorizationIfNeeded()
         }
+    }
+
+    private var headerText: some View {
+        Text("Choose apps you want to block while you shoot.")
+            .font(.system(size: 24, weight: .bold))
+            .foregroundColor(.white)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 28)
     }
 }

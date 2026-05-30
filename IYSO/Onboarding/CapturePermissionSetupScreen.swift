@@ -86,9 +86,10 @@ struct CapturePermissionSetupScreen: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                headerText
+
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
-                        headerText
                         permissionCards
                         if hasDeniedPermission {
                             settingsHint
@@ -114,15 +115,15 @@ struct CapturePermissionSetupScreen: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
-            Text("IYSO needs access to your camera, photos, notifications, and Screen Time to create your memory card and keep you focused while shooting.")
+            Text("IYSO needs access to your camera, photos, notifications, and Block Apps to create your memory card and keep you focused while shooting.")
                 .font(.system(size: 15, weight: .regular))
                 .foregroundColor(Color(white: 0.55))
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
-        .padding(.top, 60)
-        .padding(.bottom, 28)
+        .padding(.top, 44)
+        .padding(.bottom, 20)
     }
 
     // MARK: - Cards
@@ -131,7 +132,7 @@ struct CapturePermissionSetupScreen: View {
         VStack(spacing: 12) {
             CapturePermissionRow(
                 title: "Camera",
-                subtitle: "Take photos through your lens.",
+                subtitle: "take photos through your lens.",
                 systemImage: "camera.fill",
                 access: cameraAccess,
                 isLoading: isRequestingCamera,
@@ -141,7 +142,7 @@ struct CapturePermissionSetupScreen: View {
 
             CapturePermissionRow(
                 title: "Photos",
-                subtitle: "Save and show your IYSO captures in your memory card.",
+                subtitle: "save and show your IYSO captures in your memory card.",
                 systemImage: "photo.on.rectangle.angled",
                 access: photosAccess,
                 isLoading: isRequestingPhotos,
@@ -151,7 +152,7 @@ struct CapturePermissionSetupScreen: View {
 
             CapturePermissionRow(
                 title: "Notifications",
-                subtitle: "Get a nudge to return to IYSO when you leave the app.",
+                subtitle: "get a nudge to return to IYSO when you leave the app.",
                 systemImage: "bell.fill",
                 access: notificationsAccess,
                 isLoading: isRequestingNotifications,
@@ -161,12 +162,12 @@ struct CapturePermissionSetupScreen: View {
 
             if AppCapabilities.usesFamilyControls {
                 CapturePermissionRow(
-                    title: "Screen Time",
-                    subtitle: "Shield distracting apps while you shoot.",
+                    title: "Block Apps",
+                    subtitle: "block distractions to focus while you shoot.",
                     systemImage: "hourglass",
                     access: screenTimeAccess,
                     isLoading: isRequestingScreenTime,
-                    enableLabel: "Enable Screen Time",
+                    enableLabel: "Enable Block Apps",
                     onEnable: requestScreenTimeAccess
                 )
             }
@@ -302,6 +303,12 @@ struct CapturePermissionSetupScreen: View {
 // MARK: - Row
 
 private struct CapturePermissionRow: View {
+    private static let cardPadding: CGFloat = 16
+    private static let iconSize: CGFloat = 44
+    private static let iconToTextSpacing: CGFloat = 12
+    /// Shared width for enable, enabled, and denied controls across all cards.
+    private static let actionControlWidth: CGFloat = 158
+
     let title: String
     let subtitle: String
     let systemImage: String
@@ -311,10 +318,10 @@ private struct CapturePermissionRow: View {
     let onEnable: () -> Void
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .top, spacing: Self.iconToTextSpacing) {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color(white: 1, opacity: 0.08))
-                .frame(width: 44, height: 44)
+                .frame(width: Self.iconSize, height: Self.iconSize)
                 .overlay(
                     Image(systemName: systemImage)
                         .font(.system(size: 18, weight: .medium))
@@ -325,18 +332,20 @@ private struct CapturePermissionRow: View {
                 Text(title)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(subtitle)
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color(white: 0.45))
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            Spacer(minLength: 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(1)
 
             actionControl
+                .frame(width: Self.actionControlWidth, alignment: .trailing)
         }
-        .padding(16)
+        .padding(Self.cardPadding)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(white: 1, opacity: 0.05))
@@ -362,8 +371,7 @@ private struct CapturePermissionRow: View {
             showsLoading: isLoading,
             action: onEnable
         )
-        .frame(width: 132)
-        .fixedSize(horizontal: true, vertical: false)
+        .frame(maxWidth: .infinity)
     }
 
     private var enabledBadge: some View {
@@ -374,7 +382,7 @@ private struct CapturePermissionRow: View {
                 .font(.system(size: 13, weight: .semibold))
         }
         .foregroundColor(Color(red: 0.45, green: 0.85, blue: 0.55))
-        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -389,5 +397,6 @@ private struct CapturePermissionRow: View {
             layout: .compact,
             action: onEnable
         )
+        .frame(maxWidth: .infinity)
     }
 }

@@ -42,7 +42,7 @@ struct EnterIYSOModeModal: View {
 
                 shieldAnimation
 
-                FamilyControlsSetupPanel(compact: true)
+                BlockedAppsSelectionPanel()
                     .padding(.horizontal, 4)
 
                 if appBlocking.selectedItemCount == 0 {
@@ -52,27 +52,29 @@ struct EnterIYSOModeModal: View {
                         .multilineTextAlignment(.center)
                 }
 
-                Button(action: onEnter) {
-                    Text("Start shooting")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color(red: 0.18, green: 0.55, blue: 1.0))
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-                .buttonStyle(.plain)
+                VStack(spacing: 16) {
+                    Button(action: onEnter) {
+                        Text("start shooting")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(red: 0.18, green: 0.55, blue: 1.0))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
 
-                Button(action: onCancel) {
-                    Text("Take me back to memory card")
-                        .font(.system(size: 17, weight: .regular))
-                        .foregroundColor(Color(white: 0.75))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color(white: 1, opacity: 0.07))
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    Button(action: onCancel) {
+                        Text("take me back to memory card")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(Color(white: 0.75))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(white: 1, opacity: 0.07))
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 20)
             .padding(.top, 32)
