@@ -1,6 +1,9 @@
 import AVFoundation
 import Photos
 import SwiftUI
+#if canImport(FamilyControls)
+import FamilyControls
+#endif
 
 // MARK: - Permission state
 
@@ -32,6 +35,20 @@ enum CapturePermissionAccess: Equatable {
         @unknown default: return .denied
         }
     }
+
+    static func screenTime() -> CapturePermissionAccess {
+        guard AppCapabilities.usesFamilyControls else { return .authorized }
+        #if canImport(FamilyControls)
+        switch AuthorizationCenter.shared.authorizationStatus {
+        case .approved: return .authorized
+        case .notDetermined: return .notDetermined
+        case .denied: return .denied
+        @unknown default: return .denied
+        }
+        #else
+        return .authorized
+        #endif
+    }
 }
 
 // MARK: - Screen
@@ -39,18 +56,29 @@ enum CapturePermissionAccess: Equatable {
 struct CapturePermissionSetupScreen: View {
     let onContinue: () -> Void
 
+    @EnvironmentObject private var appBlocking: AppBlockingManager
     @Environment(\.scenePhase) private var scenePhase
     @State private var cameraAccess = CapturePermissionAccess.camera()
     @State private var photosAccess = CapturePermissionAccess.photos()
+    @State private var notificationsAccess = CapturePermissionAccess.notDetermined
+    @State private var screenTimeAccess = CapturePermissionAccess.screenTime()
     @State private var isRequestingCamera = false
     @State private var isRequestingPhotos = false
+    @State private var isRequestingNotifications = false
+    @State private var isRequestingScreenTime = false
 
     private var allGranted: Bool {
-        cameraAccess == .authorized && photosAccess == .authorized
+        cameraAccess == .authorized
+            && photosAccess == .authorized
+            && notificationsAccess == .authorized
+            && screenTimeAccess == .authorized
     }
 
     private var hasDeniedPermission: Bool {
-        cameraAccess == .denied || photosAccess == .denied
+        cameraAccess == .denied
+            || photosAccess == .denied
+            || notificationsAccess == .denied
+            || screenTimeAccess == .denied
     }
 
     var body: some View {
@@ -86,7 +114,7 @@ struct CapturePermissionSetupScreen: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
-            Text("IYSO needs access to your camera and photos to create your memory card.")
+            Text("IYSO needs access to your camera, photos, notifications, and Screen Time to create your memory card and keep you focused while shooting.")
                 .font(.system(size: 15, weight: .regular))
                 .foregroundColor(Color(white: 0.55))
                 .fixedSize(horizontal: false, vertical: true)
@@ -120,12 +148,34 @@ struct CapturePermissionSetupScreen: View {
                 enableLabel: "Enable Photos",
                 onEnable: requestPhotosAccess
             )
+
+            CapturePermissionRow(
+                title: "Notifications",
+                subtitle: "Get a nudge to return to IYSO when you leave the app.",
+                systemImage: "bell.fill",
+                access: notificationsAccess,
+                isLoading: isRequestingNotifications,
+                enableLabel: "Enable Notifications",
+                onEnable: requestNotificationsAccess
+            )
+
+            if AppCapabilities.usesFamilyControls {
+                CapturePermissionRow(
+                    title: "Screen Time",
+                    subtitle: "Shield distracting apps while you shoot.",
+                    systemImage: "hourglass",
+                    access: screenTimeAccess,
+                    isLoading: isRequestingScreenTime,
+                    enableLabel: "Enable Screen Time",
+                    onEnable: requestScreenTimeAccess
+                )
+            }
         }
         .padding(.horizontal, 20)
     }
 
     private var settingsHint: some View {
-        Text("You can turn on camera or photos access later in Settings.")
+        Text("You can turn on access later in Settings.")
             .font(.system(size: 13, weight: .regular))
             .foregroundColor(Color(white: 0.4))
             .fixedSize(horizontal: false, vertical: true)
@@ -155,6 +205,14 @@ struct CapturePermissionSetupScreen: View {
     private func refreshPermissionState() {
         cameraAccess = CapturePermissionAccess.camera()
         photosAccess = CapturePermissionAccess.photos()
+        appBlocking.refreshAuthorizationStatus()
+        screenTimeAccess = CapturePermissionAccess.screenTime()
+        Task {
+            let access = await IYSOReturnNotificationCenter.currentAccess()
+            await MainActor.run {
+                notificationsAccess = access
+            }
+        }
     }
 
     private func requestCameraAccess() {
@@ -190,6 +248,46 @@ struct CapturePermissionSetupScreen: View {
                 DispatchQueue.main.async {
                     isRequestingPhotos = false
                     photosAccess = CapturePermissionAccess.photos()
+                }
+            }
+        }
+    }
+
+    private func requestNotificationsAccess() {
+        switch notificationsAccess {
+        case .authorized:
+            return
+        case .denied:
+            openAppSettings()
+            return
+        case .notDetermined:
+            guard !isRequestingNotifications else { return }
+            isRequestingNotifications = true
+            Task {
+                let access = await IYSOReturnNotificationCenter.requestAuthorization()
+                await MainActor.run {
+                    isRequestingNotifications = false
+                    notificationsAccess = access
+                }
+            }
+        }
+    }
+
+    private func requestScreenTimeAccess() {
+        switch screenTimeAccess {
+        case .authorized:
+            return
+        case .denied:
+            openAppSettings()
+            return
+        case .notDetermined:
+            guard !isRequestingScreenTime else { return }
+            isRequestingScreenTime = true
+            Task {
+                await appBlocking.requestAuthorizationIfNeeded()
+                await MainActor.run {
+                    isRequestingScreenTime = false
+                    screenTimeAccess = CapturePermissionAccess.screenTime()
                 }
             }
         }

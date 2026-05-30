@@ -11,7 +11,6 @@ struct DigicamApp: App {
 
     init() {
         IYSOFont.registerFonts()
-        IYSOReturnNotificationCenter.requestPermissionIfNeeded()
     }
 
     var body: some Scene {

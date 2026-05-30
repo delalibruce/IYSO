@@ -3,8 +3,35 @@ import UIKit
 import UserNotifications
 
 enum IYSOReturnNotificationCenter {
-    static func requestPermissionIfNeeded() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+    static func currentAccess() async -> CapturePermissionAccess {
+        let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        switch status {
+        case .authorized, .provisional, .ephemeral:
+            return .authorized
+        case .notDetermined:
+            return .notDetermined
+        case .denied:
+            return .denied
+        @unknown default:
+            return .denied
+        }
+    }
+
+    @discardableResult
+    static func requestAuthorization() async -> CapturePermissionAccess {
+        let center = UNUserNotificationCenter.current()
+        let status = await center.notificationSettings().authorizationStatus
+        switch status {
+        case .authorized, .provisional, .ephemeral:
+            return .authorized
+        case .denied:
+            return .denied
+        case .notDetermined:
+            let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
+            return granted ? .authorized : .denied
+        @unknown default:
+            return .denied
+        }
     }
 
     static func registerCategories() {

@@ -33,11 +33,6 @@ struct AppBlockingSetupScreen: View {
                 bottomButtons
             }
         }
-        .task {
-            if AppCapabilities.usesFamilyControls {
-                await appBlocking.requestAuthorizationIfNeeded()
-            }
-        }
         #if canImport(FamilyControls)
         .familyActivityPicker(
             isPresented: $showFamilyActivityPicker,

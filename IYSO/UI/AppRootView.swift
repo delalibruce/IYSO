@@ -113,10 +113,6 @@ struct AppRootView: View {
             if handleIYSOURL(url) { return }
             handleUniversalLink(url)
         }
-        .task {
-            await appBlocking.requestAuthorizationIfNeeded()
-            IYSOReturnNotificationCenter.requestPermissionIfNeeded()
-        }
     }
 
     // MARK: - Camera session
