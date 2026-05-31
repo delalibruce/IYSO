@@ -32,6 +32,14 @@ struct CameraView: View {
             }
         }
         .ignoresSafeArea()
+        .onAppear {
+            // Keep camera readiness local to this screen so onboarding/tab timing
+            // changes cannot leave the shutter disabled.
+            camera.startSession()
+        }
+        .onDisappear {
+            camera.stopSession()
+        }
     }
 
     // MARK: - Chrome overlay (mode label + exit button + banner)

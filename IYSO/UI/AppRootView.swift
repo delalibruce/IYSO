@@ -50,7 +50,6 @@ struct AppRootView: View {
                 ) {
                     hasCompletedOnboarding = true
                     library.refreshAuthorizationStatusAndLoadIfAuthorized()
-                    openInDefaultCameraMode()
                 }
                 .environmentObject(appBlocking)
                 .transition(.opacity)
@@ -107,6 +106,13 @@ struct AppRootView: View {
         }
         .onChange(of: appState.activeTab) { _ in
             syncCameraSession()
+        }
+        .onChange(of: hasCompletedOnboarding) { completed in
+            if completed {
+                openInDefaultCameraMode()
+            } else {
+                syncCameraSession()
+            }
         }
         .onOpenURL { url in
             if handleIYSOURL(url) { return }
