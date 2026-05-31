@@ -172,6 +172,7 @@ struct AppRootView: View {
 
     private var mainApp: some View {
         GeometryReader { geo in
+            let rootSize = Self.resolvedRootContainerSize(geo.size)
             ZStack(alignment: .bottom) {
                 Color.black.ignoresSafeArea()
 
@@ -185,7 +186,7 @@ struct AppRootView: View {
                         GalleryRootView(library: library)
                     }
                 }
-                .frame(width: geo.size.width, height: geo.size.height)
+                .frame(width: rootSize.width, height: rootSize.height)
 
                 BottomToggle(
                     activeTab: $appState.activeTab,
@@ -217,7 +218,7 @@ struct AppRootView: View {
                     .zIndex(200)
                 }
             }
-            .frame(width: geo.size.width, height: geo.size.height)
+            .frame(width: rootSize.width, height: rootSize.height)
         }
         .ignoresSafeArea()
         .animation(.easeInOut(duration: 0.2), value: appState.activeTab)
@@ -227,6 +228,16 @@ struct AppRootView: View {
         .persistentSystemOverlays(.hidden)
         .environmentObject(appState)
         .environmentObject(appBlocking)
+    }
+
+    /// Release/TestFlight can occasionally report a transient zero root geometry size during tab mode transitions.
+    /// Fall back to physical screen bounds so gallery/camera content never collapses to a 0x0 frame.
+    private static func resolvedRootContainerSize(_ proposed: CGSize) -> CGSize {
+        let screen = UIScreen.main.bounds.size
+        return CGSize(
+            width: max(proposed.width, screen.width),
+            height: max(proposed.height, screen.height)
+        )
     }
 
     // MARK: - Mode transitions
