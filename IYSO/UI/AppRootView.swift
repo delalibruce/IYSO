@@ -45,10 +45,11 @@ struct AppRootView: View {
             if !hasCompletedOnboarding {
                 OnboardingFlowView(
                     appBlocking: appBlocking,
+                    library: library,
                     isLaunchLoadingComplete: !isShowingLaunchLoading
                 ) {
                     hasCompletedOnboarding = true
-                    library.requestAccessAndLoad()
+                    library.refreshAuthorizationStatusAndLoadIfAuthorized()
                     openInDefaultCameraMode()
                 }
                 .environmentObject(appBlocking)
@@ -74,11 +75,9 @@ struct AppRootView: View {
                 hasCompletedOnboarding = false
             }
             #endif
+            library.refreshAuthorizationStatusAndLoadIfAuthorized()
             if hasCompletedOnboarding {
-                library.requestAccessAndLoad()
                 openInDefaultCameraMode()
-            } else {
-                library.refreshAuthorizationStatusAndLoadIfAuthorized()
             }
             presentLaunchLoading()
             syncCameraSession()
@@ -179,10 +178,12 @@ struct AppRootView: View {
                 camera: camera,
                 onExitIYSOTapped: { appState.showExitIYSOModal = true }
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .opacity(appState.activeTab == .camera ? 1 : 0)
             .allowsHitTesting(appState.activeTab == .camera)
 
             GalleryRootView(library: library)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .opacity(appState.activeTab == .gallery ? 1 : 0)
                 .allowsHitTesting(appState.activeTab == .gallery)
 

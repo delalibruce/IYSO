@@ -54,6 +54,7 @@ enum CapturePermissionAccess: Equatable {
 // MARK: - Screen
 
 struct CapturePermissionSetupScreen: View {
+    @ObservedObject var library: PhotoLibraryManager
     let onContinue: () -> Void
 
     @EnvironmentObject private var appBlocking: AppBlockingManager
@@ -206,6 +207,7 @@ struct CapturePermissionSetupScreen: View {
     private func refreshPermissionState() {
         cameraAccess = CapturePermissionAccess.camera()
         photosAccess = CapturePermissionAccess.photos()
+        library.refreshAuthorizationStatusAndLoadIfAuthorized()
         appBlocking.refreshAuthorizationStatus()
         screenTimeAccess = CapturePermissionAccess.screenTime()
         Task {
@@ -249,6 +251,7 @@ struct CapturePermissionSetupScreen: View {
                 DispatchQueue.main.async {
                     isRequestingPhotos = false
                     photosAccess = CapturePermissionAccess.photos()
+                    library.refreshAuthorizationStatusAndLoadIfAuthorized()
                 }
             }
         }

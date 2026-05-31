@@ -92,6 +92,7 @@ class PhotoLibraryManager: ObservableObject {
     // MARK: - Access
 
     /// Sync in-memory authorization state without triggering the system prompt.
+    /// Photo library prompts belong only on `CapturePermissionSetupScreen`.
     func refreshAuthorizationStatusAndLoadIfAuthorized() {
         #if DEBUG
         if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
@@ -106,28 +107,6 @@ class PhotoLibraryManager: ObservableObject {
             loadAlbums()
         } else {
             albums = []
-        }
-    }
-
-    func requestAccessAndLoad() {
-        #if DEBUG
-        if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
-            authorizationStatus = .denied
-            albums = []
-            return
-        }
-        #endif
-        let current = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-        if current == .authorized || current == .limited {
-            authorizationStatus = current
-            loadAlbums()
-            return
-        }
-        PHPhotoLibrary.requestAuthorization(for: .readWrite) { [weak self] status in
-            DispatchQueue.main.async {
-                self?.authorizationStatus = status
-                if status == .authorized || status == .limited { self?.loadAlbums() }
-            }
         }
     }
 

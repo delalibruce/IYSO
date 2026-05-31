@@ -11,6 +11,7 @@ enum OnboardingStep: Int, CaseIterable {
 
 struct OnboardingFlowView: View {
     @ObservedObject var appBlocking: AppBlockingManager
+    @ObservedObject var library: PhotoLibraryManager
     var isLaunchLoadingComplete: Bool = true
     let onComplete: () -> Void
 
@@ -64,7 +65,7 @@ struct OnboardingFlowView: View {
             )
 
         case .capturePermissionSetup:
-            CapturePermissionSetupScreen(onContinue: advance)
+            CapturePermissionSetupScreen(library: library, onContinue: advance)
 
         case .appBlockingSetup:
             AppBlockingSetupScreen(

@@ -308,11 +308,9 @@ struct GalleryRootView: View {
                     PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
                     switch library.authorizationStatus {
-                    case .authorized, .limited, .notDetermined:
-                        albumContent(topPadding: topPadding)
                     case .denied, .restricted:
                         permissionDenied
-                    @unknown default:
+                    default:
                         albumContent(topPadding: topPadding)
                     }
                 }
@@ -334,9 +332,10 @@ struct GalleryRootView: View {
                 }
             }
         }
-        .onAppear { requestPhotoLibraryAccessIfNeeded() }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear { library.refreshAuthorizationStatusAndLoadIfAuthorized() }
         .onChange(of: scenePhase) { phase in
-            if phase == .active { requestPhotoLibraryAccessIfNeeded() }
+            if phase == .active { library.refreshAuthorizationStatusAndLoadIfAuthorized() }
         }
         .onReceive(library.$albums) { _ in
             guard let menuAlbum = contextMenuAlbum else { return }
@@ -443,6 +442,7 @@ struct GalleryRootView: View {
                 )
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay(floatingDragCard)
         .onPreferenceChange(MemoryFlowHeaderLayoutHeightKey.self) {
             memoryFlowHeaderLayoutHeight = $0
@@ -822,19 +822,6 @@ struct GalleryRootView: View {
         group.notify(queue: .main) {
             guard !images.isEmpty else { return }
             shareSheetPayload = ShareSheetPayload(items: images)
-        }
-    }
-
-    // MARK: - Photo library access
-
-    private func requestPhotoLibraryAccessIfNeeded() {
-        switch library.authorizationStatus {
-        case .authorized, .limited:
-            library.refreshAuthorizationStatusAndLoadIfAuthorized()
-        case .notDetermined:
-            library.requestAccessAndLoad()
-        default:
-            library.refreshAuthorizationStatusAndLoadIfAuthorized()
         }
     }
 

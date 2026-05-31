@@ -231,13 +231,14 @@ class CameraManager: NSObject, ObservableObject {
         let captureDate = Date()
         let fileName = nextCaptureFileName(for: captureDate)
 
-        PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
-            guard status == .authorized || status == .limited else {
-                print("[Digicam] Photo library access denied: \(status.rawValue)")
-                return
-            }
-            var placeholderID: String?
-            PHPhotoLibrary.shared().performChanges({
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        guard status == .authorized || status == .limited else {
+            print("[Digicam] Photo library access not granted (status: \(status.rawValue)); enable Photos on Set up capture.")
+            return
+        }
+
+        var placeholderID: String?
+        PHPhotoLibrary.shared().performChanges({
                 guard let jpegData = image.jpegData(compressionQuality: 0.96) else {
                     print("[Digicam] JPEG encoding failed")
                     return
@@ -266,7 +267,6 @@ class CameraManager: NSObject, ObservableObject {
                 }
                 NotificationCenter.default.post(name: .digicamPhotoSaved, object: nil)
             })
-        }
     }
 
     private func nextCaptureFileName(for date: Date) -> String {
