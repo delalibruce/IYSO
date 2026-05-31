@@ -314,6 +314,7 @@ struct GalleryRootView: View {
                         albumContent(topPadding: topPadding)
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .navigationBarHidden(true)
             .navigationDestination(for: GalleryNav.self) { route in
@@ -388,8 +389,9 @@ struct GalleryRootView: View {
     private func albumContent(topPadding: CGFloat) -> some View {
         let headerScrollInset = max(memoryFlowHeaderLayoutHeight, topPadding + 72)
 
-        return GeometryReader { proxy in
-            ZStack(alignment: .top) {
+        return ZStack(alignment: .top) {
+            GeometryReader { proxy in
+                let containerHeight = max(proxy.size.height, UIScreen.main.bounds.height)
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         ScrollOffsetTracker { offsetY, scrollMinY in
@@ -403,7 +405,7 @@ struct GalleryRootView: View {
 
                         if library.albums.isEmpty {
                             memoryCardEmptyState(
-                                minHeight: max(0, proxy.size.height - headerScrollInset - 120)
+                                minHeight: max(0, containerHeight - headerScrollInset - 120)
                             )
                             .padding(.horizontal, 24)
                         } else {
@@ -414,33 +416,33 @@ struct GalleryRootView: View {
                     .padding(.bottom, 120)
                     .coordinateSpace(name: GalleryScrollContent.coordinateSpaceName)
                 }
-
-                MemoryFlowHeader(
-                    title: "Memory Card",
-                    subtitle: currentMonthYear,
-                    topPadding: topPadding,
-                    mode: .memory,
-                    trailing: {
-                        HStack(spacing: 4) {
-                            Button(action: { isSettingsPresented = true }) {
-                                Image(systemName: "shield.lefthalf.filled")
-                                    .font(.system(size: 18, weight: .regular))
-                                    .foregroundColor(.white)
-                                    .frame(width: 36, height: 36)
-                            }
-                            .accessibilityLabel("Focus Lock settings")
-
-                            Button(action: { navigationPath.append(.search) }) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 20, weight: .regular))
-                                    .foregroundColor(.white)
-                                    .frame(width: 36, height: 36)
-                            }
-                            .accessibilityLabel("Search")
-                        }
-                    }
-                )
             }
+
+            MemoryFlowHeader(
+                title: "Memory Card",
+                subtitle: currentMonthYear,
+                topPadding: topPadding,
+                mode: .memory,
+                trailing: {
+                    HStack(spacing: 4) {
+                        Button(action: { isSettingsPresented = true }) {
+                            Image(systemName: "shield.lefthalf.filled")
+                                .font(.system(size: 18, weight: .regular))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                        }
+                        .accessibilityLabel("Focus Lock settings")
+
+                        Button(action: { navigationPath.append(.search) }) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 20, weight: .regular))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                        }
+                        .accessibilityLabel("Search")
+                    }
+                }
+            )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay(floatingDragCard)

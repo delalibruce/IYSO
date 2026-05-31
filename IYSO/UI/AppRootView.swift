@@ -171,52 +171,55 @@ struct AppRootView: View {
     // MARK: - Main app
 
     private var mainApp: some View {
-        ZStack(alignment: .bottom) {
-            Color.black.ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                Color.black.ignoresSafeArea()
 
-            CameraView(
-                camera: camera,
-                onExitIYSOTapped: { appState.showExitIYSOModal = true }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .opacity(appState.activeTab == .camera ? 1 : 0)
-            .allowsHitTesting(appState.activeTab == .camera)
+                Group {
+                    if appState.activeTab == .camera {
+                        CameraView(
+                            camera: camera,
+                            onExitIYSOTapped: { appState.showExitIYSOModal = true }
+                        )
+                    } else {
+                        GalleryRootView(library: library)
+                    }
+                }
+                .frame(width: geo.size.width, height: geo.size.height)
 
-            GalleryRootView(library: library)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .opacity(appState.activeTab == .gallery ? 1 : 0)
-                .allowsHitTesting(appState.activeTab == .gallery)
-
-            BottomToggle(
-                activeTab: $appState.activeTab,
-                onCameraRequested: handleCameraRequested,
-                onGalleryRequested: handleGalleryRequested
-            )
-            .padding(.bottom, BottomToggleLayout.bottomPadding)
-            .zIndex(100)
-            .ignoresSafeArea(.keyboard)
-            .opacity(hidesBottomToggle ? 0 : 1)
-            .allowsHitTesting(!hidesBottomToggle)
-            .animation(.easeInOut(duration: 0.2), value: hidesBottomToggle)
-
-            if appState.showEnterIYSOModeSheet {
-                EnterIYSOModeModal(
-                    onEnter: enterIYSOMode,
-                    onCancel: { appState.showEnterIYSOModeSheet = false }
+                BottomToggle(
+                    activeTab: $appState.activeTab,
+                    onCameraRequested: handleCameraRequested,
+                    onGalleryRequested: handleGalleryRequested
                 )
-                .transition(.opacity)
-                .zIndex(200)
-            }
+                .padding(.bottom, BottomToggleLayout.bottomPadding)
+                .zIndex(100)
+                .ignoresSafeArea(.keyboard)
+                .opacity(hidesBottomToggle ? 0 : 1)
+                .allowsHitTesting(!hidesBottomToggle)
+                .animation(.easeInOut(duration: 0.2), value: hidesBottomToggle)
 
-            if appState.showExitIYSOModal {
-                ExitIYSOModal(
-                    onExit: exitIYSOMode,
-                    onKeepShooting: { appState.showExitIYSOModal = false }
-                )
-                .transition(.opacity)
-                .zIndex(200)
+                if appState.showEnterIYSOModeSheet {
+                    EnterIYSOModeModal(
+                        onEnter: enterIYSOMode,
+                        onCancel: { appState.showEnterIYSOModeSheet = false }
+                    )
+                    .transition(.opacity)
+                    .zIndex(200)
+                }
+
+                if appState.showExitIYSOModal {
+                    ExitIYSOModal(
+                        onExit: exitIYSOMode,
+                        onKeepShooting: { appState.showExitIYSOModal = false }
+                    )
+                    .transition(.opacity)
+                    .zIndex(200)
+                }
             }
+            .frame(width: geo.size.width, height: geo.size.height)
         }
+        .ignoresSafeArea()
         .animation(.easeInOut(duration: 0.2), value: appState.activeTab)
         .animation(.easeInOut(duration: 0.22), value: appState.showEnterIYSOModeSheet)
         .animation(.easeInOut(duration: 0.22), value: appState.showExitIYSOModal)

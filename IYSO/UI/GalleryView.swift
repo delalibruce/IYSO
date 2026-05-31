@@ -13,11 +13,22 @@ struct SDCardScreenContainer<Content: View>: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let size = Self.resolvedContainerSize(geometry.size)
             let topPadding = RootTabHeaderLayout.topPadding(geometrySafeAreaTop: geometry.safeAreaInsets.top)
             content(topPadding, geometry.safeAreaInsets.bottom)
-                .frame(width: geometry.size.width, height: geometry.size.height)
+                .frame(width: size.width, height: size.height)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
+    }
+
+    /// GeometryReader can report zero before the gallery tab's first layout on device; fall back to screen bounds.
+    private static func resolvedContainerSize(_ proposed: CGSize) -> CGSize {
+        let screen = UIScreen.main.bounds.size
+        return CGSize(
+            width: max(proposed.width, screen.width),
+            height: max(proposed.height, screen.height)
+        )
     }
 }
 
