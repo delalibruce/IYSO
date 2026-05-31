@@ -81,6 +81,7 @@ struct ExplainerFlowView: View {
     let onBack: () -> Void
 
     @State private var page = 0
+    @State private var suppressNextPageChangeHaptic = false
 
     private static let configs: [ExplainerConfig] = [.howItWorks, .twoModes, .iysoMode, .memoryMode]
 
@@ -120,10 +121,18 @@ struct ExplainerFlowView: View {
                 .padding(.bottom, 48)
             }
         }
+        .onChange(of: page) { _ in
+            if suppressNextPageChangeHaptic {
+                suppressNextPageChangeHaptic = false
+            } else {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+        }
     }
 
     private func advanceFromButton() {
         if page < Self.configs.count - 1 {
+            suppressNextPageChangeHaptic = true
             withAnimation(.easeInOut(duration: 0.28)) {
                 page += 1
             }
@@ -134,6 +143,7 @@ struct ExplainerFlowView: View {
 
     private func handleBack() {
         if page > 0 {
+            suppressNextPageChangeHaptic = true
             withAnimation(.easeInOut(duration: 0.28)) {
                 page -= 1
             }

@@ -1,11 +1,10 @@
 import AVFoundation
-import UIKit
 
 /// Single-use delegate that handles one AVCapturePhoto result.
 final class PhotoCaptureProcessor: NSObject, AVCapturePhotoCaptureDelegate {
-    private let completion: (UIImage?) -> Void
+    private let completion: (Data?) -> Void
 
-    init(completion: @escaping (UIImage?) -> Void) {
+    init(completion: @escaping (Data?) -> Void) {
         self.completion = completion
     }
 
@@ -18,15 +17,12 @@ final class PhotoCaptureProcessor: NSObject, AVCapturePhotoCaptureDelegate {
             return
         }
 
-        guard
-            let data = photo.fileDataRepresentation(),
-            let image = UIImage(data: data)
-        else {
-            print("[Digicam] Failed to decode photo data")
+        guard let data = photo.fileDataRepresentation() else {
+            print("[Digicam] Failed to read photo data representation")
             completion(nil)
             return
         }
 
-        completion(image)
+        completion(data)
     }
 }

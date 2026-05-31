@@ -10,10 +10,17 @@ enum BottomToggleLayout {
     static let height: CGFloat = 64
     /// Inset above the home indicator — keep in sync with `AppRootView`.
     static let bottomPadding: CGFloat = 20
+    /// Extra lift used by the photo detail bottom bar.
+    static let detailFlowExtraLift: CGFloat = 34
 
     /// Total inset from the physical screen bottom (for full-bleed Memory Flow screens).
     static func screenBottomInset(safeAreaBottom: CGFloat) -> CGFloat {
         bottomPadding + safeAreaBottom
+    }
+
+    /// Matches the physical screen-bottom position used on photo detail.
+    static func detailAlignedScreenBottomInset(safeAreaBottom: CGFloat) -> CGFloat {
+        screenBottomInset(safeAreaBottom: safeAreaBottom) + detailFlowExtraLift
     }
 }
 
@@ -54,6 +61,10 @@ struct BottomToggle: View {
     private let iconActive = Color(white: 0.94)
     private let iconInactive = Color(white: 0.42)
 
+    private func triggerToggleHaptic() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
     var body: some View {
         ZStack {
             IYSOGlassCapsule()
@@ -74,6 +85,7 @@ struct BottomToggle: View {
         let isActive = activeTab == .gallery
 
         return Button {
+            triggerToggleHaptic()
             if let handler = onGalleryRequested {
                 handler()
             } else {
@@ -104,6 +116,7 @@ struct BottomToggle: View {
         let isActive = activeTab == .camera
 
         return Button {
+            triggerToggleHaptic()
             if let handler = onCameraRequested {
                 handler()
             } else {

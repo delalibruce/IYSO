@@ -1,6 +1,5 @@
 import AVFoundation
 import Photos
-import UIKit
 
 class CameraManager: NSObject, ObservableObject {
 
@@ -102,6 +101,7 @@ class CameraManager: NSObject, ObservableObject {
             return
         }
         session.addOutput(photoOutput)
+        photoOutput.isHighResolutionCaptureEnabled = false
 
         session.commitConfiguration()
 
@@ -202,17 +202,19 @@ class CameraManager: NSObject, ObservableObject {
             guard let self else { return }
 
             let settings = AVCapturePhotoSettings()
+            settings.isHighResolutionPhotoEnabled = false
+            settings.photoQualityPrioritization = .speed
 
-            // Flash always on
-            if self.photoOutput.supportedFlashModes.contains(.on) {
-                settings.flashMode = .on
+            // Prefer auto flash to reduce pre-flash shutter delay in bright scenes.
+            if let flashMode = self.preferredFlashMode() {
+                settings.flashMode = flashMode
             } else {
                 print("[Digicam] Flash not supported on this device/simulator")
             }
 
-            let processor = PhotoCaptureProcessor { [weak self] image in
-                guard let self, let image else { return }
-                self.saveToPhotoLibrary(image)
+            let processor = PhotoCaptureProcessor { [weak self] data in
+                guard let self, let photoData = data else { return }
+                self.saveToPhotoLibrary(photoData)
             }
             self.activeCaptureProcessor = processor
             self.photoOutput.capturePhoto(with: settings, delegate: processor)
@@ -221,7 +223,7 @@ class CameraManager: NSObject, ObservableObject {
 
     // MARK: - Save
 
-    private func saveToPhotoLibrary(_ image: UIImage) {
+    private func saveToPhotoLibrary(_ photoData: Data) {
         #if DEBUG
         if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
             print("[Digicam] Debug: suppressing photo library permission prompt/save")
@@ -239,16 +241,12 @@ class CameraManager: NSObject, ObservableObject {
 
         var placeholderID: String?
         PHPhotoLibrary.shared().performChanges({
-                guard let jpegData = image.jpegData(compressionQuality: 0.96) else {
-                    print("[Digicam] JPEG encoding failed")
-                    return
-                }
                 let request = PHAssetCreationRequest.forAsset()
                 request.creationDate = captureDate
 
                 let options = PHAssetResourceCreationOptions()
                 options.originalFilename = fileName
-                request.addResource(with: .photo, data: jpegData, options: options)
+                request.addResource(with: .photo, data: photoData, options: options)
                 placeholderID = request.placeholderForCreatedAsset?.localIdentifier
             }, completionHandler: { success, error in
                 if let error {
@@ -290,6 +288,16 @@ class CameraManager: NSObject, ObservableObject {
         formatter.dateFormat = "HHmm"
         return formatter
     }()
+
+    private func preferredFlashMode() -> AVCaptureDevice.FlashMode? {
+        if photoOutput.supportedFlashModes.contains(.auto) {
+            return .auto
+        }
+        if photoOutput.supportedFlashModes.contains(.on) {
+            return .on
+        }
+        return nil
+    }
 }
 
 // MARK: - CMTime helpers

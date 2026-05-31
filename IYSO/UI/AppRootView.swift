@@ -146,6 +146,7 @@ struct AppRootView: View {
             try? await Task.sleep(for: .seconds(duration))
             guard !Task.isCancelled else { return }
             await MainActor.run {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
                 withAnimation(.easeInOut(duration: 0.55)) {
                     isShowingLaunchLoading = false
                 }
@@ -193,7 +194,12 @@ struct AppRootView: View {
                     onCameraRequested: handleCameraRequested,
                     onGalleryRequested: handleGalleryRequested
                 )
-                .padding(.bottom, BottomToggleLayout.bottomPadding)
+                .padding(
+                    .bottom,
+                    BottomToggleLayout.detailAlignedScreenBottomInset(
+                        safeAreaBottom: geo.safeAreaInsets.bottom
+                    )
+                )
                 .zIndex(100)
                 .ignoresSafeArea(.keyboard)
                 .opacity(hidesBottomToggle ? 0 : 1)

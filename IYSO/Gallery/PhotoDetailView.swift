@@ -13,8 +13,6 @@ private enum PhotoDetailLayout {
     static let headerToPhotoSpacing: CGFloat = 48
     /// Gap from bottom of main photo circle to top of thumbnail carousel.
     static let photoToCarouselSpacing: CGFloat = 80
-    /// Extra lift for the share / toggle / delete bottom bar above the home indicator.
-    static let bottomBarExtraLift: CGFloat = 34
 }
 
 private enum PhotoPullDownDismiss {
@@ -404,7 +402,7 @@ struct PhotoDetailView: View {
             }
             .padding(.horizontal, 24)
             .alignedToBottomToggle(safeAreaBottom: bottomSafeInset)
-            .padding(.bottom, PhotoDetailLayout.bottomBarExtraLift)
+            .padding(.bottom, BottomToggleLayout.detailFlowExtraLift)
         }
     }
 
@@ -412,9 +410,17 @@ struct PhotoDetailView: View {
 
     private func shareCurrentPhoto() {
         guard let asset = currentAsset else { return }
-        library.fullResImage(for: asset) { image in
-            guard let image else { return }
-            shareSheetPayload = ShareSheetPayload(items: [image])
+        library.exportAssetFileURL(for: asset) { fileURL in
+            if let fileURL {
+                shareSheetPayload = ShareSheetPayload(items: [fileURL])
+                return
+            }
+
+            // Fallback keeps share available if Photos resource export is unavailable.
+            library.fullResImage(for: asset) { image in
+                guard let image else { return }
+                shareSheetPayload = ShareSheetPayload(items: [image])
+            }
         }
     }
 

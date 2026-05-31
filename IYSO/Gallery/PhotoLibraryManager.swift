@@ -453,6 +453,44 @@ class PhotoLibraryManager: ObservableObject {
         ) { image, _ in DispatchQueue.main.async { completion(image) } }
     }
 
+    /// Exports a single on-disk file for share workflows that should include exactly one asset.
+    func exportAssetFileURL(for asset: PHAsset, completion: @escaping (URL?) -> Void) {
+        let resources = PHAssetResource.assetResources(for: asset)
+        let resource = resources.first(where: { $0.type == .fullSizePhoto })
+            ?? resources.first(where: { $0.type == .photo })
+            ?? resources.first
+        guard let resource else {
+            completion(nil)
+            return
+        }
+
+        let tempDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("digicam-share", isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(
+                at: tempDirectory,
+                withIntermediateDirectories: true
+            )
+        } catch {
+            completion(nil)
+            return
+        }
+
+        let filename = resource.originalFilename.isEmpty ? UUID().uuidString : resource.originalFilename
+        let outputURL = tempDirectory.appendingPathComponent("\(UUID().uuidString)-\(filename)")
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try? FileManager.default.removeItem(at: outputURL)
+        }
+
+        let options = PHAssetResourceRequestOptions()
+        options.isNetworkAccessAllowed = true
+        PHAssetResourceManager.default().writeData(for: resource, toFile: outputURL, options: options) { error in
+            DispatchQueue.main.async {
+                completion(error == nil ? outputURL : nil)
+            }
+        }
+    }
+
     // MARK: - Date helpers
 
     nonisolated static func dateKey(from date: Date) -> String {
