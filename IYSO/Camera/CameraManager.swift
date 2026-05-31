@@ -15,7 +15,19 @@ class CameraManager: NSObject, ObservableObject {
     private let photoOutput = AVCapturePhotoOutput()
     private var activeCaptureProcessor: PhotoCaptureProcessor?
     private var isConfigured = false
+    private var sessionRunningObservation: NSKeyValueObservation?
     private static let captureFileNameCountersKey = "digicam.captureFileNameCounters"
+
+    override init() {
+        super.init()
+        // KVO is the only reliable way to track session running state across threads.
+        // Reading session.isRunning after startRunning() via DispatchQueue.main.async
+        // can miss the state change due to thread timing on first launch.
+        sessionRunningObservation = session.observe(\.isRunning, options: [.new]) { [weak self] _, change in
+            guard let self, let isRunning = change.newValue else { return }
+            DispatchQueue.main.async { self.isSessionRunning = isRunning }
+        }
+    }
 
     // MARK: - Session lifecycle
 
@@ -40,9 +52,7 @@ class CameraManager: NSObject, ObservableObject {
         sessionQueue.async {
             guard self.session.isRunning else { return }
             self.session.stopRunning()
-            DispatchQueue.main.async {
-                self.isSessionRunning = false
-            }
+            // isSessionRunning is updated via KVO on session.isRunning
         }
     }
 
@@ -54,18 +64,10 @@ class CameraManager: NSObject, ObservableObject {
             isConfigured = true
         }
 
-        guard !session.isRunning else {
-            DispatchQueue.main.async {
-                self.isSessionRunning = true
-            }
-            return
-        }
+        guard !session.isRunning else { return }
 
         session.startRunning()
-
-        DispatchQueue.main.async {
-            self.isSessionRunning = self.session.isRunning
-        }
+        // isSessionRunning is updated via KVO on session.isRunning
     }
 
     private func configureSession() {
@@ -205,7 +207,6 @@ class CameraManager: NSObject, ObservableObject {
             settings.isHighResolutionPhotoEnabled = false
             settings.photoQualityPrioritization = .speed
 
-            // Prefer auto flash to reduce pre-flash shutter delay in bright scenes.
             if let flashMode = self.preferredFlashMode() {
                 settings.flashMode = flashMode
             } else {
@@ -290,9 +291,6 @@ class CameraManager: NSObject, ObservableObject {
     }()
 
     private func preferredFlashMode() -> AVCaptureDevice.FlashMode? {
-        if photoOutput.supportedFlashModes.contains(.auto) {
-            return .auto
-        }
         if photoOutput.supportedFlashModes.contains(.on) {
             return .on
         }
