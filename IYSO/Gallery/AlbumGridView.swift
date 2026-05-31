@@ -260,6 +260,7 @@ private struct AlbumEditorSheetItem: Identifiable {
 struct GalleryRootView: View {
     @ObservedObject var library: PhotoLibraryManager
     @EnvironmentObject private var appBlocking: AppBlockingManager
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var navigationPath: [GalleryNav] = []
     @State private var isSettingsPresented = false
@@ -307,12 +308,12 @@ struct GalleryRootView: View {
                     PeepholeVisualPalette.memoryFlowBackground.ignoresSafeArea()
 
                     switch library.authorizationStatus {
-                    case .authorized, .limited:
+                    case .authorized, .limited, .notDetermined:
                         albumContent(topPadding: topPadding)
                     case .denied, .restricted:
                         permissionDenied
-                    default:
-                        Color.clear
+                    @unknown default:
+                        albumContent(topPadding: topPadding)
                     }
                 }
             }
@@ -333,7 +334,10 @@ struct GalleryRootView: View {
                 }
             }
         }
-        .onAppear { library.refreshAuthorizationStatusAndLoadIfAuthorized() }
+        .onAppear { requestPhotoLibraryAccessIfNeeded() }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { requestPhotoLibraryAccessIfNeeded() }
+        }
         .onReceive(library.$albums) { _ in
             guard let menuAlbum = contextMenuAlbum else { return }
             let resolvedID = library.resolvedAlbumID(for: menuAlbum.id)
@@ -818,6 +822,19 @@ struct GalleryRootView: View {
         group.notify(queue: .main) {
             guard !images.isEmpty else { return }
             shareSheetPayload = ShareSheetPayload(items: images)
+        }
+    }
+
+    // MARK: - Photo library access
+
+    private func requestPhotoLibraryAccessIfNeeded() {
+        switch library.authorizationStatus {
+        case .authorized, .limited:
+            library.refreshAuthorizationStatusAndLoadIfAuthorized()
+        case .notDetermined:
+            library.requestAccessAndLoad()
+        default:
+            library.refreshAuthorizationStatusAndLoadIfAuthorized()
         }
     }
 

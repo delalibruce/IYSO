@@ -231,7 +231,7 @@ class CameraManager: NSObject, ObservableObject {
         let captureDate = Date()
         let fileName = nextCaptureFileName(for: captureDate)
 
-        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+        PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
             guard status == .authorized || status == .limited else {
                 print("[Digicam] Photo library access denied: \(status.rawValue)")
                 return
