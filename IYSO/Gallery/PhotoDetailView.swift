@@ -48,8 +48,6 @@ struct PhotoDetailView: View {
     @State private var fileNameEditingItem: PhotoFileNameEditSheetItem?
     @State private var carouselSwipeExclusionFrame: CGRect?
     @State private var isCarouselDragging = false
-    @State private var thumbRequestID: PHImageRequestID = PHInvalidImageRequestID
-    @State private var detailRequestID: PHImageRequestID = PHInvalidImageRequestID
 
     init(
         assets: [PHAsset],
@@ -157,25 +155,15 @@ struct PhotoDetailView: View {
             )
             .navigationBarHidden(true)
             .onChange(of: currentIndex) { _ in
-                concealedGridAssetID = currentAsset?.localIdentifier
-                if !isCarouselDragging {
-                    loadImages()
-                }
-            }
-            .onChange(of: isCarouselDragging) { dragging in
-                guard !dragging else { return }
-                concealedGridAssetID = currentAsset?.localIdentifier
                 loadImages()
+                concealedGridAssetID = currentAsset?.localIdentifier
             }
             .onAppear {
                 appState.isPhotoDetailPresented = true
                 concealedGridAssetID = currentAsset?.localIdentifier
                 loadImages()
             }
-            .onDisappear {
-                appState.isPhotoDetailPresented = false
-                cancelImageRequests()
-            }
+            .onDisappear { appState.isPhotoDetailPresented = false }
             .memoryFlowDeleteConfirmation("Delete Photo?", isPresented: $showDeleteConfirm) {
                 deleteCurrentPhoto()
             }
@@ -456,27 +444,15 @@ struct PhotoDetailView: View {
     // MARK: - Image loading
 
     private func loadImages() {
-        cancelImageRequests()
-        lowResImage = nil
         fullResImage = nil
         guard let asset = currentAsset else { return }
-        let assetID = asset.localIdentifier
         let px = PhotoDetailLayout.mainPhotoDiameter * 2
-        thumbRequestID = library.thumbnail(for: asset, size: CGSize(width: px, height: px)) { img in
-            guard self.currentAsset?.localIdentifier == assetID else { return }
+        library.thumbnail(for: asset, size: CGSize(width: px, height: px)) { img in
             if self.fullResImage == nil { self.lowResImage = img }
         }
-        detailRequestID = library.detailImage(for: asset, diameter: PhotoDetailLayout.mainPhotoDiameter) { img in
-            guard self.currentAsset?.localIdentifier == assetID else { return }
+        library.fullResImage(for: asset) { img in
             self.fullResImage = img
         }
-    }
-
-    private func cancelImageRequests() {
-        library.cancelImageRequest(thumbRequestID)
-        library.cancelImageRequest(detailRequestID)
-        thumbRequestID = PHInvalidImageRequestID
-        detailRequestID = PHInvalidImageRequestID
     }
 
     /// Mirrors root toggle behavior so camera entry from detail still respects IYSO Mode gating.

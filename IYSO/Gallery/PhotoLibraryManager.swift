@@ -65,12 +65,9 @@ class PhotoLibraryManager: ObservableObject {
     static let albumSystemVersionKey = "digicam.albumSystemVersion"
 
     private var photoSavedObserver: NSObjectProtocol?
-    private var photoNameOverrides: [String: String] = [:]
-    private var photoDisplayNameCache: [String: String] = [:]
 
     init() {
         migrateIfNeeded()
-        reloadPhotoNameOverrides()
         photoSavedObserver = NotificationCenter.default.addObserver(
             forName: .digicamPhotoSaved,
             object: nil,
@@ -286,26 +283,19 @@ class PhotoLibraryManager: ObservableObject {
     }
 
     func photoDisplayName(for asset: PHAsset) -> String {
-        if let cached = photoDisplayNameCache[asset.localIdentifier] {
-            return cached
-        }
-
-        if let custom = photoNameOverrides[asset.localIdentifier], !custom.isEmpty {
-            photoDisplayNameCache[asset.localIdentifier] = custom
+        let overrides = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
+        if let custom = overrides[asset.localIdentifier], !custom.isEmpty {
             return custom
         }
-
-        let original = PHAssetResource.assetResources(for: asset).first?.originalFilename ?? ""
-        photoDisplayNameCache[asset.localIdentifier] = original
-        return original
+        return PHAssetResource.assetResources(for: asset).first?.originalFilename ?? ""
     }
 
     func updatePhotoFileName(assetLocalID: String, fileName: String) {
         let trimmed = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        photoNameOverrides[assetLocalID] = trimmed
-        photoDisplayNameCache[assetLocalID] = trimmed
-        UserDefaults.standard.set(photoNameOverrides, forKey: Self.photoFileNamesKey)
+        var names = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
+        names[assetLocalID] = trimmed
+        UserDefaults.standard.set(names, forKey: Self.photoFileNamesKey)
         objectWillChange.send()
     }
 
@@ -318,8 +308,6 @@ class PhotoLibraryManager: ObservableObject {
         var fileNames = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
         fileNames.removeValue(forKey: asset.localIdentifier)
         UserDefaults.standard.set(fileNames, forKey: Self.photoFileNamesKey)
-        photoNameOverrides = fileNames
-        photoDisplayNameCache.removeValue(forKey: asset.localIdentifier)
 
         loadAlbums()
         completion(true)
@@ -357,8 +345,6 @@ class PhotoLibraryManager: ObservableObject {
         let activeIDs = Set(UserDefaults.standard.stringArray(forKey: Self.capturedIDsKey) ?? [])
         fileNames = fileNames.filter { activeIDs.contains($0.key) }
         UserDefaults.standard.set(fileNames, forKey: Self.photoFileNamesKey)
-        photoNameOverrides = fileNames
-        photoDisplayNameCache = photoDisplayNameCache.filter { activeIDs.contains($0.key) }
     }
 
     // MARK: - Image loading
@@ -448,39 +434,13 @@ class PhotoLibraryManager: ObservableObject {
         imageManager.stopCachingImagesForAllAssets()
     }
 
-    @discardableResult
-    func thumbnail(for asset: PHAsset, size: CGSize, completion: @escaping (UIImage?) -> Void) -> PHImageRequestID {
+    func thumbnail(for asset: PHAsset, size: CGSize, completion: @escaping (UIImage?) -> Void) {
         let options = PHImageRequestOptions()
         options.deliveryMode = .opportunistic
         options.resizeMode = .fast
         options.isNetworkAccessAllowed = true
-        return imageManager.requestImage(
+        PHImageManager.default().requestImage(
             for: asset, targetSize: size, contentMode: .aspectFill, options: options
-        ) { image, _ in DispatchQueue.main.async { completion(image) } }
-    }
-
-    nonisolated static func detailImagePixelSize(
-        diameter: CGFloat,
-        oversample: CGFloat = 1.6
-    ) -> CGSize {
-        let scale = UIScreen.main.scale
-        let side = diameter * scale * oversample
-        return CGSize(width: side, height: side)
-    }
-
-    @discardableResult
-    func detailImage(
-        for asset: PHAsset,
-        diameter: CGFloat,
-        completion: @escaping (UIImage?) -> Void
-    ) -> PHImageRequestID {
-        let options = PHImageRequestOptions()
-        options.deliveryMode = .highQualityFormat
-        options.resizeMode = .exact
-        options.isNetworkAccessAllowed = true
-        let targetSize = Self.detailImagePixelSize(diameter: diameter)
-        return imageManager.requestImage(
-            for: asset, targetSize: targetSize, contentMode: .aspectFill, options: options
         ) { image, _ in DispatchQueue.main.async { completion(image) } }
     }
 
@@ -488,14 +448,9 @@ class PhotoLibraryManager: ObservableObject {
         let options = PHImageRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
-        imageManager.requestImage(
+        PHImageManager.default().requestImage(
             for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: options
         ) { image, _ in DispatchQueue.main.async { completion(image) } }
-    }
-
-    func cancelImageRequest(_ requestID: PHImageRequestID) {
-        guard requestID != PHInvalidImageRequestID else { return }
-        imageManager.cancelImageRequest(requestID)
     }
 
     /// Exports a single on-disk file for share workflows that should include exactly one asset.
@@ -586,9 +541,5 @@ class PhotoLibraryManager: ObservableObject {
         let start = albumDateLabel(for: earliest)
         let end = albumDateLabel(for: latest)
         return "\(start)–\(end)"
-    }
-
-    private func reloadPhotoNameOverrides() {
-        photoNameOverrides = UserDefaults.standard.dictionary(forKey: Self.photoFileNamesKey) as? [String: String] ?? [:]
     }
 }

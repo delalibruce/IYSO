@@ -304,7 +304,7 @@ struct RotaryThumbCell: View {
             thumbnail = cached
             return
         }
-        library.coverThumbnail(for: asset, size: pixelSize) {
+        library.thumbnail(for: asset, size: pixelSize) {
             thumbnail = $0
         }
     }
