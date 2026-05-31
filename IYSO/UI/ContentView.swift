@@ -8,7 +8,6 @@ private enum CameraLayout {
 struct CameraView: View {
     @ObservedObject var camera: CameraManager
     @EnvironmentObject private var appState: AppState
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var onExitIYSOTapped: (() -> Void)?
     private let shutterButtonSize: CGFloat = 82
@@ -34,10 +33,12 @@ struct CameraView: View {
         }
         .ignoresSafeArea()
         .onAppear {
-            // Restart when returning to the camera tab. Session stop is owned by
-            // AppRootView.syncCameraSession; do not start while onboarding is showing.
-            guard hasCompletedOnboarding else { return }
+            // Keep camera readiness local to this screen so onboarding/tab timing
+            // changes cannot leave the shutter disabled.
             camera.startSession()
+        }
+        .onDisappear {
+            camera.stopSession()
         }
     }
 
