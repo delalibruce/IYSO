@@ -259,6 +259,9 @@ class CameraManager: NSObject, ObservableObject {
                     return
                 }
                 print("[Digicam] Photo saved to library as \(fileName)")
+                DispatchQueue.main.async {
+                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                }
                 if let id = placeholderID {
                     var saved = UserDefaults.standard.stringArray(forKey: PhotoLibraryManager.capturedIDsKey) ?? []
                     saved.append(id)
