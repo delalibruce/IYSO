@@ -1,5 +1,6 @@
 import AVFoundation
 import Photos
+import UIKit
 
 class CameraManager: NSObject, ObservableObject {
 
