@@ -5,6 +5,7 @@ final class IYSOStateManager: ObservableObject {
     static let shared = IYSOStateManager()
 
     @Published private(set) var isIYSOActive: Bool = false
+    private var shieldActivationTask: Task<Void, Never>?
 
     private init() {}
 
@@ -19,12 +20,20 @@ final class IYSOStateManager: ObservableObject {
     }
 
     func activateShields() {
-        Task {
+        guard isIYSOActive else { return }
+        shieldActivationTask?.cancel()
+        shieldActivationTask = Task { @MainActor [weak self] in
             await AppBlockingManager.shared.activateShieldsForIYSOMode()
+            guard !Task.isCancelled else { return }
+            if self?.isIYSOActive != true {
+                AppBlockingManager.shared.setShieldsActive(false)
+            }
         }
     }
 
     func exitIYSOMode() {
+        shieldActivationTask?.cancel()
+        shieldActivationTask = nil
         AppBlockingManager.shared.setShieldsActive(false)
         isIYSOActive = false
     }

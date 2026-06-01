@@ -88,8 +88,11 @@ final class AppBlockingManager: ObservableObject {
 
     /// Call when entering IYSO mode — waits for Screen Time authorization, then applies shields.
     func activateShieldsForIYSOMode() async {
+        guard !Task.isCancelled else { return }
         await requestAuthorizationIfNeeded()
+        guard !Task.isCancelled else { return }
         refreshAuthorizationStatus()
+        guard !Task.isCancelled else { return }
         guard isAuthorized else {
             lastShieldError = "Screen Time access is required to block apps."
             return

@@ -351,7 +351,10 @@ struct MemoryFlowGlassIconButton: View {
                 .background {
                     MemoryFlowGlassSurface(shape: Circle())
                 }
+                .contentShape(Circle())
         }
+        .frame(width: diameter, height: diameter)
+        .contentShape(Circle())
         .buttonStyle(.plain)
         .disabled(!isEnabled)
     }
@@ -466,10 +469,15 @@ private struct MemoryFlowDeleteConfirmOverlay: View {
                         .foregroundColor(MemoryFlowDeleteConfirmStyle.destructive)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
+                        .contentShape(Rectangle())
                 }
+                .contentShape(Rectangle())
                 .buttonStyle(.plain)
             }
             .frame(maxWidth: MemoryFlowDeleteConfirmStyle.maxWidth)
+            .contentShape(
+                RoundedRectangle(cornerRadius: MemoryFlowDeleteConfirmStyle.cornerRadius, style: .continuous)
+            )
             .background(
                 RoundedRectangle(cornerRadius: MemoryFlowDeleteConfirmStyle.cornerRadius, style: .continuous)
                     .fill(MemoryFlowDeleteConfirmStyle.cardFill)

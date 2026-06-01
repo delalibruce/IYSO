@@ -20,8 +20,12 @@ class CameraManager: NSObject, ObservableObject {
     private var activeCaptureProcessor: PhotoCaptureProcessor?
     private var isConfigured = false
     private var pendingConfigureDevice: AVCaptureDevice?
+    private var wantsSessionRunning = false
+    private var startAttempt = 0
+    private var pendingStartRetry: DispatchWorkItem?
     private var sessionRunningObservation: NSKeyValueObservation?
     private static let captureFileNameCountersKey = "digicam.captureFileNameCounters"
+    private static let startRetryDelays: [TimeInterval] = [0.35, 0.85, 1.5]
 
     override init() {
         super.init()
@@ -29,9 +33,19 @@ class CameraManager: NSObject, ObservableObject {
         sessionRunningObservation = session.observe(\.isRunning, options: [.new]) { [weak self] _, change in
             guard let self, let isRunning = change.newValue else { return }
             os_log("[Digicam] KVO session.isRunning → %{public}d", log: cameraLog, type: .debug, isRunning ? 1 : 0)
-            if isRunning, let device = self.pendingConfigureDevice {
-                self.pendingConfigureDevice = nil
-                self.sessionQueue.async { self.configureDevice(device) }
+            self.sessionQueue.async {
+                if isRunning {
+                    self.startAttempt = 0
+                    self.pendingStartRetry?.cancel()
+                    self.pendingStartRetry = nil
+
+                    if let device = self.pendingConfigureDevice {
+                        self.pendingConfigureDevice = nil
+                        self.configureDevice(device)
+                    }
+                } else if self.wantsSessionRunning {
+                    self.scheduleStartRetry()
+                }
             }
             DispatchQueue.main.async { self.isSessionRunning = isRunning }
         }
@@ -54,8 +68,8 @@ class CameraManager: NSObject, ObservableObject {
     @objc private func handleSessionInterruptionEnded(_ notification: Notification) {
         os_log("[Digicam] Session interruption ended — restarting", log: cameraLog, type: .debug)
         sessionQueue.async { [weak self] in
-            guard let self, !self.session.isRunning else { return }
-            self.session.startRunning()
+            guard let self, self.wantsSessionRunning, !self.session.isRunning else { return }
+            self.configureIfNeededAndStart()
         }
     }
 
@@ -64,8 +78,8 @@ class CameraManager: NSObject, ObservableObject {
         os_log("[Digicam] Session runtime error: %{public}@ — restarting", log: cameraLog, type: .error,
                error?.localizedDescription ?? "unknown")
         sessionQueue.async { [weak self] in
-            guard let self else { return }
-            self.session.startRunning()
+            guard let self, self.wantsSessionRunning else { return }
+            self.configureIfNeededAndStart()
         }
     }
 
@@ -81,7 +95,17 @@ class CameraManager: NSObject, ObservableObject {
         os_log("[Digicam] startSession — auth status: %{public}d", log: cameraLog, type: .debug, status.rawValue)
         switch status {
         case .authorized:
-            sessionQueue.async { self.configureIfNeededAndStart() }
+            sessionQueue.async {
+                if self.wantsSessionRunning, self.pendingStartRetry != nil {
+                    os_log("[Digicam] startSession — restart already scheduled", log: cameraLog, type: .debug)
+                    return
+                }
+                if !self.wantsSessionRunning {
+                    self.startAttempt = 0
+                }
+                self.wantsSessionRunning = true
+                self.configureIfNeededAndStart()
+            }
         case .notDetermined:
             os_log("[Digicam] startSession — camera permission notDetermined", log: cameraLog, type: .debug)
         default:
@@ -91,6 +115,10 @@ class CameraManager: NSObject, ObservableObject {
 
     func stopSession() {
         sessionQueue.async {
+            self.wantsSessionRunning = false
+            self.startAttempt = 0
+            self.pendingStartRetry?.cancel()
+            self.pendingStartRetry = nil
             guard self.session.isRunning else { return }
             self.session.stopRunning()
         }
@@ -102,41 +130,55 @@ class CameraManager: NSObject, ObservableObject {
         os_log("[Digicam] configureIfNeededAndStart — isConfigured=%{public}d isRunning=%{public}d",
                log: cameraLog, type: .debug, isConfigured ? 1 : 0, session.isRunning ? 1 : 0)
 
+        pendingStartRetry?.cancel()
+        pendingStartRetry = nil
+
+        guard wantsSessionRunning else {
+            os_log("[Digicam] configureIfNeededAndStart — no longer requested", log: cameraLog, type: .debug)
+            return
+        }
+
         if !isConfigured {
-            configureSession()
-            isConfigured = true
+            isConfigured = configureSession()
+            guard isConfigured else {
+                os_log("[Digicam] configureIfNeededAndStart — configuration failed", log: cameraLog, type: .error)
+                startAttempt += 1
+                scheduleStartRetry()
+                return
+            }
         }
 
         guard !session.isRunning else {
             os_log("[Digicam] configureIfNeededAndStart — already running, skip", log: cameraLog, type: .debug)
+            startAttempt = 0
             return
         }
 
-        os_log("[Digicam] calling session.startRunning()", log: cameraLog, type: .debug)
+        startAttempt += 1
+        os_log("[Digicam] calling session.startRunning() attempt %{public}d", log: cameraLog, type: .debug, startAttempt)
         session.startRunning()
         os_log("[Digicam] session.startRunning() returned — isRunning=%{public}d",
                log: cameraLog, type: .debug, session.isRunning ? 1 : 0)
 
-        // startRunning() is synchronous but can silently fail on first launch in TestFlight
-        // when system daemons (e.g. parentalcontrolsd) are simultaneously accessing
-        // mediaserverd for first-run setup. Retry once immediately if the session didn't open.
         if !session.isRunning {
-            os_log("[Digicam] startRunning() silent failure — retrying", log: cameraLog, type: .error)
-            session.startRunning()
-            os_log("[Digicam] retry startRunning() — isRunning=%{public}d",
-                   log: cameraLog, type: .debug, session.isRunning ? 1 : 0)
+            os_log("[Digicam] startRunning() did not open session", log: cameraLog, type: .error)
+            scheduleStartRetry()
+        } else {
+            startAttempt = 0
         }
     }
 
-    private func configureSession() {
+    private func configureSession() -> Bool {
         os_log("[Digicam] configureSession begin", log: cameraLog, type: .debug)
         session.beginConfiguration()
         session.sessionPreset = .photo
+        session.inputs.forEach { session.removeInput($0) }
+        session.outputs.forEach { session.removeOutput($0) }
 
         guard let device = discoverUltraWideCamera() else {
             os_log("[Digicam] configureSession — no camera device found", log: cameraLog, type: .error)
             session.commitConfiguration()
-            return
+            return false
         }
 
         do {
@@ -144,14 +186,14 @@ class CameraManager: NSObject, ObservableObject {
             guard session.canAddInput(input) else {
                 os_log("[Digicam] configureSession — cannot add input", log: cameraLog, type: .error)
                 session.commitConfiguration()
-                return
+                return false
             }
             session.addInput(input)
         } catch {
             os_log("[Digicam] configureSession — input error: %{public}@", log: cameraLog, type: .error,
                    error.localizedDescription)
             session.commitConfiguration()
-            return
+            return false
         }
 
         photoOutput.maxPhotoQualityPrioritization = .speed
@@ -159,7 +201,7 @@ class CameraManager: NSObject, ObservableObject {
         guard session.canAddOutput(photoOutput) else {
             os_log("[Digicam] configureSession — cannot add output", log: cameraLog, type: .error)
             session.commitConfiguration()
-            return
+            return false
         }
         session.addOutput(photoOutput)
         photoOutput.isHighResolutionCaptureEnabled = false
@@ -170,6 +212,28 @@ class CameraManager: NSObject, ObservableObject {
         // Store device for post-start configuration via KVO handler so setExposureModeCustom
         // doesn't run before the session is confirmed running.
         pendingConfigureDevice = device
+        return true
+    }
+
+    private func scheduleStartRetry() {
+        guard wantsSessionRunning, !session.isRunning else { return }
+        pendingStartRetry?.cancel()
+        pendingStartRetry = nil
+
+        let delayIndex = max(startAttempt, 1) - 1
+        guard delayIndex < Self.startRetryDelays.count else {
+            os_log("[Digicam] startRunning exhausted retries", log: cameraLog, type: .error)
+            return
+        }
+
+        let delay = Self.startRetryDelays[delayIndex]
+        os_log("[Digicam] scheduling session restart in %{public}.2fs", log: cameraLog, type: .debug, delay)
+
+        let retry = DispatchWorkItem { [weak self] in
+            self?.configureIfNeededAndStart()
+        }
+        pendingStartRetry = retry
+        sessionQueue.asyncAfter(deadline: .now() + delay, execute: retry)
     }
 
     private func discoverUltraWideCamera() -> AVCaptureDevice? {
@@ -249,10 +313,15 @@ class CameraManager: NSObject, ObservableObject {
     func capturePhoto() {
         os_log("[Digicam] capturePhoto — isSessionRunning=%{public}d session.isRunning=%{public}d",
                log: cameraLog, type: .debug, isSessionRunning ? 1 : 0, session.isRunning ? 1 : 0)
-        guard isSessionRunning else { return }
 
         sessionQueue.async { [weak self] in
             guard let self else { return }
+            guard self.session.isRunning else {
+                os_log("[Digicam] capturePhoto ignored — session not running; requesting start", log: cameraLog, type: .error)
+                self.wantsSessionRunning = true
+                self.configureIfNeededAndStart()
+                return
+            }
 
             let settings = AVCapturePhotoSettings()
             settings.isHighResolutionPhotoEnabled = false

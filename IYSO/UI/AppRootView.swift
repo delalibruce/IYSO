@@ -31,6 +31,8 @@ struct AppRootView: View {
     @State private var hasAppeared = false
     @State private var launchLoadingDismissTask: Task<Void, Never>?
     @State private var onboardingHitTestEnabled = true
+    @State private var launchLoadingHitTestEnabled = true
+    @State private var hasActivatedShieldsForCurrentIYSOMode = false
 
     private var hidesBottomToggle: Bool {
         guard appState.activeTab == .gallery else { return false }
@@ -64,6 +66,7 @@ struct AppRootView: View {
                     displayDuration: currentLaunchLoadingDuration,
                     usesSlowFirstLaunchProgress: isCurrentLoadingFirstLaunch
                 )
+                    .allowsHitTesting(launchLoadingHitTestEnabled)
                     .transition(.opacity)
                     .zIndex(2000)
             }
@@ -111,12 +114,14 @@ struct AppRootView: View {
             syncCameraSession()
         }
         .onChange(of: camera.isSessionRunning) { isRunning in
-            // Activate shields only after the camera session is confirmed running.
-            // This decouples ManagedSettingsStore IPC from session.startRunning(),
-            // which fixes a Release-only race where mediaserverd receives a restriction
-            // registration while mid-startup, interrupting the session before it opens.
-            if isRunning && appState.isIYSOMode && hasCompletedOnboarding {
-                IYSOStateManager.shared.activateShields()
+            if isRunning {
+                activateShieldsAfterCameraReadyIfNeeded()
+            }
+        }
+        .onChange(of: appState.isIYSOMode) { isIYSOMode in
+            hasActivatedShieldsForCurrentIYSOMode = false
+            if isIYSOMode, camera.isSessionRunning {
+                activateShieldsAfterCameraReadyIfNeeded()
             }
         }
         .onChange(of: hasCompletedOnboarding) { completed in
@@ -152,6 +157,7 @@ struct AppRootView: View {
         let behavior = nextLaunchLoadingBehavior()
         currentLaunchLoadingDuration = behavior.duration
         isCurrentLoadingFirstLaunch = behavior.isFirstLaunch
+        launchLoadingHitTestEnabled = true
         isShowingLaunchLoading = true
         dismissLaunchLoadingIfNeeded()
     }
@@ -165,6 +171,7 @@ struct AppRootView: View {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
+                launchLoadingHitTestEnabled = false
                 withAnimation(.easeInOut(duration: 0.55)) {
                     isShowingLaunchLoading = false
                 }
@@ -284,6 +291,7 @@ struct AppRootView: View {
 
     private func enterIYSOMode() {
         appState.showEnterIYSOModeSheet = false
+        hasActivatedShieldsForCurrentIYSOMode = false
         withAnimation(.easeInOut(duration: 0.2)) {
             appState.activeTab = .camera
             appState.isIYSOMode = true
@@ -293,6 +301,7 @@ struct AppRootView: View {
 
     private func exitIYSOMode() {
         appState.showExitIYSOModal = false
+        hasActivatedShieldsForCurrentIYSOMode = false
         withAnimation(.easeInOut(duration: 0.2)) {
             appState.isIYSOMode = false
             appState.activeTab = .gallery
@@ -303,10 +312,21 @@ struct AppRootView: View {
     private func openInDefaultCameraMode() {
         appState.showEnterIYSOModeSheet = false
         appState.showExitIYSOModal = false
+        hasActivatedShieldsForCurrentIYSOMode = false
         appState.activeTab = .camera
         appState.isIYSOMode = true
         IYSOStateManager.shared.enterIYSOMode()
         syncCameraSession()
+    }
+
+    private func activateShieldsAfterCameraReadyIfNeeded() {
+        // ManagedSettingsStore activation can interrupt camera startup. Apply it once,
+        // after AVFoundation has confirmed the session is running.
+        guard hasCompletedOnboarding,
+              appState.isIYSOMode,
+              !hasActivatedShieldsForCurrentIYSOMode else { return }
+        hasActivatedShieldsForCurrentIYSOMode = true
+        IYSOStateManager.shared.activateShields()
     }
 
     private func handleReturnToCameraIfNeeded() {
