@@ -25,14 +25,10 @@ class CameraManager: NSObject, ObservableObject {
     private var wantsSessionRunning = false
     private var isReadyForCapture = false
     private var hasConfiguredDeviceForCurrentStart = false
-    private var hasPreparedPhotoOutputForCurrentStart = false
-    private var isPhotoOutputReadyForRequests = true
     private var isPhotoCaptureInProgress = false
-    private var photoPreparationGeneration = 0
     private var startAttempt = 0
     private var pendingStartRetry: DispatchWorkItem?
     private var sessionRunningObservation: NSKeyValueObservation?
-    private var captureReadinessObservation: NSKeyValueObservation?
     private static let captureFileNameCountersKey = "digicam.captureFileNameCounters"
     private static let startRetryDelays: [TimeInterval] = [0.35, 0.85, 1.5]
 
@@ -44,22 +40,7 @@ class CameraManager: NSObject, ObservableObject {
             os_log("[Digicam] KVO session.isRunning → %{public}d", log: cameraLog, type: .debug, isRunning ? 1 : 0)
             self.sessionQueue.async {
                 if isRunning {
-                    self.startAttempt = 0
-                    self.pendingStartRetry?.cancel()
-                    self.pendingStartRetry = nil
-
-                    if let device = self.pendingConfigureDevice {
-                        self.pendingConfigureDevice = nil
-                        self.configureDevice(device) { [weak self] in
-                            self?.sessionQueue.async {
-                                self?.hasConfiguredDeviceForCurrentStart = true
-                                self?.markCaptureReadyIfPossible()
-                            }
-                        }
-                    } else {
-                        self.hasConfiguredDeviceForCurrentStart = true
-                        self.markCaptureReadyIfPossible()
-                    }
+                    self.handleSessionDidStartRunning()
                 } else if self.wantsSessionRunning {
                     self.setCaptureReady(false)
                     self.scheduleStartRetry()
@@ -68,19 +49,6 @@ class CameraManager: NSObject, ObservableObject {
                 }
             }
             DispatchQueue.main.async { self.isSessionRunning = isRunning }
-        }
-
-        if #available(iOS 17.0, macOS 14.0, *) {
-            captureReadinessObservation = photoOutput.observe(\.captureReadiness, options: [.initial, .new]) { [weak self] _, change in
-                guard let self, let readiness = change.newValue else { return }
-                os_log("[Digicam] photoOutput.captureReadiness → %{public}ld",
-                       log: cameraLog, type: .debug,
-                       readiness.rawValue)
-                self.sessionQueue.async {
-                    self.isPhotoOutputReadyForRequests = readiness == .ready
-                    self.markCaptureReadyIfPossible()
-                }
-            }
         }
 
         NotificationCenter.default.addObserver(
@@ -151,11 +119,8 @@ class CameraManager: NSObject, ObservableObject {
             self.wantsSessionRunning = false
             self.setCaptureReady(false)
             self.hasConfiguredDeviceForCurrentStart = false
-            self.hasPreparedPhotoOutputForCurrentStart = false
-            self.isPhotoOutputReadyForRequests = false
             self.isPhotoCaptureInProgress = false
             self.activeCaptureProcessors.removeAll()
-            self.photoPreparationGeneration += 1
             self.startAttempt = 0
             self.pendingStartRetry?.cancel()
             self.pendingStartRetry = nil
@@ -208,7 +173,26 @@ class CameraManager: NSObject, ObservableObject {
             os_log("[Digicam] startRunning() did not open session", log: cameraLog, type: .error)
             scheduleStartRetry()
         } else {
-            startAttempt = 0
+            handleSessionDidStartRunning()
+        }
+    }
+
+    private func handleSessionDidStartRunning() {
+        startAttempt = 0
+        pendingStartRetry?.cancel()
+        pendingStartRetry = nil
+
+        if let device = pendingConfigureDevice {
+            pendingConfigureDevice = nil
+            configureDevice(device) { [weak self] in
+                self?.sessionQueue.async {
+                    self?.hasConfiguredDeviceForCurrentStart = true
+                    self?.markCaptureReadyIfPossible()
+                }
+            }
+        } else {
+            hasConfiguredDeviceForCurrentStart = true
+            markCaptureReadyIfPossible()
         }
     }
 
@@ -260,12 +244,6 @@ class CameraManager: NSObject, ObservableObject {
 
     private func prepareForNextSessionStart() {
         hasConfiguredDeviceForCurrentStart = false
-        hasPreparedPhotoOutputForCurrentStart = false
-        if #available(iOS 17.0, macOS 14.0, *) {
-            isPhotoOutputReadyForRequests = photoOutput.captureReadiness == .ready
-        } else {
-            isPhotoOutputReadyForRequests = true
-        }
 
         if let device = activeVideoDevice {
             // Apply device tuning after the session is confirmed running.
@@ -276,18 +254,14 @@ class CameraManager: NSObject, ObservableObject {
         }
 
         let preparedSettings = makePhotoSettings()
-        photoPreparationGeneration += 1
-        let preparationGeneration = photoPreparationGeneration
         os_log("[Digicam] preparing photo output for first capture", log: cameraLog, type: .debug)
         photoOutput.setPreparedPhotoSettingsArray([preparedSettings]) { [weak self] prepared, error in
             self?.sessionQueue.async {
-                guard self?.photoPreparationGeneration == preparationGeneration else { return }
                 if let error {
                     os_log("[Digicam] photo output preparation failed: %{public}@",
                            log: cameraLog, type: .error,
                            error.localizedDescription)
                 }
-                self?.hasPreparedPhotoOutputForCurrentStart = prepared
                 os_log("[Digicam] photo output prepared=%{public}d",
                        log: cameraLog, type: .debug,
                        prepared ? 1 : 0)
@@ -387,8 +361,6 @@ class CameraManager: NSObject, ObservableObject {
         guard wantsSessionRunning,
               session.isRunning,
               hasConfiguredDeviceForCurrentStart,
-              hasPreparedPhotoOutputForCurrentStart,
-              isPhotoOutputReadyForRequests,
               !isPhotoCaptureInProgress else {
             setCaptureReady(false)
             return
@@ -412,7 +384,7 @@ class CameraManager: NSObject, ObservableObject {
 
         sessionQueue.async { [weak self] in
             guard let self else { return }
-            guard self.session.isRunning, self.isReadyForCapture else {
+            guard self.session.isRunning, self.hasConfiguredDeviceForCurrentStart else {
                 os_log("[Digicam] capturePhoto ignored — capture pipeline not ready; requesting start", log: cameraLog, type: .error)
                 self.wantsSessionRunning = true
                 self.configureIfNeededAndStart()
