@@ -9,6 +9,8 @@ struct CameraView: View {
     @ObservedObject var camera: CameraManager
     @EnvironmentObject private var appState: AppState
 
+    var isCameraStartRequested = false
+    var onStartCameraTapped: (() -> Void)?
     var onExitIYSOTapped: (() -> Void)?
     private let shutterButtonSize: CGFloat = 82
 
@@ -74,9 +76,7 @@ struct CameraView: View {
                     .fill(Color.black)
                     .frame(width: diameter, height: diameter)
                     .overlay(
-                        Circle()
-                            .fill(Color.white.opacity(0.035))
-                            .padding(diameter * 0.08)
+                        lensPlaceholderContent(diameter: diameter)
                     )
             }
 
@@ -93,21 +93,65 @@ struct CameraView: View {
                 .frame(width: diameter, height: diameter)
         }
         .animation(.easeInOut(duration: 0.18), value: camera.isCaptureReady)
+        .animation(.easeInOut(duration: 0.18), value: isCameraStartRequested)
+    }
+
+    private func lensPlaceholderContent(diameter: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .fill(Color.white.opacity(0.035))
+                .padding(diameter * 0.08)
+
+            if !isCameraStartRequested {
+                Button(action: { onStartCameraTapped?() }) {
+                    VStack(spacing: 10) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 28, weight: .semibold))
+                        Text("Start Camera")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(width: 148, height: 92)
+                    .background(Color.white.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            } else {
+                ProgressView()
+                    .tint(.white)
+            }
+        }
     }
 
     // MARK: - Shutter
 
     private var shutterButton: some View {
-        Button(action: { camera.capturePhoto() }) {
+        Button(action: {
+            if isCameraStartRequested {
+                camera.capturePhoto()
+            } else {
+                onStartCameraTapped?()
+            }
+        }) {
             ZStack {
                 Circle()
                     .stroke(Color.white.opacity(0.55), lineWidth: 3)
                     .frame(width: 82, height: 82)
                 Circle()
-                    .fill(camera.isCaptureReady ? Color.white : Color.white.opacity(0.45))
+                    .fill(shutterFillColor)
                     .frame(width: 68, height: 68)
+                if !isCameraStartRequested {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.black.opacity(0.75))
+                }
             }
         }
-        .disabled(!camera.isCaptureReady)
+        .disabled(isCameraStartRequested && !camera.isCaptureReady)
+    }
+
+    private var shutterFillColor: Color {
+        if !isCameraStartRequested { return .white }
+        return camera.isCaptureReady ? .white : Color.white.opacity(0.45)
     }
 }

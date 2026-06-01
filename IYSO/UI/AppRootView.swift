@@ -34,6 +34,7 @@ struct AppRootView: View {
     @State private var launchLoadingHitTestEnabled = true
     @State private var cameraStartTask: Task<Void, Never>?
     @State private var hasPreparedCurrentIYSOCameraEntry = false
+    @State private var hasUserRequestedCameraStart = false
 
     private var hidesBottomToggle: Bool {
         guard appState.activeTab == .gallery else { return false }
@@ -145,6 +146,10 @@ struct AppRootView: View {
             return
         }
         if appState.activeTab == .camera {
+            guard hasUserRequestedCameraStart else {
+                stopCameraSession()
+                return
+            }
             if appState.isIYSOMode {
                 startCameraAfterIYSOModePreparation()
             } else {
@@ -188,6 +193,21 @@ struct AppRootView: View {
     private func cancelPendingCameraStart() {
         cameraStartTask?.cancel()
         cameraStartTask = nil
+    }
+
+    private func requestCameraStart() {
+        guard hasCompletedOnboarding else { return }
+        hasUserRequestedCameraStart = true
+        if appState.activeTab != .camera {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                appState.activeTab = .camera
+            }
+        }
+        if appState.isIYSOMode {
+            syncCameraSession()
+        } else {
+            enterIYSOMode(startsCamera: true)
+        }
     }
 
     // MARK: - Launch loading
@@ -245,6 +265,8 @@ struct AppRootView: View {
                     if appState.activeTab == .camera {
                         CameraView(
                             camera: camera,
+                            isCameraStartRequested: hasUserRequestedCameraStart,
+                            onStartCameraTapped: requestCameraStart,
                             onExitIYSOTapped: { appState.showExitIYSOModal = true }
                         )
                     } else {
@@ -272,7 +294,7 @@ struct AppRootView: View {
 
                 if appState.showEnterIYSOModeSheet {
                     EnterIYSOModeModal(
-                        onEnter: enterIYSOMode,
+                        onEnter: { enterIYSOMode() },
                         onCancel: { appState.showEnterIYSOModeSheet = false }
                     )
                     .transition(.opacity)
@@ -314,7 +336,9 @@ struct AppRootView: View {
 
     private func handleCameraRequested() {
         if appState.isIYSOMode {
+            hasUserRequestedCameraStart = true
             withAnimation(.easeInOut(duration: 0.2)) { appState.activeTab = .camera }
+            syncCameraSession()
         } else {
             appState.showEnterIYSOModeSheet = true
         }
@@ -328,9 +352,10 @@ struct AppRootView: View {
         }
     }
 
-    private func enterIYSOMode() {
+    private func enterIYSOMode(startsCamera: Bool = true) {
         appState.showEnterIYSOModeSheet = false
         hasPreparedCurrentIYSOCameraEntry = false
+        hasUserRequestedCameraStart = startsCamera
         withAnimation(.easeInOut(duration: 0.2)) {
             appState.activeTab = .camera
             appState.isIYSOMode = true
@@ -342,6 +367,7 @@ struct AppRootView: View {
     private func exitIYSOMode() {
         appState.showExitIYSOModal = false
         hasPreparedCurrentIYSOCameraEntry = false
+        hasUserRequestedCameraStart = false
         stopCameraSession()
         withAnimation(.easeInOut(duration: 0.2)) {
             appState.isIYSOMode = false
@@ -354,6 +380,7 @@ struct AppRootView: View {
         appState.showEnterIYSOModeSheet = false
         appState.showExitIYSOModal = false
         hasPreparedCurrentIYSOCameraEntry = false
+        hasUserRequestedCameraStart = false
         appState.activeTab = .camera
         appState.isIYSOMode = true
         IYSOStateManager.shared.enterIYSOMode()
@@ -362,6 +389,7 @@ struct AppRootView: View {
 
     private func handleReturnToCameraIfNeeded() {
         guard appBlocking.consumeOpenCameraRequest() else { return }
+        hasUserRequestedCameraStart = true
         if !appState.isIYSOMode {
             enterIYSOMode()
         } else {
@@ -369,6 +397,7 @@ struct AppRootView: View {
                 appState.activeTab = .camera
             }
             IYSOStateManager.shared.enterIYSOMode()
+            syncCameraSession()
         }
     }
 
