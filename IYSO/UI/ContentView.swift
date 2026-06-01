@@ -11,7 +11,6 @@ struct CameraView: View {
 
     var onExitIYSOTapped: (() -> Void)?
     private let shutterButtonSize: CGFloat = 82
-    @State private var isActive = false
 
     var body: some View {
         GeometryReader { geo in
@@ -33,22 +32,6 @@ struct CameraView: View {
             }
         }
         .ignoresSafeArea()
-        .onAppear {
-            isActive = true
-            camera.startSession()
-        }
-        .onDisappear {
-            isActive = false
-            camera.stopSession()
-        }
-        .onChange(of: camera.isSessionRunning) { isRunning in
-            // Reactive safety net: if the session stops for any reason while this
-            // view is visible (runtime error, silent startRunning() failure, etc.),
-            // restart it. The isActive guard prevents a restart when the view is
-            // intentionally disappearing (going to gallery).
-            guard isActive, !isRunning else { return }
-            camera.startSession()
-        }
     }
 
     // MARK: - Chrome overlay (mode label + exit button + banner)
@@ -81,9 +64,21 @@ struct CameraView: View {
 
     private func fisheyeCircle(diameter: CGFloat) -> some View {
         ZStack {
-            CameraPreviewView(session: camera.session)
-                .clipShape(Circle())
-                .frame(width: diameter, height: diameter)
+            if camera.isCaptureReady {
+                CameraPreviewView(session: camera.session)
+                    .clipShape(Circle())
+                    .frame(width: diameter, height: diameter)
+                    .transition(.opacity)
+            } else {
+                Circle()
+                    .fill(Color.black)
+                    .frame(width: diameter, height: diameter)
+                    .overlay(
+                        Circle()
+                            .fill(Color.white.opacity(0.035))
+                            .padding(diameter * 0.08)
+                    )
+            }
 
             Circle()
                 .stroke(
@@ -97,6 +92,7 @@ struct CameraView: View {
                 )
                 .frame(width: diameter, height: diameter)
         }
+        .animation(.easeInOut(duration: 0.18), value: camera.isCaptureReady)
     }
 
     // MARK: - Shutter
@@ -108,10 +104,10 @@ struct CameraView: View {
                     .stroke(Color.white.opacity(0.55), lineWidth: 3)
                     .frame(width: 82, height: 82)
                 Circle()
-                    .fill(Color.white)
+                    .fill(camera.isCaptureReady ? Color.white : Color.white.opacity(0.45))
                     .frame(width: 68, height: 68)
             }
         }
-        .disabled(!camera.isSessionRunning)
+        .disabled(!camera.isCaptureReady)
     }
 }

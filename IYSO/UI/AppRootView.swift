@@ -32,7 +32,8 @@ struct AppRootView: View {
     @State private var launchLoadingDismissTask: Task<Void, Never>?
     @State private var onboardingHitTestEnabled = true
     @State private var launchLoadingHitTestEnabled = true
-    @State private var hasActivatedShieldsForCurrentIYSOMode = false
+    @State private var cameraStartTask: Task<Void, Never>?
+    @State private var hasPreparedCurrentIYSOCameraEntry = false
 
     private var hidesBottomToggle: Bool {
         guard appState.activeTab == .gallery else { return false }
@@ -83,9 +84,10 @@ struct AppRootView: View {
             library.refreshAuthorizationStatusAndLoadIfAuthorized()
             if hasCompletedOnboarding {
                 openInDefaultCameraMode()
+            } else {
+                syncCameraSession()
             }
             presentLaunchLoading()
-            syncCameraSession()
             hasAppeared = true
         }
         .onChange(of: scenePhase) { phase in
@@ -100,6 +102,7 @@ struct AppRootView: View {
                     if appState.isIYSOMode {
                         IYSOStateManager.shared.enterIYSOMode()
                     }
+                    syncCameraSession()
                 }
             case .inactive, .background:
                 lastBackgroundedAtTimestamp = Date().timeIntervalSince1970
@@ -113,15 +116,12 @@ struct AppRootView: View {
         .onChange(of: appState.activeTab) { _ in
             syncCameraSession()
         }
-        .onChange(of: camera.isSessionRunning) { isRunning in
-            if isRunning {
-                activateShieldsAfterCameraReadyIfNeeded()
-            }
-        }
         .onChange(of: appState.isIYSOMode) { isIYSOMode in
-            hasActivatedShieldsForCurrentIYSOMode = false
-            if isIYSOMode, camera.isSessionRunning {
-                activateShieldsAfterCameraReadyIfNeeded()
+            if isIYSOMode {
+                syncCameraSession()
+            } else {
+                hasPreparedCurrentIYSOCameraEntry = false
+                cancelPendingCameraStart()
             }
         }
         .onChange(of: hasCompletedOnboarding) { completed in
@@ -141,14 +141,53 @@ struct AppRootView: View {
 
     private func syncCameraSession() {
         guard hasCompletedOnboarding else {
-            camera.stopSession()
+            stopCameraSession()
             return
         }
         if appState.activeTab == .camera {
-            camera.startSession()
+            if appState.isIYSOMode {
+                startCameraAfterIYSOModePreparation()
+            } else {
+                cancelPendingCameraStart()
+                camera.startSession()
+            }
         } else {
-            camera.stopSession()
+            stopCameraSession()
         }
+    }
+
+    private func startCameraAfterIYSOModePreparation() {
+        guard hasCompletedOnboarding, appState.activeTab == .camera, appState.isIYSOMode else { return }
+        IYSOStateManager.shared.enterIYSOMode()
+
+        if hasPreparedCurrentIYSOCameraEntry {
+            cancelPendingCameraStart()
+            camera.startSession()
+            return
+        }
+
+        cancelPendingCameraStart()
+        camera.stopSession()
+        cameraStartTask = Task { @MainActor in
+            await IYSOStateManager.shared.activateShields()
+            try? await Task.sleep(for: .milliseconds(450))
+            guard !Task.isCancelled,
+                  hasCompletedOnboarding,
+                  appState.activeTab == .camera,
+                  appState.isIYSOMode else { return }
+            hasPreparedCurrentIYSOCameraEntry = true
+            camera.startSession()
+        }
+    }
+
+    private func stopCameraSession() {
+        cancelPendingCameraStart()
+        camera.stopSession()
+    }
+
+    private func cancelPendingCameraStart() {
+        cameraStartTask?.cancel()
+        cameraStartTask = nil
     }
 
     // MARK: - Launch loading
@@ -291,17 +330,19 @@ struct AppRootView: View {
 
     private func enterIYSOMode() {
         appState.showEnterIYSOModeSheet = false
-        hasActivatedShieldsForCurrentIYSOMode = false
+        hasPreparedCurrentIYSOCameraEntry = false
         withAnimation(.easeInOut(duration: 0.2)) {
             appState.activeTab = .camera
             appState.isIYSOMode = true
         }
         IYSOStateManager.shared.enterIYSOMode()
+        syncCameraSession()
     }
 
     private func exitIYSOMode() {
         appState.showExitIYSOModal = false
-        hasActivatedShieldsForCurrentIYSOMode = false
+        hasPreparedCurrentIYSOCameraEntry = false
+        stopCameraSession()
         withAnimation(.easeInOut(duration: 0.2)) {
             appState.isIYSOMode = false
             appState.activeTab = .gallery
@@ -312,21 +353,11 @@ struct AppRootView: View {
     private func openInDefaultCameraMode() {
         appState.showEnterIYSOModeSheet = false
         appState.showExitIYSOModal = false
-        hasActivatedShieldsForCurrentIYSOMode = false
+        hasPreparedCurrentIYSOCameraEntry = false
         appState.activeTab = .camera
         appState.isIYSOMode = true
         IYSOStateManager.shared.enterIYSOMode()
         syncCameraSession()
-    }
-
-    private func activateShieldsAfterCameraReadyIfNeeded() {
-        // ManagedSettingsStore activation can interrupt camera startup. Apply it once,
-        // after AVFoundation has confirmed the session is running.
-        guard hasCompletedOnboarding,
-              appState.isIYSOMode,
-              !hasActivatedShieldsForCurrentIYSOMode else { return }
-        hasActivatedShieldsForCurrentIYSOMode = true
-        IYSOStateManager.shared.activateShields()
     }
 
     private func handleReturnToCameraIfNeeded() {

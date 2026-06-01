@@ -11,6 +11,7 @@ class CameraManager: NSObject, ObservableObject {
 
     let session = AVCaptureSession()
     @Published var isSessionRunning = false
+    @Published var isCaptureReady = false
 
     // MARK: - Private
 
@@ -21,6 +22,7 @@ class CameraManager: NSObject, ObservableObject {
     private var isConfigured = false
     private var pendingConfigureDevice: AVCaptureDevice?
     private var wantsSessionRunning = false
+    private var isReadyForCapture = false
     private var startAttempt = 0
     private var pendingStartRetry: DispatchWorkItem?
     private var sessionRunningObservation: NSKeyValueObservation?
@@ -41,10 +43,19 @@ class CameraManager: NSObject, ObservableObject {
 
                     if let device = self.pendingConfigureDevice {
                         self.pendingConfigureDevice = nil
-                        self.configureDevice(device)
+                        self.configureDevice(device) { [weak self] in
+                            self?.sessionQueue.async {
+                                self?.markCaptureReadyIfPossible()
+                            }
+                        }
+                    } else {
+                        self.markCaptureReadyIfPossible()
                     }
                 } else if self.wantsSessionRunning {
+                    self.setCaptureReady(false)
                     self.scheduleStartRetry()
+                } else {
+                    self.setCaptureReady(false)
                 }
             }
             DispatchQueue.main.async { self.isSessionRunning = isRunning }
@@ -116,6 +127,7 @@ class CameraManager: NSObject, ObservableObject {
     func stopSession() {
         sessionQueue.async {
             self.wantsSessionRunning = false
+            self.setCaptureReady(false)
             self.startAttempt = 0
             self.pendingStartRetry?.cancel()
             self.pendingStartRetry = nil
@@ -139,6 +151,7 @@ class CameraManager: NSObject, ObservableObject {
         }
 
         if !isConfigured {
+            setCaptureReady(false)
             isConfigured = configureSession()
             guard isConfigured else {
                 os_log("[Digicam] configureIfNeededAndStart — configuration failed", log: cameraLog, type: .error)
@@ -151,9 +164,11 @@ class CameraManager: NSObject, ObservableObject {
         guard !session.isRunning else {
             os_log("[Digicam] configureIfNeededAndStart — already running, skip", log: cameraLog, type: .debug)
             startAttempt = 0
+            markCaptureReadyIfPossible()
             return
         }
 
+        setCaptureReady(false)
         startAttempt += 1
         os_log("[Digicam] calling session.startRunning() attempt %{public}d", log: cameraLog, type: .debug, startAttempt)
         session.startRunning()
@@ -217,6 +232,7 @@ class CameraManager: NSObject, ObservableObject {
 
     private func scheduleStartRetry() {
         guard wantsSessionRunning, !session.isRunning else { return }
+        setCaptureReady(false)
         pendingStartRetry?.cancel()
         pendingStartRetry = nil
 
@@ -254,11 +270,17 @@ class CameraManager: NSObject, ObservableObject {
 
     // MARK: - Manual device configuration
 
-    private func configureDevice(_ device: AVCaptureDevice) {
+    private func configureDevice(_ device: AVCaptureDevice, completion: @escaping () -> Void) {
         os_log("[Digicam] configureDevice begin", log: cameraLog, type: .debug)
         do {
             try device.lockForConfiguration()
-            defer { device.unlockForConfiguration() }
+            var waitsForCustomExposure = false
+            defer {
+                device.unlockForConfiguration()
+                if !waitsForCustomExposure {
+                    completion()
+                }
+            }
 
             let ultraWideNativeEquivalent: CGFloat = 0.5
             let targetEquivalentZoom: CGFloat = 0.9
@@ -297,27 +319,46 @@ class CameraManager: NSObject, ObservableObject {
                                                     min: minDuration,
                                                     max: maxDuration)
 
+                waitsForCustomExposure = true
                 device.setExposureModeCustom(duration: clampedDuration, iso: clampedISO) { _ in
                     os_log("[Digicam] Exposure configured", log: cameraLog, type: .debug)
+                    completion()
                 }
             }
             os_log("[Digicam] configureDevice done", log: cameraLog, type: .debug)
         } catch {
             os_log("[Digicam] configureDevice error: %{public}@", log: cameraLog, type: .error,
                    error.localizedDescription)
+            completion()
+        }
+    }
+
+    private func markCaptureReadyIfPossible() {
+        guard wantsSessionRunning, session.isRunning else {
+            setCaptureReady(false)
+            return
+        }
+        setCaptureReady(true)
+    }
+
+    private func setCaptureReady(_ ready: Bool) {
+        guard isReadyForCapture != ready else { return }
+        isReadyForCapture = ready
+        DispatchQueue.main.async { [weak self] in
+            self?.isCaptureReady = ready
         }
     }
 
     // MARK: - Photo capture
 
     func capturePhoto() {
-        os_log("[Digicam] capturePhoto — isSessionRunning=%{public}d session.isRunning=%{public}d",
-               log: cameraLog, type: .debug, isSessionRunning ? 1 : 0, session.isRunning ? 1 : 0)
+        os_log("[Digicam] capturePhoto — isSessionRunning=%{public}d isCaptureReady=%{public}d session.isRunning=%{public}d",
+               log: cameraLog, type: .debug, isSessionRunning ? 1 : 0, isCaptureReady ? 1 : 0, session.isRunning ? 1 : 0)
 
         sessionQueue.async { [weak self] in
             guard let self else { return }
-            guard self.session.isRunning else {
-                os_log("[Digicam] capturePhoto ignored — session not running; requesting start", log: cameraLog, type: .error)
+            guard self.session.isRunning, self.isReadyForCapture else {
+                os_log("[Digicam] capturePhoto ignored — capture pipeline not ready; requesting start", log: cameraLog, type: .error)
                 self.wantsSessionRunning = true
                 self.configureIfNeededAndStart()
                 return
