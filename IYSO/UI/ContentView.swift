@@ -2,7 +2,7 @@ import SwiftUI
 
 private enum CameraLayout {
     static let previewTopInset: CGFloat = 152
-    static let shutterBottomInset: CGFloat = 172
+    static let shutterBottomInset: CGFloat = 156
 }
 
 struct CameraView: View {
