@@ -110,6 +110,15 @@ struct AppRootView: View {
         .onChange(of: appState.activeTab) { _ in
             syncCameraSession()
         }
+        .onChange(of: camera.isSessionRunning) { isRunning in
+            // Activate shields only after the camera session is confirmed running.
+            // This decouples ManagedSettingsStore IPC from session.startRunning(),
+            // which fixes a Release-only race where mediaserverd receives a restriction
+            // registration while mid-startup, interrupting the session before it opens.
+            if isRunning && appState.isIYSOMode && hasCompletedOnboarding {
+                IYSOStateManager.shared.activateShields()
+            }
+        }
         .onChange(of: hasCompletedOnboarding) { completed in
             if completed {
                 openInDefaultCameraMode()

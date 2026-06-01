@@ -38,6 +38,22 @@ class CameraManager: NSObject, ObservableObject {
             }
             DispatchQueue.main.async { self.isSessionRunning = isRunning }
         }
+
+        // If anything interrupts the session (system pressure, Screen Time daemon IPC, etc.)
+        // restart it once the interruption clears. iOS does not auto-resume sessions.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleSessionInterruptionEnded),
+            name: .AVCaptureSessionInterruptionEnded,
+            object: session
+        )
+    }
+
+    @objc private func handleSessionInterruptionEnded(_ notification: Notification) {
+        sessionQueue.async { [weak self] in
+            guard let self, !self.session.isRunning else { return }
+            self.session.startRunning()
+        }
     }
 
     // MARK: - Session lifecycle
