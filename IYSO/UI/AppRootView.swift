@@ -30,6 +30,7 @@ struct AppRootView: View {
     @State private var isCurrentLoadingFirstLaunch = false
     @State private var hasAppeared = false
     @State private var launchLoadingDismissTask: Task<Void, Never>?
+    @State private var onboardingHitTestEnabled = true
 
     private var hidesBottomToggle: Bool {
         guard appState.activeTab == .gallery else { return false }
@@ -48,10 +49,12 @@ struct AppRootView: View {
                     library: library,
                     isLaunchLoadingComplete: !isShowingLaunchLoading
                 ) {
+                    onboardingHitTestEnabled = false
                     hasCompletedOnboarding = true
                     library.refreshAuthorizationStatusAndLoadIfAuthorized()
                 }
                 .environmentObject(appBlocking)
+                .allowsHitTesting(onboardingHitTestEnabled)
                 .transition(.opacity)
                 .zIndex(1000)
             }

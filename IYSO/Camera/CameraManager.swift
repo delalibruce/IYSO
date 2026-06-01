@@ -16,6 +16,9 @@ class CameraManager: NSObject, ObservableObject {
     private let photoOutput = AVCapturePhotoOutput()
     private var activeCaptureProcessor: PhotoCaptureProcessor?
     private var isConfigured = false
+    /// Holds the capture device between configureSession() and the first KVO-confirmed
+    /// isRunning=true event. Cleared after configureDevice() fires so it only runs once.
+    private var pendingConfigureDevice: AVCaptureDevice?
     private var sessionRunningObservation: NSKeyValueObservation?
     private static let captureFileNameCountersKey = "digicam.captureFileNameCounters"
 
@@ -26,6 +29,13 @@ class CameraManager: NSObject, ObservableObject {
         // can miss the state change due to thread timing on first launch.
         sessionRunningObservation = session.observe(\.isRunning, options: [.new]) { [weak self] _, change in
             guard let self, let isRunning = change.newValue else { return }
+            if isRunning, let device = self.pendingConfigureDevice {
+                // KVO fires on AVFoundation's internal thread once the session is truly
+                // running — this is the correct place to apply device settings so that
+                // setExposureModeCustom doesn't race against startRunning() on first launch.
+                self.pendingConfigureDevice = nil
+                self.sessionQueue.async { self.configureDevice(device) }
+            }
             DispatchQueue.main.async { self.isSessionRunning = isRunning }
         }
     }
@@ -108,8 +118,9 @@ class CameraManager: NSObject, ObservableObject {
 
         session.commitConfiguration()
 
-        // Device configuration must happen after session is committed
-        configureDevice(device)
+        // Store device for post-start configuration — applied in KVO handler once
+        // isRunning=true is confirmed, so setExposureModeCustom doesn't race startRunning().
+        pendingConfigureDevice = device
     }
 
     private func discoverUltraWideCamera() -> AVCaptureDevice? {
