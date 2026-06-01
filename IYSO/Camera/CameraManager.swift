@@ -18,14 +18,21 @@ class CameraManager: NSObject, ObservableObject {
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
     private let filenameQueue = DispatchQueue(label: "camera.filename.queue")
     private let photoOutput = AVCapturePhotoOutput()
-    private var activeCaptureProcessor: PhotoCaptureProcessor?
+    private var activeCaptureProcessors: [Int64: PhotoCaptureProcessor] = [:]
+    private var activeVideoDevice: AVCaptureDevice?
     private var isConfigured = false
     private var pendingConfigureDevice: AVCaptureDevice?
     private var wantsSessionRunning = false
     private var isReadyForCapture = false
+    private var hasConfiguredDeviceForCurrentStart = false
+    private var hasPreparedPhotoOutputForCurrentStart = false
+    private var isPhotoOutputReadyForRequests = true
+    private var isPhotoCaptureInProgress = false
+    private var photoPreparationGeneration = 0
     private var startAttempt = 0
     private var pendingStartRetry: DispatchWorkItem?
     private var sessionRunningObservation: NSKeyValueObservation?
+    private var captureReadinessObservation: NSKeyValueObservation?
     private static let captureFileNameCountersKey = "digicam.captureFileNameCounters"
     private static let startRetryDelays: [TimeInterval] = [0.35, 0.85, 1.5]
 
@@ -45,10 +52,12 @@ class CameraManager: NSObject, ObservableObject {
                         self.pendingConfigureDevice = nil
                         self.configureDevice(device) { [weak self] in
                             self?.sessionQueue.async {
+                                self?.hasConfiguredDeviceForCurrentStart = true
                                 self?.markCaptureReadyIfPossible()
                             }
                         }
                     } else {
+                        self.hasConfiguredDeviceForCurrentStart = true
                         self.markCaptureReadyIfPossible()
                     }
                 } else if self.wantsSessionRunning {
@@ -59,6 +68,19 @@ class CameraManager: NSObject, ObservableObject {
                 }
             }
             DispatchQueue.main.async { self.isSessionRunning = isRunning }
+        }
+
+        if #available(iOS 17.0, macOS 14.0, *) {
+            captureReadinessObservation = photoOutput.observe(\.captureReadiness, options: [.initial, .new]) { [weak self] _, change in
+                guard let self, let readiness = change.newValue else { return }
+                os_log("[Digicam] photoOutput.captureReadiness → %{public}ld",
+                       log: cameraLog, type: .debug,
+                       readiness.rawValue)
+                self.sessionQueue.async {
+                    self.isPhotoOutputReadyForRequests = readiness == .ready
+                    self.markCaptureReadyIfPossible()
+                }
+            }
         }
 
         NotificationCenter.default.addObserver(
@@ -128,6 +150,12 @@ class CameraManager: NSObject, ObservableObject {
         sessionQueue.async {
             self.wantsSessionRunning = false
             self.setCaptureReady(false)
+            self.hasConfiguredDeviceForCurrentStart = false
+            self.hasPreparedPhotoOutputForCurrentStart = false
+            self.isPhotoOutputReadyForRequests = false
+            self.isPhotoCaptureInProgress = false
+            self.activeCaptureProcessors.removeAll()
+            self.photoPreparationGeneration += 1
             self.startAttempt = 0
             self.pendingStartRetry?.cancel()
             self.pendingStartRetry = nil
@@ -169,6 +197,7 @@ class CameraManager: NSObject, ObservableObject {
         }
 
         setCaptureReady(false)
+        prepareForNextSessionStart()
         startAttempt += 1
         os_log("[Digicam] calling session.startRunning() attempt %{public}d", log: cameraLog, type: .debug, startAttempt)
         session.startRunning()
@@ -224,10 +253,47 @@ class CameraManager: NSObject, ObservableObject {
         session.commitConfiguration()
         os_log("[Digicam] configureSession committed", log: cameraLog, type: .debug)
 
-        // Store device for post-start configuration via KVO handler so setExposureModeCustom
-        // doesn't run before the session is confirmed running.
+        activeVideoDevice = device
         pendingConfigureDevice = device
         return true
+    }
+
+    private func prepareForNextSessionStart() {
+        hasConfiguredDeviceForCurrentStart = false
+        hasPreparedPhotoOutputForCurrentStart = false
+        if #available(iOS 17.0, macOS 14.0, *) {
+            isPhotoOutputReadyForRequests = photoOutput.captureReadiness == .ready
+        } else {
+            isPhotoOutputReadyForRequests = true
+        }
+
+        if let device = activeVideoDevice {
+            // Apply device tuning after the session is confirmed running.
+            pendingConfigureDevice = device
+        } else {
+            hasConfiguredDeviceForCurrentStart = true
+            pendingConfigureDevice = nil
+        }
+
+        let preparedSettings = makePhotoSettings()
+        photoPreparationGeneration += 1
+        let preparationGeneration = photoPreparationGeneration
+        os_log("[Digicam] preparing photo output for first capture", log: cameraLog, type: .debug)
+        photoOutput.setPreparedPhotoSettingsArray([preparedSettings]) { [weak self] prepared, error in
+            self?.sessionQueue.async {
+                guard self?.photoPreparationGeneration == preparationGeneration else { return }
+                if let error {
+                    os_log("[Digicam] photo output preparation failed: %{public}@",
+                           log: cameraLog, type: .error,
+                           error.localizedDescription)
+                }
+                self?.hasPreparedPhotoOutputForCurrentStart = prepared
+                os_log("[Digicam] photo output prepared=%{public}d",
+                       log: cameraLog, type: .debug,
+                       prepared ? 1 : 0)
+                self?.markCaptureReadyIfPossible()
+            }
+        }
     }
 
     private func scheduleStartRetry() {
@@ -274,12 +340,9 @@ class CameraManager: NSObject, ObservableObject {
         os_log("[Digicam] configureDevice begin", log: cameraLog, type: .debug)
         do {
             try device.lockForConfiguration()
-            var waitsForCustomExposure = false
             defer {
                 device.unlockForConfiguration()
-                if !waitsForCustomExposure {
-                    completion()
-                }
+                completion()
             }
 
             let ultraWideNativeEquivalent: CGFloat = 0.5
@@ -301,29 +364,16 @@ class CameraManager: NSObject, ObservableObject {
                 device.focusMode = .autoFocus
             }
 
-            if device.isWhiteBalanceModeSupported(.locked) {
-                device.whiteBalanceMode = .locked
+            if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+                device.whiteBalanceMode = .continuousAutoWhiteBalance
+            } else if device.isWhiteBalanceModeSupported(.autoWhiteBalance) {
+                device.whiteBalanceMode = .autoWhiteBalance
             }
 
-            if device.isExposureModeSupported(.custom) {
-                let requestedISO: Float = 54.0
-                let requestedDuration = CMTime(value: 1, timescale: 125)
-
-                let minISO = device.activeFormat.minISO
-                let maxISO = device.activeFormat.maxISO
-                let clampedISO = min(max(requestedISO, minISO), maxISO)
-
-                let minDuration = device.activeFormat.minExposureDuration
-                let maxDuration = device.activeFormat.maxExposureDuration
-                let clampedDuration = CMTimeClamped(requestedDuration,
-                                                    min: minDuration,
-                                                    max: maxDuration)
-
-                waitsForCustomExposure = true
-                device.setExposureModeCustom(duration: clampedDuration, iso: clampedISO) { _ in
-                    os_log("[Digicam] Exposure configured", log: cameraLog, type: .debug)
-                    completion()
-                }
+            if device.isExposureModeSupported(.continuousAutoExposure) {
+                device.exposureMode = .continuousAutoExposure
+            } else if device.isExposureModeSupported(.autoExpose) {
+                device.exposureMode = .autoExpose
             }
             os_log("[Digicam] configureDevice done", log: cameraLog, type: .debug)
         } catch {
@@ -334,7 +384,12 @@ class CameraManager: NSObject, ObservableObject {
     }
 
     private func markCaptureReadyIfPossible() {
-        guard wantsSessionRunning, session.isRunning else {
+        guard wantsSessionRunning,
+              session.isRunning,
+              hasConfiguredDeviceForCurrentStart,
+              hasPreparedPhotoOutputForCurrentStart,
+              isPhotoOutputReadyForRequests,
+              !isPhotoCaptureInProgress else {
             setCaptureReady(false)
             return
         }
@@ -364,21 +419,40 @@ class CameraManager: NSObject, ObservableObject {
                 return
             }
 
-            let settings = AVCapturePhotoSettings()
-            settings.isHighResolutionPhotoEnabled = false
-            settings.photoQualityPrioritization = .speed
-
-            if let flashMode = self.preferredFlashMode() {
-                settings.flashMode = flashMode
+            guard !self.isPhotoCaptureInProgress else {
+                os_log("[Digicam] capturePhoto ignored — capture already in progress", log: cameraLog, type: .debug)
+                return
             }
 
-            let processor = PhotoCaptureProcessor { [weak self] data in
-                guard let self, let photoData = data else { return }
+            let settings = self.makePhotoSettings()
+            let processor = PhotoCaptureProcessor(settingsUniqueID: settings.uniqueID) { [weak self] data in
+                guard let self else { return }
+                guard let photoData = data else { return }
                 self.saveToPhotoLibrary(photoData)
+            } completionHandler: { [weak self, settingsID = settings.uniqueID] in
+                self?.sessionQueue.async { [weak self] in
+                    self?.isPhotoCaptureInProgress = false
+                    self?.activeCaptureProcessors[settingsID] = nil
+                    self?.markCaptureReadyIfPossible()
+                }
             }
-            self.activeCaptureProcessor = processor
+            self.isPhotoCaptureInProgress = true
+            self.setCaptureReady(false)
+            self.activeCaptureProcessors[settings.uniqueID] = processor
             self.photoOutput.capturePhoto(with: settings, delegate: processor)
         }
+    }
+
+    private func makePhotoSettings() -> AVCapturePhotoSettings {
+        let settings = AVCapturePhotoSettings()
+        settings.isHighResolutionPhotoEnabled = false
+        settings.photoQualityPrioritization = .speed
+
+        if let flashMode = preferredFlashMode() {
+            settings.flashMode = flashMode
+        }
+
+        return settings
     }
 
     // MARK: - Save
@@ -452,17 +526,10 @@ class CameraManager: NSObject, ObservableObject {
     }()
 
     private func preferredFlashMode() -> AVCaptureDevice.FlashMode? {
-        if photoOutput.supportedFlashModes.contains(.on) {
-            return .on
+        if activeVideoDevice?.isFlashAvailable == true,
+           photoOutput.supportedFlashModes.contains(.auto) {
+            return .auto
         }
         return nil
     }
-}
-
-// MARK: - CMTime helpers
-
-private func CMTimeClamped(_ time: CMTime, min minTime: CMTime, max maxTime: CMTime) -> CMTime {
-    if CMTimeCompare(time, minTime) < 0 { return minTime }
-    if CMTimeCompare(time, maxTime) > 0 { return maxTime }
-    return time
 }

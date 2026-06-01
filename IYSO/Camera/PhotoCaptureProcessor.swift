@@ -2,10 +2,18 @@ import AVFoundation
 
 /// Single-use delegate that handles one AVCapturePhoto result.
 final class PhotoCaptureProcessor: NSObject, AVCapturePhotoCaptureDelegate {
-    private let completion: (Data?) -> Void
+    let settingsUniqueID: Int64
+    private let photoDataHandler: (Data?) -> Void
+    private let completionHandler: () -> Void
+    private var hasDeliveredPhotoData = false
+    private var hasFinishedCapture = false
 
-    init(completion: @escaping (Data?) -> Void) {
-        self.completion = completion
+    init(settingsUniqueID: Int64,
+         photoDataHandler: @escaping (Data?) -> Void,
+         completionHandler: @escaping () -> Void) {
+        self.settingsUniqueID = settingsUniqueID
+        self.photoDataHandler = photoDataHandler
+        self.completionHandler = completionHandler
     }
 
     func photoOutput(_ output: AVCapturePhotoOutput,
@@ -13,16 +21,38 @@ final class PhotoCaptureProcessor: NSObject, AVCapturePhotoCaptureDelegate {
                      error: Error?) {
         if let error {
             print("[Digicam] Capture error: \(error)")
-            completion(nil)
+            deliverPhotoData(nil)
             return
         }
 
         guard let data = photo.fileDataRepresentation() else {
             print("[Digicam] Failed to read photo data representation")
-            completion(nil)
+            deliverPhotoData(nil)
             return
         }
 
-        completion(data)
+        deliverPhotoData(data)
+    }
+
+    func photoOutput(_ output: AVCapturePhotoOutput,
+                     didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings,
+                     error: Error?) {
+        if let error {
+            print("[Digicam] Capture finished with error: \(error)")
+            deliverPhotoData(nil)
+        }
+        finishCapture()
+    }
+
+    private func deliverPhotoData(_ data: Data?) {
+        guard !hasDeliveredPhotoData else { return }
+        hasDeliveredPhotoData = true
+        photoDataHandler(data)
+    }
+
+    private func finishCapture() {
+        guard !hasFinishedCapture else { return }
+        hasFinishedCapture = true
+        completionHandler()
     }
 }
