@@ -11,6 +11,7 @@ struct CameraView: View {
 
     var onExitIYSOTapped: (() -> Void)?
     private let shutterButtonSize: CGFloat = 82
+    @State private var isActive = false
 
     var body: some View {
         GeometryReader { geo in
@@ -33,12 +34,20 @@ struct CameraView: View {
         }
         .ignoresSafeArea()
         .onAppear {
-            // Keep camera readiness local to this screen so onboarding/tab timing
-            // changes cannot leave the shutter disabled.
+            isActive = true
             camera.startSession()
         }
         .onDisappear {
+            isActive = false
             camera.stopSession()
+        }
+        .onChange(of: camera.isSessionRunning) { isRunning in
+            // Reactive safety net: if the session stops for any reason while this
+            // view is visible (runtime error, silent startRunning() failure, etc.),
+            // restart it. The isActive guard prevents a restart when the view is
+            // intentionally disappearing (going to gallery).
+            guard isActive, !isRunning else { return }
+            camera.startSession()
         }
     }
 

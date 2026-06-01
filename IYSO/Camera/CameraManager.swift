@@ -1,6 +1,9 @@
 import AVFoundation
 import Photos
 import UIKit
+import os.log
+
+private let cameraLog = OSLog(subsystem: "app.iyso", category: "camera")
 
 class CameraManager: NSObject, ObservableObject {
 
@@ -16,42 +19,52 @@ class CameraManager: NSObject, ObservableObject {
     private let photoOutput = AVCapturePhotoOutput()
     private var activeCaptureProcessor: PhotoCaptureProcessor?
     private var isConfigured = false
-    /// Holds the capture device between configureSession() and the first KVO-confirmed
-    /// isRunning=true event. Cleared after configureDevice() fires so it only runs once.
     private var pendingConfigureDevice: AVCaptureDevice?
     private var sessionRunningObservation: NSKeyValueObservation?
     private static let captureFileNameCountersKey = "digicam.captureFileNameCounters"
 
     override init() {
         super.init()
-        // KVO is the only reliable way to track session running state across threads.
-        // Reading session.isRunning after startRunning() via DispatchQueue.main.async
-        // can miss the state change due to thread timing on first launch.
+
         sessionRunningObservation = session.observe(\.isRunning, options: [.new]) { [weak self] _, change in
             guard let self, let isRunning = change.newValue else { return }
+            os_log("[Digicam] KVO session.isRunning → %{public}d", log: cameraLog, type: .debug, isRunning ? 1 : 0)
             if isRunning, let device = self.pendingConfigureDevice {
-                // KVO fires on AVFoundation's internal thread once the session is truly
-                // running — this is the correct place to apply device settings so that
-                // setExposureModeCustom doesn't race against startRunning() on first launch.
                 self.pendingConfigureDevice = nil
                 self.sessionQueue.async { self.configureDevice(device) }
             }
             DispatchQueue.main.async { self.isSessionRunning = isRunning }
         }
 
-        // If anything interrupts the session (system pressure, Screen Time daemon IPC, etc.)
-        // restart it once the interruption clears. iOS does not auto-resume sessions.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleSessionInterruptionEnded),
             name: .AVCaptureSessionInterruptionEnded,
             object: session
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleSessionRuntimeError),
+            name: .AVCaptureSessionRuntimeError,
+            object: session
+        )
     }
 
     @objc private func handleSessionInterruptionEnded(_ notification: Notification) {
+        os_log("[Digicam] Session interruption ended — restarting", log: cameraLog, type: .debug)
         sessionQueue.async { [weak self] in
             guard let self, !self.session.isRunning else { return }
+            self.session.startRunning()
+        }
+    }
+
+    @objc private func handleSessionRuntimeError(_ notification: Notification) {
+        let error = notification.userInfo?[AVCaptureSessionErrorKey] as? NSError
+        os_log("[Digicam] Session runtime error: %{public}@ — restarting", log: cameraLog, type: .error,
+               error?.localizedDescription ?? "unknown")
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
             self.session.startRunning()
         }
     }
@@ -61,17 +74,18 @@ class CameraManager: NSObject, ObservableObject {
     func startSession() {
         #if DEBUG
         if DebugOverrides.forceDeniedCamera || DebugOverrides.suppressPermissionPrompts {
-            print("[Digicam] Debug: suppressing camera permission prompt/session start")
             return
         }
         #endif
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        os_log("[Digicam] startSession — auth status: %{public}d", log: cameraLog, type: .debug, status.rawValue)
+        switch status {
         case .authorized:
             sessionQueue.async { self.configureIfNeededAndStart() }
         case .notDetermined:
-            print("[Digicam] Camera permission not yet granted — request during onboarding")
+            os_log("[Digicam] startSession — camera permission notDetermined", log: cameraLog, type: .debug)
         default:
-            print("[Digicam] Camera access not available")
+            os_log("[Digicam] startSession — camera access unavailable (%{public}d)", log: cameraLog, type: .error, status.rawValue)
         }
     }
 
@@ -79,30 +93,48 @@ class CameraManager: NSObject, ObservableObject {
         sessionQueue.async {
             guard self.session.isRunning else { return }
             self.session.stopRunning()
-            // isSessionRunning is updated via KVO on session.isRunning
         }
     }
 
     // MARK: - Session setup
 
     private func configureIfNeededAndStart() {
+        os_log("[Digicam] configureIfNeededAndStart — isConfigured=%{public}d isRunning=%{public}d",
+               log: cameraLog, type: .debug, isConfigured ? 1 : 0, session.isRunning ? 1 : 0)
+
         if !isConfigured {
             configureSession()
             isConfigured = true
         }
 
-        guard !session.isRunning else { return }
+        guard !session.isRunning else {
+            os_log("[Digicam] configureIfNeededAndStart — already running, skip", log: cameraLog, type: .debug)
+            return
+        }
 
+        os_log("[Digicam] calling session.startRunning()", log: cameraLog, type: .debug)
         session.startRunning()
-        // isSessionRunning is updated via KVO on session.isRunning
+        os_log("[Digicam] session.startRunning() returned — isRunning=%{public}d",
+               log: cameraLog, type: .debug, session.isRunning ? 1 : 0)
+
+        // startRunning() is synchronous but can silently fail on first launch in TestFlight
+        // when system daemons (e.g. parentalcontrolsd) are simultaneously accessing
+        // mediaserverd for first-run setup. Retry once immediately if the session didn't open.
+        if !session.isRunning {
+            os_log("[Digicam] startRunning() silent failure — retrying", log: cameraLog, type: .error)
+            session.startRunning()
+            os_log("[Digicam] retry startRunning() — isRunning=%{public}d",
+                   log: cameraLog, type: .debug, session.isRunning ? 1 : 0)
+        }
     }
 
     private func configureSession() {
+        os_log("[Digicam] configureSession begin", log: cameraLog, type: .debug)
         session.beginConfiguration()
         session.sessionPreset = .photo
 
         guard let device = discoverUltraWideCamera() else {
-            print("[Digicam] No camera device found")
+            os_log("[Digicam] configureSession — no camera device found", log: cameraLog, type: .error)
             session.commitConfiguration()
             return
         }
@@ -110,22 +142,22 @@ class CameraManager: NSObject, ObservableObject {
         do {
             let input = try AVCaptureDeviceInput(device: device)
             guard session.canAddInput(input) else {
-                print("[Digicam] Cannot add camera input")
+                os_log("[Digicam] configureSession — cannot add input", log: cameraLog, type: .error)
                 session.commitConfiguration()
                 return
             }
             session.addInput(input)
         } catch {
-            print("[Digicam] Device input error: \(error)")
+            os_log("[Digicam] configureSession — input error: %{public}@", log: cameraLog, type: .error,
+                   error.localizedDescription)
             session.commitConfiguration()
             return
         }
 
-        // Prefer speed over quality to reduce computational photography pipeline
         photoOutput.maxPhotoQualityPrioritization = .speed
 
         guard session.canAddOutput(photoOutput) else {
-            print("[Digicam] Cannot add photo output")
+            os_log("[Digicam] configureSession — cannot add output", log: cameraLog, type: .error)
             session.commitConfiguration()
             return
         }
@@ -133,9 +165,10 @@ class CameraManager: NSObject, ObservableObject {
         photoOutput.isHighResolutionCaptureEnabled = false
 
         session.commitConfiguration()
+        os_log("[Digicam] configureSession committed", log: cameraLog, type: .debug)
 
-        // Store device for post-start configuration — applied in KVO handler once
-        // isRunning=true is confirmed, so setExposureModeCustom doesn't race startRunning().
+        // Store device for post-start configuration via KVO handler so setExposureModeCustom
+        // doesn't run before the session is confirmed running.
         pendingConfigureDevice = device
     }
 
@@ -147,23 +180,22 @@ class CameraManager: NSObject, ObservableObject {
         )
 
         if let device = discovery.devices.first {
-            print("[Digicam] Camera: \(device.localizedName)")
+            os_log("[Digicam] Camera: %{public}@", log: cameraLog, type: .debug, device.localizedName)
             return device
         }
 
-        // Simulator fallback — physical device should always find the ultra-wide
-        print("[Digicam] Ultra-wide not found, falling back to default (simulator?)")
+        os_log("[Digicam] Ultra-wide not found, falling back to default", log: cameraLog, type: .debug)
         return AVCaptureDevice.default(for: .video)
     }
 
     // MARK: - Manual device configuration
 
     private func configureDevice(_ device: AVCaptureDevice) {
+        os_log("[Digicam] configureDevice begin", log: cameraLog, type: .debug)
         do {
             try device.lockForConfiguration()
             defer { device.unlockForConfiguration() }
 
-            // Zoom: 1.0 on ultra-wide ≈ 0.5x equivalent; ~1.8 ≈ 0.9x equivalent
             let ultraWideNativeEquivalent: CGFloat = 0.5
             let targetEquivalentZoom: CGFloat = 0.9
             let requestedZoomFactor = targetEquivalentZoom / ultraWideNativeEquivalent
@@ -173,27 +205,20 @@ class CameraManager: NSObject, ObservableObject {
             )
             device.videoZoomFactor = clampedZoomFactor
 
-            // Focus: keep autofocus active so close/far subjects stay sharp.
             if device.isFocusModeSupported(.continuousAutoFocus) {
                 device.focusMode = .continuousAutoFocus
                 if device.isFocusPointOfInterestSupported {
                     device.focusPointOfInterest = CGPoint(x: 0.5, y: 0.5)
                 }
                 device.isSubjectAreaChangeMonitoringEnabled = true
-                print("[Digicam] Focus configured: continuous auto-focus")
             } else if device.isFocusModeSupported(.autoFocus) {
                 device.focusMode = .autoFocus
-                print("[Digicam] Focus configured: single auto-focus")
-            } else {
-                print("[Digicam] Auto-focus not supported on this device")
             }
 
-            // White balance: locked (prevent auto-adaptation)
             if device.isWhiteBalanceModeSupported(.locked) {
                 device.whiteBalanceMode = .locked
             }
 
-            // Exposure: manual ISO 54, shutter 1/125s — clamped to hardware limits
             if device.isExposureModeSupported(.custom) {
                 let requestedISO: Float = 54.0
                 let requestedDuration = CMTime(value: 1, timescale: 125)
@@ -208,24 +233,22 @@ class CameraManager: NSObject, ObservableObject {
                                                     min: minDuration,
                                                     max: maxDuration)
 
-                print("[Digicam] ISO range \(minISO)–\(maxISO) → applying \(clampedISO)")
-                print("[Digicam] Duration range \(minDuration.seconds)s–\(maxDuration.seconds)s → applying \(clampedDuration.seconds)s")
-
                 device.setExposureModeCustom(duration: clampedDuration, iso: clampedISO) { _ in
-                    print("[Digicam] Exposure configured")
+                    os_log("[Digicam] Exposure configured", log: cameraLog, type: .debug)
                 }
-            } else {
-                print("[Digicam] Custom exposure not supported on this device")
             }
-
+            os_log("[Digicam] configureDevice done", log: cameraLog, type: .debug)
         } catch {
-            print("[Digicam] Device configuration error: \(error)")
+            os_log("[Digicam] configureDevice error: %{public}@", log: cameraLog, type: .error,
+                   error.localizedDescription)
         }
     }
 
     // MARK: - Photo capture
 
     func capturePhoto() {
+        os_log("[Digicam] capturePhoto — isSessionRunning=%{public}d session.isRunning=%{public}d",
+               log: cameraLog, type: .debug, isSessionRunning ? 1 : 0, session.isRunning ? 1 : 0)
         guard isSessionRunning else { return }
 
         sessionQueue.async { [weak self] in
@@ -237,8 +260,6 @@ class CameraManager: NSObject, ObservableObject {
 
             if let flashMode = self.preferredFlashMode() {
                 settings.flashMode = flashMode
-            } else {
-                print("[Digicam] Flash not supported on this device/simulator")
             }
 
             let processor = PhotoCaptureProcessor { [weak self] data in
@@ -255,7 +276,6 @@ class CameraManager: NSObject, ObservableObject {
     private func saveToPhotoLibrary(_ photoData: Data) {
         #if DEBUG
         if DebugOverrides.forceDeniedPhotos || DebugOverrides.suppressPermissionPrompts {
-            print("[Digicam] Debug: suppressing photo library permission prompt/save")
             return
         }
         #endif
@@ -264,7 +284,7 @@ class CameraManager: NSObject, ObservableObject {
 
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         guard status == .authorized || status == .limited else {
-            print("[Digicam] Photo library access not granted (status: \(status.rawValue)); enable Photos on Set up capture.")
+            os_log("[Digicam] Photo library not authorized (%{public}d)", log: cameraLog, type: .error, status.rawValue)
             return
         }
 
@@ -279,14 +299,14 @@ class CameraManager: NSObject, ObservableObject {
                 placeholderID = request.placeholderForCreatedAsset?.localIdentifier
             }, completionHandler: { success, error in
                 if let error {
-                    print("[Digicam] Save error: \(error)")
+                    os_log("[Digicam] Save error: %{public}@", log: cameraLog, type: .error,
+                           error.localizedDescription)
                     return
                 }
-                if !success {
-                    print("[Digicam] Save failed: unknown Photos error")
+                guard success else {
+                    os_log("[Digicam] Save failed: unknown error", log: cameraLog, type: .error)
                     return
                 }
-                print("[Digicam] Photo saved to library as \(fileName)")
                 DispatchQueue.main.async {
                     UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                 }
