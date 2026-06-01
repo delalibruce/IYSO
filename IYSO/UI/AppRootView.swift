@@ -189,7 +189,6 @@ struct AppRootView: View {
                             camera: camera,
                             onExitIYSOTapped: { appState.showExitIYSOModal = true }
                         )
-                        .id(hasCompletedOnboarding)
                     } else {
                         GalleryRootView(library: library)
                     }
